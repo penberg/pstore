@@ -1,0 +1,5 @@
+*.d
+*.o
+pstore
+test-pstore
+test-runner.c

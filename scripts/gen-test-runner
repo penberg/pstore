@@ -1,0 +1,14 @@
+#!/bin/sh
+
+grep -h "^void test_" *|sed -e "s/^void /extern void /g"|sed -e "s/(void)/(void);/g"
+
+echo \
+'
+int main(int argc, char *argv[])
+{'
+grep -h "^void test_" *|sed -e "s/^void /\t/g"|sed -e "s/(void)/();/g"
+
+echo \
+'
+	return 0;
+}'

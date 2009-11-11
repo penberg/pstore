@@ -1,0 +1,29 @@
+What is it?
+===========
+
+P-Store is a simple read-optimized database system. The command line tool 
+"pstore" implements two commands: "import" and "cat". The former can be used to
+convert a CSV file into a P-Store database and the latter can be used to
+examine contents of the database.
+
+The design of this system is loosely based on C-Store [1] which is another Open
+Source read-optimized database. The main idea is to store tabular data in
+column-order to improve read performance for special purpose workloads.
+
+P-Store is in very early stages so don't expect a whole lot from it.
+
+  [1] http://db.csail.mit.edu/projects/cstore/
+
+
+How can I try it out?
+=====================
+
+The first step is to create a database file. You can import a CSV file into a
+P-Store database with the following command:
+
+  $ pstore import dataset.csv dataset.out
+
+After that, you can use the "pstore cat" command to look into the imported
+database:
+
+  $ pstore cat dataset.out

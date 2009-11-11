@@ -1,0 +1,33 @@
+ToDo:
+
+	- CSV column type detection
+
+	- Floating point compression [2]
+
+	- Document data format in detail
+
+	- CSV fields with embedded commas (must be surrounded by double quotes)
+	  [1]
+
+	- CSV fields with double quote characters (must also be surrounded by
+	  double quotes) [1]
+
+	- Bit packing [3]
+
+	- Dictionary [3]
+
+	- Frame of reference (FOR) delta [3]
+
+	- Checksumming
+
+	- Variable length table and column names
+
+References:
+
+ [1] "The Comma Separated Value (CSV) File Format"
+	URL: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm
+
+ [2] "Fast and Efficient Compression of Floating-Point Data" (Lindstrom and
+	Isenburg 2006)
+
+ [3] "Performance Tradeoffs in Read-Optimized Databases" (Harizopoulos et al)
