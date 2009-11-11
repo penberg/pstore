@@ -16,7 +16,7 @@
 struct pstore_file_column {
 	char			name[COLUMN_NAME_LEN];
 	uint64_t		column_id;
-	uint8_t			type;
+	uint64_t		type;
 	uint64_t		f_offset;
 };
 
