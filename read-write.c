@@ -5,6 +5,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <string.h>
 #include <errno.h>
 
 /* Same as read(2) except that this function never returns EAGAIN or EINTR. */
@@ -83,13 +84,13 @@ ssize_t write_in_full(int fd, const void *buf, size_t count)
 void read_or_die(int fd, void *buf, size_t count)
 {
 	if (read_in_full(fd, buf, count) != count)
-		die("read_or_die");
+		die("read_or_die: %s", strerror(errno));
 }
 
 void write_or_die(int fd, const void *buf, size_t count)
 {
 	if (write_in_full(fd, buf, count) != count)
-		die("write_or_die");
+		die("write_or_die: %s", strerror(errno));
 }
 
 off64_t seek_or_die(int fd, off_t offset, int whence)
@@ -98,7 +99,7 @@ off64_t seek_or_die(int fd, off_t offset, int whence)
 
 	ret = lseek64(fd, offset, whence);
 	if (ret < 0)
-		die("lseek64");
+		die("lseek64: %s", strerror(errno));
 
 	return ret;
 }
