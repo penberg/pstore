@@ -53,6 +53,9 @@ PROGRAM := pstore
 
 COMPAT_OBJS =
 
+ifeq ($(uname_S),Darwin)
+	COMPAT_OBJS += compat/strndup.o
+endif
 ifeq ($(uname_S),SunOS)
 	COMPAT_OBJS += compat/strndup.o
 endif
