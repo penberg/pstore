@@ -2,7 +2,7 @@
 #include "pstore/compat.h"
 #include "pstore/csv.h"
 
-#define _GNU_SOURCE
+#define _GNU_SOURCE	/* for strndup() */
 #include <string.h>
 
 char *csv_field_value(char *s, unsigned long field_idx)

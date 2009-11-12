@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
 #include "pstore/column.h"
@@ -21,42 +19,32 @@ struct csv_iterator_state {
 	FILE		*input;
 };
 
+#define BUF_LEN	1024
+
 static void csv_iterator_begin(void *private)
 {
 	struct csv_iterator_state *iter = private;
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t nr;
+	char line[BUF_LEN];
 
 	rewind(iter->input);
 
 	/* Skip header row.  */
-	nr = getline(&line, &len, iter->input);
-	if (nr == -1)
-		die("getline");
-
-	free(line);
+	if (fgets(line, BUF_LEN, iter->input) == NULL)
+		die("fgets");
 }
 
 static void *csv_iterator_next(struct pstore_column *self, void *private)
 {
 	struct csv_iterator_state *iter = private;
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t nr;
+	char line[BUF_LEN];
 	char *s;
 
-	nr = getline(&line, &len, iter->input);
-	if (nr == -1) {
-		free(line);
+	if (fgets(line, BUF_LEN, iter->input) == NULL)
 		return NULL;
-	}
 
 	s = csv_field_value(line, self->column_id);
 	if (!s)
 		die("premature end of file");
-
-	free(line);
 
 	return s;
 }
@@ -73,15 +61,12 @@ static struct pstore_iterator csv_iterator = {
 
 static void pstore_table__import_columns(struct pstore_table *self, FILE *input)
 {
-	char *line = NULL;
-	size_t len = 0;
+	char line[BUF_LEN];
 	int field = 0;
-	ssize_t nr;
 	char *s;
 
-	nr = getline(&line, &len, input);
-	if (nr == -1)
-		die("getline");
+	if (fgets(line, BUF_LEN, input) == NULL)
+		die("fgets");
 
 	for (;;) {
 		struct pstore_column *column;
@@ -97,7 +82,6 @@ static void pstore_table__import_columns(struct pstore_table *self, FILE *input)
 		free(s);
 		field++;
 	}
-	free(line);
 }
 
 static void usage(void)

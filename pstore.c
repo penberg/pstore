@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include "pstore/builtins.h"
 #include "pstore/string.h"
 #include "pstore/core.h"
