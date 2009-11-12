@@ -1,3 +1,5 @@
+uname_S	:= $(shell sh -c 'uname -s 2>/dev/null || echo not')
+
 # External programs
 CC	:= gcc
 
@@ -47,6 +49,12 @@ endif
 export E Q
 
 # Project files
+COMPAT_OBJS =
+
+ifeq ($(uname_S),SunOS)
+	COMPAT_OBJS += compat/strndup.o
+endif
+
 PROGRAM		:= pstore
 OBJS :=		block.o			\
 		builtin-cat.o		\
@@ -59,6 +67,8 @@ OBJS :=		block.o			\
 		read-write.o		\
 		string.o		\
 		table.o
+
+OBJS += $(COMPAT_OBJS)
 
 DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 

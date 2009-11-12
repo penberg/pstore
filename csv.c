@@ -1,4 +1,5 @@
 #include "pstore/string.h"
+#include "pstore/compat.h"
 #include "pstore/csv.h"
 
 #define _GNU_SOURCE
