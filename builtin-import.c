@@ -102,9 +102,9 @@ int cmd_import(int argc, char *argv[])
 	if (argc != 4)
 		usage();
 
-	input = fopen(argv[2], "r");
+	input = fopen64(argv[2], "r");
 	if (input == NULL)
-		die("fopen: %s", strerror(errno));
+		die("fopen64: %s", strerror(errno));
 
 	output = open(argv[3], O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
 	if (output < 0)
