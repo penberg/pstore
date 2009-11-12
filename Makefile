@@ -32,7 +32,7 @@ EXTRA_WARNINGS += -Wstrict-prototypes
 EXTRA_WARNINGS += -Wdeclaration-after-statement
 
 # Compile flags
-CFLAGS	:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -Os
+CFLAGS	:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -O6
 
 # Output to current directory by default
 O =
