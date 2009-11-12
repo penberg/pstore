@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#define WRITEOUT_SIZE		(32 * 1024) /* 32 KB */
+
 #define COLUMN_NAME_LEN		32
 
 struct pstore_file_column {
@@ -73,18 +75,20 @@ void pstore_column__write(struct pstore_column *self, int fd)
 	write_or_die(fd, &f_column, sizeof(f_column));
 }
 
-void pstore_column__write_value(struct pstore_column *self, int fd, void *p, size_t len)
+static void pstore_column__write_value(struct pstore_column *self, void *buffer, void *p, size_t len)
 {
 	if (self->type != VALUE_TYPE_STRING)
 		die("unknown type");
 
-	write_or_die(fd, p, len);
+	memcpy(buffer, p, len);
 }
 
 void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private)
 {
 	struct pstore_file_block f_block;
 	uint64_t start_off, end_off;
+	char buffer[WRITEOUT_SIZE];
+	size_t buffer_len = 0;
 	uint64_t size;
 	char *s;
 
@@ -92,9 +96,19 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 
 	start_off = seek_or_die(fd, sizeof(f_block), SEEK_CUR);
 	while ((s = iter->next(self, private)) != NULL) {
-		pstore_column__write_value(self, fd, s, strlen(s) + 1);
+		size_t len = strlen(s) + 1;
+
+		if (buffer_len + len > WRITEOUT_SIZE) {
+			write_or_die(fd, buffer, buffer_len);
+			buffer_len = 0;
+		}
+		pstore_column__write_value(self, buffer + buffer_len, s, len);
+		buffer_len += len;
 		free(s);
 	}
+	if (buffer_len > 0)
+		write_or_die(fd, buffer, buffer_len);
+
 	end_off = seek_or_die(fd, 0, SEEK_CUR);
 
 	iter->end(private);
