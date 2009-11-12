@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 
@@ -103,11 +104,11 @@ int cmd_import(int argc, char *argv[])
 
 	input = fopen(argv[2], "r");
 	if (input == NULL)
-		exit(EXIT_FAILURE);
+		die("fopen: %s", strerror(errno));
 
 	output = open(argv[3], O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
 	if (output < 0)
-		exit(EXIT_FAILURE);
+		die("open: %s", strerror(errno));
 
 	header	= pstore_header__new();
 	table	= pstore_table__new(argv[3], 0);
