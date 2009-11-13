@@ -68,6 +68,7 @@ OBJS += builtin-cat.o
 OBJS += builtin-import.o
 OBJS += column.o
 OBJS += csv.o
+OBJS += mmap-window.o
 OBJS += die.o
 OBJS += header.o
 OBJS += pstore.o

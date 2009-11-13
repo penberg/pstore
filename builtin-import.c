@@ -1,3 +1,4 @@
+#include "pstore/mmap-window.h"
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
 #include "pstore/column.h"
@@ -18,41 +19,78 @@
 #include <stdio.h>
 
 struct csv_iterator_state {
-	FILE		*input;
+	int			fd;
+	off64_t			file_size;
+
+	struct mmap_window	*mmap;
+	char			*pos;
 };
+
+static char *csv_iterator_next_line(struct csv_iterator_state *iter)
+{
+	char *start;
+
+restart:
+	start = iter->pos;
+
+	while (*iter->pos != '\n') {
+		iter->pos++;
+
+		if (!mmap_window__in_window(iter->mmap, iter->pos))
+			goto slide_mmap;
+	}
+	iter->pos++;
+out:
+	return iter->pos;
+
+slide_mmap:
+	if (!mmap_window__in_region(iter->mmap, iter->pos))
+		return iter->pos = NULL;
+
+	iter->pos = mmap_window__slide(iter->mmap, start);
+	if (iter->pos == NULL)
+		goto out;
+
+	goto restart;
+}
 
 #define BUF_LEN	1024
 
 static void csv_iterator_begin(void *private)
 {
 	struct csv_iterator_state *iter = private;
-	char line[BUF_LEN];
 
-	rewind(iter->input);
+	iter->mmap = mmap_window__map(iter->fd, 0, iter->file_size);
 
-	/* Skip header row.  */
-	if (fgets(line, BUF_LEN, iter->input) == NULL)
-		die("fgets");
+	iter->pos = mmap_window__start(iter->mmap);
+
+	/* Skip header row. */
+	if (!csv_iterator_next_line(iter))
+		die("premature end of file");
 }
 
 static void *csv_iterator_next(struct pstore_column *self, void *private)
 {
 	struct csv_iterator_state *iter = private;
-	char line[BUF_LEN];
 	char *s;
 
-	if (fgets(line, BUF_LEN, iter->input) == NULL)
+	if (!mmap_window__in_region(iter->mmap, iter->pos))
 		return NULL;
 
-	s = csv_field_value(line, self->column_id);
+	s = csv_field_value(iter->pos, self->column_id);
 	if (!s)
 		die("premature end of file");
+
+	csv_iterator_next_line(iter);
 
 	return s;
 }
 
 static void csv_iterator_end(void *private)
 {
+	struct csv_iterator_state *iter = private;
+
+	mmap_window__unmap(iter->mmap);	
 }
 
 static struct pstore_iterator csv_iterator = {
@@ -61,11 +99,16 @@ static struct pstore_iterator csv_iterator = {
 	.end		= csv_iterator_end,
 };
 
-static void pstore_table__import_columns(struct pstore_table *self, FILE *input)
+static void pstore_table__import_columns(struct pstore_table *self, const char *filename)
 {
 	char line[BUF_LEN];
 	int field = 0;
+	FILE *input;
 	char *s;
+
+	input = fopen64(filename, "r");
+	if (input == NULL)
+		die("fopen64: %s", strerror(errno));
 
 	if (fgets(line, BUF_LEN, input) == NULL)
 		die("fgets");
@@ -84,6 +127,7 @@ static void pstore_table__import_columns(struct pstore_table *self, FILE *input)
 		free(s);
 		field++;
 	}
+	fclose(input);
 }
 
 static void usage(void)
@@ -97,15 +141,18 @@ int cmd_import(int argc, char *argv[])
 	struct csv_iterator_state state;
 	struct pstore_header *header;
 	struct pstore_table *table;
-	FILE *input;
-	int output;
+	int input, output;
+	struct stat64 st;
 
 	if (argc != 4)
 		usage();
 
-	input = fopen64(argv[2], "r");
-	if (input == NULL)
-		die("fopen64: %s", strerror(errno));
+	input = open(argv[2], O_RDONLY|O_LARGEFILE);
+	if (input < 0)
+		die("open: %s\n", strerror(errno));
+
+	if (fstat64(input, &st) < 0)
+		die("fstat");
 
 	output = open(argv[3], O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
 	if (output < 0)
@@ -115,12 +162,13 @@ int cmd_import(int argc, char *argv[])
 	table	= pstore_table__new(argv[3], 0);
 
 	pstore_header__insert_table(header, table);
-	pstore_table__import_columns(table, input);
+	pstore_table__import_columns(table, argv[2]);
 
 	pstore_header__write(header, output);
 
 	state = (struct csv_iterator_state) {
-		.input	= input,
+		.fd		= input,
+		.file_size	= st.st_size,
 	};
 	pstore_table__import_values(table, output, &csv_iterator, &state);
 
@@ -133,7 +181,6 @@ int cmd_import(int argc, char *argv[])
 
 	pstore_header__delete(header);
 
-	fclose(input);
 	close(output);
 
 	return 0;
