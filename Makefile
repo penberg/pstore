@@ -15,13 +15,11 @@ EXTRA_WARNINGS += -Wshadow
 EXTRA_WARNINGS += -Winit-self
 EXTRA_WARNINGS += -Wpacked
 EXTRA_WARNINGS += -Wredundant-decls
-EXTRA_WARNINGS += -Wstack-protector
 EXTRA_WARNINGS += -Wstrict-aliasing=3
 EXTRA_WARNINGS += -Wswitch-default
 EXTRA_WARNINGS += -Wswitch-enum
 EXTRA_WARNINGS += -Wno-system-headers
 EXTRA_WARNINGS += -Wundef
-EXTRA_WARNINGS += -Wvolatile-register-var
 EXTRA_WARNINGS += -Wwrite-strings
 EXTRA_WARNINGS += -Wbad-function-cast
 EXTRA_WARNINGS += -Wmissing-declarations
