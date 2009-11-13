@@ -1,6 +1,7 @@
 #define _LARGEFILE64_SOURCE
 
 #include "pstore/read-write.h"
+#include "pstore/compat.h"
 #include "pstore/die.h"
 
 #include <sys/types.h>

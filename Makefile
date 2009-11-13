@@ -55,6 +55,8 @@ COMPAT_OBJS =
 ifeq ($(uname_S),Darwin)
 	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
 	COMPAT_OBJS += compat/strndup.o
+
+	CONFIG_OPTS += -DCONFIG_NEED_LARGE_FILE_COMPAT=1
 endif
 ifeq ($(uname_S),SunOS)
 	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1

@@ -1,6 +1,7 @@
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
 #include "pstore/column.h"
+#include "pstore/compat.h"
 #include "pstore/header.h"
 #include "pstore/string.h"
 #include "pstore/table.h"
