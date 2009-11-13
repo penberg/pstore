@@ -51,12 +51,15 @@ export E Q
 # Project files
 PROGRAM := pstore
 
+CONFIG_OPTS =
 COMPAT_OBJS =
 
 ifeq ($(uname_S),Darwin)
+	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
 	COMPAT_OBJS += compat/strndup.o
 endif
 ifeq ($(uname_S),SunOS)
+	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
 	COMPAT_OBJS += compat/strndup.o
 endif
 
@@ -73,6 +76,8 @@ OBJS += string.o
 OBJS += table.o
 
 OBJS += $(COMPAT_OBJS)
+
+CFLAGS += $(CONFIG_OPTS)
 
 DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 
