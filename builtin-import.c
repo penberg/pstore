@@ -69,21 +69,19 @@ static void csv_iterator_begin(void *private)
 		die("premature end of file");
 }
 
-static void *csv_iterator_next(struct pstore_column *self, void *private)
+static bool csv_iterator_next(struct pstore_column *self, void *private, struct pstore_value *value)
 {
 	struct csv_iterator_state *iter = private;
-	char *s;
 
 	if (!mmap_window__in_region(iter->mmap, iter->pos))
-		return NULL;
+		return false;
 
-	s = csv_field_value(iter->pos, self->column_id);
-	if (!s)
+	if (!csv_field_value(iter->pos, self->column_id, value))
 		die("premature end of file");
 
 	csv_iterator_next_line(iter);
 
-	return s;
+	return true;
 }
 
 static void csv_iterator_end(void *private)
@@ -115,10 +113,14 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 
 	for (;;) {
 		struct pstore_column *column;
+		struct pstore_value value;
 
-		s = csv_field_value(line, field);
-		if (!s)
+		if (!csv_field_value(line, field, &value))
 			break;
+
+		s = strndup(value.s, value.len);
+		if (!s)
+			die("out of memory");
 
 		column = pstore_column__new(s, field, VALUE_TYPE_STRING);
 

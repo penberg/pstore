@@ -30,7 +30,7 @@ EXTRA_WARNINGS += -Wstrict-prototypes
 EXTRA_WARNINGS += -Wdeclaration-after-statement
 
 # Compile flags
-CFLAGS	:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -O6
+CFLAGS	:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -O6 -std=gnu99
 
 # Output to current directory by default
 O =
@@ -49,6 +49,7 @@ export E Q
 # Project files
 PROGRAM := pstore
 
+DEFINES =
 CONFIG_OPTS =
 COMPAT_OBJS =
 
@@ -58,7 +59,12 @@ ifeq ($(uname_S),Darwin)
 
 	CONFIG_OPTS += -DCONFIG_NEED_LARGE_FILE_COMPAT=1
 endif
+ifeq ($(uname_S),Linux)
+	DEFINES += -D_LARGEFILE64_SOURCE=1
+	DEFINES += -D_GNU_SOURCE=1
+endif
 ifeq ($(uname_S),SunOS)
+	DEFINES += -D_LARGEFILE64_SOURCE=1
 	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
 	COMPAT_OBJS += compat/strndup.o
 endif
@@ -73,17 +79,17 @@ OBJS += die.o
 OBJS += header.o
 OBJS += pstore.o
 OBJS += read-write.o
-OBJS += string.o
 OBJS += table.o
 
 OBJS += $(COMPAT_OBJS)
 
+CFLAGS += $(DEFINES)
 CFLAGS += $(CONFIG_OPTS)
 
 DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 
 TEST_PROGRAM	:= test-pstore
-TEST_OBJS	:= test-runner.c harness.o string-test.o string.o csv-test.o csv.o
+TEST_OBJS	:= test-runner.c harness.o csv-test.o csv.o die.o
 TEST_DEPS	:= $(patsubst %.o,%.d,$(TEST_OBJS))
 
 # Targets

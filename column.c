@@ -75,12 +75,13 @@ void pstore_column__write(struct pstore_column *self, int fd)
 	write_or_die(fd, &f_column, sizeof(f_column));
 }
 
-static void pstore_column__write_value(struct pstore_column *self, void *buffer, void *p, size_t len)
+static void pstore_column__write_value(struct pstore_column *self, char *buffer, void *p, size_t len)
 {
 	if (self->type != VALUE_TYPE_STRING)
 		die("unknown type");
 
 	memcpy(buffer, p, len);
+	buffer[len] = '\0';
 }
 
 void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private)
@@ -88,23 +89,24 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 	struct pstore_file_block f_block;
 	uint64_t start_off, end_off;
 	char buffer[WRITEOUT_SIZE];
+	struct pstore_value value;
 	size_t buffer_len = 0;
 	uint64_t size;
-	char *s;
 
 	iter->begin(private);
 
 	start_off = seek_or_die(fd, sizeof(f_block), SEEK_CUR);
-	while ((s = iter->next(self, private)) != NULL) {
-		size_t len = strlen(s) + 1;
+	while (iter->next(self, private, &value)) {
+		size_t len;
+
+		len = value.len + 1;
 
 		if (buffer_len + len > WRITEOUT_SIZE) {
 			write_or_die(fd, buffer, buffer_len);
 			buffer_len = 0;
 		}
-		pstore_column__write_value(self, buffer + buffer_len, s, len);
+		pstore_column__write_value(self, buffer + buffer_len, value.s, value.len);
 		buffer_len += len;
-		free(s);
 	}
 	if (buffer_len > 0)
 		write_or_die(fd, buffer, buffer_len);

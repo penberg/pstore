@@ -18,22 +18,23 @@ static void teardown(void)
 
 void test_csv(void)
 {
-	char *s;
+	struct pstore_value value;
 
 	setup();
 
-	s = csv_field_value(line, 1);
-	assert_str_equals("world", s);
-	free(s);
+	csv_field_value(line, 1, &value);
+	assert_str_equals("world", value.s, value.len);
 
 	teardown();
 }
 
 void test_csv_out_of_bounds(void)
 {
+	struct pstore_value value;
+
 	setup();
 
-	assert_is_null(csv_field_value(line, 2));
+	assert_false(csv_field_value(line, 2, &value));
 
 	teardown();
 }

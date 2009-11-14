@@ -1,7 +1,6 @@
 #ifndef PSTORE_MMAP_WINDOW_H
 #define PSTORE_MMAP_WINDOW_H
 
-#define _LARGEFILE64_SOURCE
 #include <sys/types.h>
 #include <stdbool.h>
 #include <stddef.h>

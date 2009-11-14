@@ -1,6 +1,7 @@
 #ifndef PSTORE_COLUMN_H
 #define PSTORE_COLUMN_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -20,9 +21,14 @@ struct pstore_column_iterator_state {
 	uint64_t		pos;
 };
 
+struct pstore_value {
+	char			*s;
+	size_t			len;
+};
+
 struct pstore_iterator {
 	void (*begin)(void *private);
-	void *(*next)(struct pstore_column *self, void *private);
+	bool (*next)(struct pstore_column *self, void *private, struct pstore_value *value);
 	void (*end)(void *private);
 };
 

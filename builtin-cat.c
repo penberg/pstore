@@ -1,5 +1,3 @@
-#define _LARGEFILE64_SOURCE
-
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
 #include "pstore/header.h"

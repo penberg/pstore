@@ -1,5 +1,3 @@
-#define _LARGEFILE64_SOURCE
-
 #include "pstore/mmap-window.h"
 #include "pstore/compat.h"
 #include "pstore/die.h"

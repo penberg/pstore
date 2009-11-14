@@ -1,23 +1,25 @@
 #include "pstore/string.h"
 #include "pstore/compat.h"
 #include "pstore/csv.h"
+#include "pstore/die.h"
 
-#define _GNU_SOURCE	/* for strndup() */
 #include <string.h>
+#include <ctype.h>
 
-char *csv_field_value(char *s, unsigned long field_idx)
+bool csv_field_value(char *s, unsigned long field_idx, struct pstore_value *value)
 {
-	char *start, *end, *ret;
+	char *start, *end;
 	unsigned long pos;
 
 	pos	= 0;
 	start	= s;
-	end	= s + strlen(s);
 
 	for (;;) {
 		end = strchr(start, ',');
 		if (!end) {
-			end = s + strlen(s);
+			end = strchr(start, '\n');
+			if (!end)
+				die("premature end of line");
 			break;
 		}
 		if (pos++ == field_idx)
@@ -26,9 +28,16 @@ char *csv_field_value(char *s, unsigned long field_idx)
 		start = end + 1;
 	}
 	if (pos < field_idx)
-		return NULL;
+		return false;
 
-	ret = strndup(start, end - start);
+        while (isspace(*start))
+		start++;
 
-	return strstrip(ret);
+        while (isspace(*end))
+		end--;
+
+	value->s	= start;
+	value->len	= end - start;
+
+	return true;
 }
