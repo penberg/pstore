@@ -1,6 +1,8 @@
 #ifndef PSTORE_MMAP_WINDOW_H
 #define PSTORE_MMAP_WINDOW_H
 
+#include "pstore/compat.h"
+
 #include <sys/types.h>
 #include <stdbool.h>
 #include <stddef.h>
