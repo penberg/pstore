@@ -8,30 +8,28 @@
 
 bool csv_field_value(char *s, unsigned long field_idx, struct pstore_value *value)
 {
+	unsigned long current_field = 0;
 	char *start, *end;
-	unsigned long pos;
 
-	pos	= 0;
-	start	= s;
+	start = s;
+	while (current_field < field_idx) {
+		if (*start == '\0')
+			return false;
 
-	for (;;) {
-		end = strchr(start, ',');
-		if (!end) {
-			end = strchr(start, '\n');
-			if (!end)
-				die("premature end of line");
-			break;
-		}
-		if (pos++ == field_idx)
-			break;
-
-		start = end + 1;
+		if (*start == ',')
+			current_field++;
+		start++;
 	}
-	if (pos < field_idx)
-		return false;
 
         while (isspace(*start))
 		start++;
+
+	end = start;
+	for (;;) {
+		if (*end == '\0' || *end == '\n' || *end == ',')
+			break;
+		end++;
+	}
 
         while (isspace(*end))
 		end--;
