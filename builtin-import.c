@@ -28,7 +28,7 @@ struct csv_iterator_state {
 
 static char *csv_iterator_next_line(struct csv_iterator_state *iter)
 {
-	char *start;
+	char *start = NULL;
 
 restart:
 	start = iter->pos;
@@ -41,7 +41,7 @@ restart:
 	}
 	iter->pos++;
 out:
-	return iter->pos;
+	return start;
 
 slide_mmap:
 	if (!mmap_window__in_region(iter->mmap, iter->pos))
@@ -72,14 +72,14 @@ static void csv_iterator_begin(void *private)
 static bool csv_iterator_next(struct pstore_column *self, void *private, struct pstore_value *value)
 {
 	struct csv_iterator_state *iter = private;
+	char *start;
 
-	if (!mmap_window__in_region(iter->mmap, iter->pos))
+	start = csv_iterator_next_line(iter);
+	if (!start)
 		return false;
 
-	if (!csv_field_value(iter->pos, self->column_id, value))
+	if (!csv_field_value(start, self->column_id, value))
 		die("premature end of file");
-
-	csv_iterator_next_line(iter);
 
 	return true;
 }

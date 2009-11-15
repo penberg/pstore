@@ -1,9 +1,5 @@
 ToDo:
 
-	- CSV parsing doesn't slide the mmap()'d window
-
-	- Premature end of file when importing a large file
-
 	- CSV column type detection
 
 	- Floating point compression [2]
