@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #define PAGE_SIZE		getpagesize()
 #define PAGE_MASK		(~(PAGE_SIZE-1))
@@ -52,6 +53,9 @@ struct mmap_window *mmap_window__map(int fd, off64_t offset, off64_t length)
 	self->length	= length;
 	self->offset	= offset;
 	self->fd	= fd;
+
+	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
+		die("posix_madvise");
 
 	return self;
 }
@@ -100,6 +104,9 @@ void *mmap_window__slide(struct mmap_window *self, void *p)
 	self->mmap_end	= self->mmap + self->mmap_len;
 	self->mmap_pos	= pos - window_start;
 	self->pos	= pos;
+
+	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
+		die("posix_madvise");
 
 	return mmap_window__start(self);
 }
