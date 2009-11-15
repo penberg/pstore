@@ -1,5 +1,7 @@
 ToDo:
 
+	- builtin-cat does not work with over 2 GB files on 32-bit systems
+
 	- CSV column type detection
 
 	- Floating point compression [2]
