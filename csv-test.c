@@ -8,7 +8,7 @@ static char *line;
 
 static void setup(void)
 {
-	line = strdup("hello,world\n");
+	line = strdup("hello\t,world\n");
 }
 
 static void teardown(void)
