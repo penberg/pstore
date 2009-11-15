@@ -130,7 +130,7 @@ struct pstore_block *pstore_block__read(struct pstore_column *column, int fd)
 {
 	struct pstore_file_block f_block;
 	struct pstore_block *self;
-	struct stat statbuf;
+	struct stat64 st;
 	void *p;
 
 	self = pstore_block__new();
@@ -138,16 +138,16 @@ struct pstore_block *pstore_block__read(struct pstore_column *column, int fd)
 	seek_or_die(fd, column->f_offset, SEEK_SET);
 	read_or_die(fd, &f_block, sizeof(f_block));
 
-	if (fstat(fd, &statbuf) < 0)
+	if (fstat64(fd, &st) < 0)
 		die("fstat");
 
-	p = mmap(NULL, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	p = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (p == MAP_FAILED)
 		die("mmap: %s", strerror(errno));
 
 	self->parent	= column;
 	self->mmap	= p;
-	self->mmap_len	= statbuf.st_size;
+	self->mmap_len	= st.st_size;
 	self->pos	= column->f_offset + sizeof(f_block);
 	self->end	= self->pos + f_block.size;
 

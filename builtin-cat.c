@@ -67,7 +67,7 @@ int cmd_cat(int argc, char *argv[])
 	if (argc != 3)
 		usage();
 
-	input = open(argv[2], O_RDONLY);
+	input = open(argv[2], O_RDONLY|O_LARGEFILE);
 	if (input < 0)
 		die("open");
 
