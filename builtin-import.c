@@ -156,7 +156,7 @@ int cmd_import(int argc, char *argv[])
 	if (fstat64(input, &st) < 0)
 		die("fstat");
 
-	output = open(argv[3], O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+	output = open(argv[3], O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, S_IRUSR|S_IWUSR);
 	if (output < 0)
 		die("open: %s", strerror(errno));
 
