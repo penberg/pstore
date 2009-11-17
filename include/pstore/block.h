@@ -1,16 +1,15 @@
 #ifndef PSTORE_BLOCK_H
 #define PSTORE_BLOCK_H
 
+#include "pstore/mmap-window.h"
 #include "pstore/column.h"
 
 #include <stdint.h>
 
 struct pstore_block {
 	struct pstore_column	*parent;
-	void			*mmap;
-	size_t			mmap_len;
-	uint64_t		pos;
-	uint64_t		end;
+	struct mmap_window	*mmap;
+	char			*start;
 };
 
 struct pstore_block *pstore_block__new(void);

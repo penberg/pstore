@@ -17,22 +17,28 @@ struct pstore_block *pstore_block__new(void)
 
 void pstore_block__delete(struct pstore_block *self)
 {
-	if (munmap(self->mmap, self->mmap_len) < 0)
-		die("munmap");
+	mmap_window__unmap(self->mmap);
 
 	free(self);
 }
 
 void *pstore_block__next_value(struct pstore_block *self)
 {
-	char *s;
+	char *start, *end;
 
-	if (self->pos >= self->end)
-		return NULL;
+restart:
+	start = end = self->start;
+	do {
+		if (mmap_window__in_window(self->mmap, end))
+			continue;
 
-	s = self->mmap + self->pos;
+		if (!mmap_window__in_region(self->mmap, end))
+			return NULL;
 
-	self->pos += strlen(s) + 1;
+		self->start = mmap_window__slide(self->mmap, start);
+		goto restart;
+	} while (*end++);
+	self->start = end;
 
-	return s;
+	return start;
 }

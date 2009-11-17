@@ -44,14 +44,15 @@ struct mmap_window *mmap_window__map(int fd, off64_t offset, off64_t length)
 	if (mmap_len > MMAP_WINDOW_LEN)
 		mmap_len = MMAP_WINDOW_LEN;
 
-	self->mmap = mmap(NULL, mmap_len, PROT_READ, MAP_PRIVATE, fd, offset);
+	self->mmap = mmap(NULL, mmap_len, PROT_READ, MAP_PRIVATE, fd, offset & PAGE_MASK);
 	if (self->mmap == MAP_FAILED)
 		die("mmap");
 
+	self->mmap_pos	= offset & ~PAGE_MASK;
 	self->mmap_end	= self->mmap + mmap_len;
 	self->mmap_len	= mmap_len;
 	self->length	= length;
-	self->offset	= offset;
+	self->offset	= offset & PAGE_MASK;
 	self->fd	= fd;
 
 	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
