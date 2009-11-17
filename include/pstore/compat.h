@@ -22,12 +22,15 @@ static inline off64_t lseek64(int fd, off64_t offset, int whence)
 	return lseek(fd, offset, whence);
 }
 
+#ifdef CONFIG_NEED_FSTAT64
+
 #define stat64 stat
 
 static inline int fstat64(int fd, struct stat64 *st)
 {
 	return fstat(fd, st);
 }
+#endif /* CONFIG_NEED_FSTAT64 */
 
 static inline FILE *fopen64(const char *filename, const char *type)
 {

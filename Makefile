@@ -1,4 +1,5 @@
 uname_S	:= $(shell sh -c 'uname -s 2>/dev/null || echo not')
+uname_R	:= $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
 # External programs
 CC	:= gcc
@@ -58,6 +59,10 @@ ifeq ($(uname_S),Darwin)
 	COMPAT_OBJS += compat/strndup.o
 
 	CONFIG_OPTS += -DCONFIG_NEED_LARGE_FILE_COMPAT=1
+
+	ifeq ($(shell expr "$(uname_R)" : '8\.'),2)
+		CONFIG_OPTS += -DCONFIG_NEED_FSTAT64=1
+	endif
 endif
 ifeq ($(uname_S),Linux)
 	DEFINES += -D_LARGEFILE64_SOURCE=1
