@@ -16,7 +16,7 @@ struct builtin_cmd {
 
 #define DEFINE_BUILTIN(n, c) { .name = n, .cmd_fn = c }
 
-struct builtin_cmd builtins[] = {
+static struct builtin_cmd builtins[] = {
 	DEFINE_BUILTIN("cat",		cmd_cat),
 	DEFINE_BUILTIN("import",	cmd_import),
 };
