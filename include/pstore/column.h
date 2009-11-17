@@ -1,13 +1,11 @@
 #ifndef PSTORE_COLUMN_H
 #define PSTORE_COLUMN_H
 
+#include "pstore/value.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-enum value_type {
-	VALUE_TYPE_STRING		= 0x01,
-};
 
 struct pstore_column {
 	char			*name;		/* column name */
@@ -19,11 +17,6 @@ struct pstore_column {
 struct pstore_column_iterator_state {
 	char			*mmap;
 	uint64_t		pos;
-};
-
-struct pstore_value {
-	char			*s;
-	size_t			len;
 };
 
 struct pstore_iterator {
