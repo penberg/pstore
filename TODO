@@ -1,6 +1,6 @@
 ToDo:
 
-	- builtin-cat does not work with over 2 GB files on 32-bit systems
+	- Last column name and data is truncated for some CSV files
 
 	- CSV column type detection
 
