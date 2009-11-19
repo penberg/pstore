@@ -3,3 +3,4 @@
 pstore
 test-pstore
 test-runner.c
+test-suite.h

@@ -94,6 +94,7 @@ CFLAGS += $(CONFIG_OPTS)
 DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 
 TEST_PROGRAM	:= test-pstore
+TEST_SUITE_H	:= test-suite.h
 TEST_OBJS	:= test-runner.c harness.o csv-test.o csv.o die.o
 TEST_DEPS	:= $(patsubst %.o,%.d,$(TEST_OBJS))
 
@@ -138,13 +139,17 @@ test-runner.c: $(FORCE)
 	$(E) "  GEN     " $@
 	$(Q) sh scripts/gen-test-runner > $@
 
-$(TEST_PROGRAM): $(TEST_DEPS) $(TEST_OBJS)
+$(TEST_SUITE_H): $(FORCE)
+	$(E) "  GEN     " $@
+	$(Q) sh scripts/gen-test-proto > $@
+
+$(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS)
 	$(E) "  LINK    " $@
 	$(Q) $(CC) $(TEST_OBJS) -o $(TEST_PROGRAM)
 
 clean:
 	$(E) "  CLEAN"
-	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_OBJS) $(TEST_DEPS)
+	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS)
 .PHONY: clean
 
 PHONY += FORCE

@@ -1,5 +1,6 @@
 #include "pstore/test/harness.h"
 #include "pstore/csv.h"
+#include "test-suite.h"
 
 #include <stdlib.h>
 #include <string.h>
