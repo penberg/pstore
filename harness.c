@@ -20,6 +20,14 @@ void assert_false(bool value)
 	}
 }
 
+void assert_int_equals(int expected, int actual)
+{
+	if (expected != actual) {
+		printf("Expected: %d, but was %d\n", expected, actual);
+		exit(EXIT_FAILURE);
+	}
+}
+
 void assert_str_equals(const char *s1, const char *s2, size_t len)
 {
 	if (!s2) {

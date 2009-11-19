@@ -6,6 +6,11 @@
 #include <string.h>
 #include <ctype.h>
 
+static inline bool is_space_or_tab(char c)
+{
+	return c == ' ' || c == '\t';
+}
+
 bool csv_field_value(char *s, unsigned long field_idx, struct pstore_value *value)
 {
 	unsigned long current_field = 0;
@@ -31,7 +36,7 @@ bool csv_field_value(char *s, unsigned long field_idx, struct pstore_value *valu
 		end++;
 	}
 
-        while (isspace(*end))
+        while (is_space_or_tab(*end))
 		end--;
 
 	value->s	= start;

@@ -1,7 +1,5 @@
 ToDo:
 
-	- Last column name and data is truncated for some CSV files
-
 	- CSV column type detection
 
 	- Floating point compression [2]
