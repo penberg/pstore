@@ -130,10 +130,10 @@ $(PROGRAM): $(DEPS) $(OBJS)
 	$(E) "  LINK    " $@
 	$(Q) $(CC) $(OBJS) -o $(PROGRAM)
 
-check: $(TEST_PROGRAM)
+test: $(TEST_PROGRAM)
 	$(E) "  CHECK"
 	$(Q) ./$(TEST_PROGRAM)
-.PHONY: check
+.PHONY: test
 
 test-runner.c: $(FORCE)
 	$(E) "  GEN     " $@
@@ -151,6 +151,14 @@ clean:
 	$(E) "  CLEAN"
 	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS)
 .PHONY: clean
+
+regress: $(PROGRAM)
+	$(E) "  REGRESS"
+	$(Q) $(MAKE) -s -C regress
+.PHONY: regress
+
+check: test regress
+.PHONY: check
 
 PHONY += FORCE
 
