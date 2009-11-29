@@ -95,6 +95,7 @@ DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 
 TEST_PROGRAM	:= test-pstore
 TEST_SUITE_H	:= test/test-suite.h
+TEST_RUNNER_C	:= test/test-runner.c
 
 TEST_OBJS := csv.o
 TEST_OBJS += die.o
@@ -141,7 +142,7 @@ test: $(TEST_PROGRAM)
 	$(Q) ./$(TEST_PROGRAM)
 .PHONY: test
 
-test/test-runner.c: $(FORCE)
+$(TEST_RUNNER_C): $(FORCE)
 	$(E) "  GEN     " $@
 	$(Q) sh scripts/gen-test-runner test/*-test.c > $@
 
@@ -155,7 +156,7 @@ $(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS)
 
 clean:
 	$(E) "  CLEAN"
-	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS)
+	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS) $(TEST_RUNNER_C)
 .PHONY: clean
 
 regress: $(PROGRAM)
