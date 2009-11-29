@@ -87,7 +87,7 @@ void *mmap_window__slide(struct mmap_window *self, void *p)
 	size_t mmap_pos;
 	uint64_t pos;
 
-	mmap_pos = p - self->mmap - self->mmap_pos;
+	mmap_pos = mmap_window__ptr_pos(self, p);
 
 	pos = self->pos + mmap_pos; 
 

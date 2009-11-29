@@ -12,10 +12,18 @@ void assert_is_null(const void *p)
 	}
 }
 
-void assert_false(bool value)
+void do_assert_true(const char *filename, int line, bool value)
+{
+	if (value == false) {
+		printf("%s:%d: Expected: true, but was false\n", filename, line);
+		exit(EXIT_FAILURE);
+	}
+}
+
+void do_assert_false(const char *filename, int line, bool value)
 {
 	if (value == true) {
-		printf("Expected: false, but was true\n");
+		printf("%s:%d: Expected: false, but was true\n", filename, line);
 		exit(EXIT_FAILURE);
 	}
 }

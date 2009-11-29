@@ -100,7 +100,9 @@ TEST_RUNNER_C	:= test/test-runner.c
 TEST_OBJS := csv.o
 TEST_OBJS += die.o
 TEST_OBJS += harness.o
+TEST_OBJS += mmap-window.o
 TEST_OBJS += test/csv-test.o
+TEST_OBJS += test/mmap-window-test.o
 TEST_OBJS += test/test-runner.o
 
 TEST_DEPS	:= $(patsubst %.o,%.d,$(TEST_OBJS))
@@ -144,11 +146,11 @@ test: $(TEST_PROGRAM)
 
 $(TEST_RUNNER_C): $(FORCE)
 	$(E) "  GEN     " $@
-	$(Q) sh scripts/gen-test-runner test/*-test.c > $@
+	$(Q) sh scripts/gen-test-runner "test/*-test.c" > $@
 
 $(TEST_SUITE_H): $(FORCE)
 	$(E) "  GEN     " $@
-	$(Q) sh scripts/gen-test-proto test/*-test.c > $@
+	$(Q) sh scripts/gen-test-proto "test/*-test.c" > $@
 
 $(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS)
 	$(E) "  LINK    " $@

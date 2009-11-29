@@ -32,9 +32,14 @@ static inline bool mmap_window__in_window(struct mmap_window *self, void *p)
 	return (ssize_t)(p - self->mmap_end) < 0;
 }
 
+static inline size_t mmap_window__ptr_pos(struct mmap_window *self, void *p)
+{
+	return p - self->mmap - self->mmap_pos;
+}
+
 static inline bool mmap_window__in_region(struct mmap_window *self, void *p)
 {
-	size_t mmap_pos = p - self->mmap;
+	size_t mmap_pos = mmap_window__ptr_pos(self, p);
 
 	return (int64_t)((uint64_t)(self->pos + mmap_pos) - self->length) < 0;
 }
