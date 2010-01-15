@@ -1,4 +1,5 @@
 #include "pstore/read-write.h"
+#include "pstore/buffer.h"
 #include "pstore/column.h"
 #include "pstore/block.h"
 #include "pstore/die.h"
@@ -75,23 +76,24 @@ void pstore_column__write(struct pstore_column *self, int fd)
 	write_or_die(fd, &f_column, sizeof(f_column));
 }
 
-static void pstore_column__write_value(struct pstore_column *self, char *buffer, void *p, size_t len)
+static void pstore_column__write_value(struct pstore_column *self, struct buffer *buffer, void *p, size_t len)
 {
 	if (self->type != VALUE_TYPE_STRING)
 		die("unknown type");
 
-	memcpy(buffer, p, len);
-	buffer[len] = '\0';
+	buffer__append(buffer, p, len);
+	buffer__append_char(buffer, '\0');
 }
 
 void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private)
 {
 	struct pstore_file_block f_block;
 	uint64_t start_off, end_off;
-	char buffer[WRITEOUT_SIZE];
 	struct pstore_value value;
-	size_t buffer_len = 0;
+	struct buffer *buffer;
 	uint64_t size;
+
+	buffer = buffer__new(WRITEOUT_SIZE);
 
 	iter->begin(private);
 
@@ -101,15 +103,14 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 
 		len = value.len + 1;
 
-		if (buffer_len + len > WRITEOUT_SIZE) {
-			write_or_die(fd, buffer, buffer_len);
-			buffer_len = 0;
+		if (buffer__size(buffer) + len > WRITEOUT_SIZE) {
+			write_or_die(fd, buffer__start(buffer), buffer__size(buffer));
+			buffer__clear(buffer);
 		}
-		pstore_column__write_value(self, buffer + buffer_len, value.s, value.len);
-		buffer_len += len;
+		pstore_column__write_value(self, buffer, value.s, value.len);
 	}
-	if (buffer_len > 0)
-		write_or_die(fd, buffer, buffer_len);
+	if (buffer__size(buffer) > 0)
+		write_or_die(fd, buffer__start(buffer), buffer__size(buffer));
 
 	end_off = seek_or_die(fd, 0, SEEK_CUR);
 
