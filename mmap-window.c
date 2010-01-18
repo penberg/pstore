@@ -37,32 +37,37 @@ static void mmap_window__delete(struct mmap_window *self)
 
 static void *mmap_window__end(struct mmap_window *self)
 {
-	return self->mmap + self->mmap_pos + self->mmap_len;
+	return self->mmap + self->mmap_len;
 }
 
-struct mmap_window *mmap_window__map(int fd, off64_t offset, off64_t length)
+static void mmap_window__mmap(struct mmap_window *self, off64_t offset)
 {
-	struct mmap_window *self = mmap_window__new();
-	size_t mmap_len;
-
-	mmap_len = length;
-	if (mmap_len > MMAP_WINDOW_LEN)
-		mmap_len = MMAP_WINDOW_LEN;
-
-	self->mmap = mmap(NULL, mmap_len, PROT_READ, MAP_PRIVATE, fd, offset & PAGE_MASK);
+	self->mmap = mmap(NULL, self->mmap_len, PROT_READ, MAP_PRIVATE, self->fd, offset & PAGE_MASK);
 	if (self->mmap == MAP_FAILED)
 		die("mmap");
 
 	self->mmap_pos	= offset & ~PAGE_MASK;
-	self->mmap_len	= mmap_len;
-	self->length	= length;
 	self->offset	= offset & PAGE_MASK;
-	self->fd	= fd;
 
 	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
 		die("posix_madvise");
 
 	self->mmap_end	= mmap_window__end(self);
+}
+
+struct mmap_window *mmap_window__map(int fd, off64_t offset, off64_t length)
+{
+	struct mmap_window *self = mmap_window__new();
+
+	self->fd	= fd;
+	self->start_off	= offset;
+	self->length	= length;
+
+	self->mmap_len = length + (offset & ~PAGE_MASK);
+	if (self->mmap_len > MMAP_WINDOW_LEN)
+		self->mmap_len = MMAP_WINDOW_LEN;
+
+	mmap_window__mmap(self, offset);
 
 	return self;
 }
@@ -82,39 +87,26 @@ void *mmap_window__start(struct mmap_window *self)
 
 void *mmap_window__slide(struct mmap_window *self, void *p)
 {
-	off64_t window_start;
 	size_t remaining;
 	size_t mmap_pos;
-	uint64_t pos;
+	off64_t offset;
 
-	mmap_pos = mmap_window__ptr_pos(self, p);
+	mmap_pos = p - self->mmap;
 
-	pos = self->pos + mmap_pos; 
+	offset = self->offset + mmap_pos;
 
-	remaining = self->length - pos - 1;
+	remaining = self->length - offset;
 	if (remaining == 0)
 		return NULL;
 
 	if (munmap(self->mmap, self->mmap_len) < 0)
 		die("munmap");
 
-	self->mmap_len = MMAP_WINDOW_LEN;
-	if (self->mmap_len > remaining)
-		self->mmap_len = remaining;
+	self->mmap_len = remaining + (offset & ~PAGE_MASK);
+	if (self->mmap_len > MMAP_WINDOW_LEN)
+		self->mmap_len = MMAP_WINDOW_LEN;
 
-	window_start = pos & PAGE_MASK;
-
-	self->mmap = mmap(NULL, self->mmap_len, PROT_READ, MAP_PRIVATE, self->fd, self->offset + window_start);
-	if (self->mmap == MAP_FAILED)
-		die("mmap");
-
-	self->mmap_pos	= pos - window_start;
-	self->pos	= pos;
-
-	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
-		die("posix_madvise");
-
-	self->mmap_end	= mmap_window__end(self);
+	mmap_window__mmap(self, offset);
 
 	return mmap_window__start(self);
 }

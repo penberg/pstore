@@ -12,13 +12,13 @@
 struct mmap_window {
 	size_t		mmap_pos;	/* start position in mmap window */
 	size_t		mmap_len;	/* length of the mmap window */
-	void		*mmap;		/* base pointer of the mmap window */
-	void		*mmap_end;
+	void		*mmap;		/* start pointer of the mmap window */
+	void		*mmap_end;	/* end pointer of the mmap window (exclusive) */
 
+	uint64_t	offset;		/* offset in the full region */
 	uint64_t	length;		/* length of the full region */
-	uint64_t	pos;		/* position in the full region */
 
-	off64_t		offset;		/* base offset of the region in fd */
+	uint64_t	start_off;	/* start offset in the file */
 	int		fd;
 };
 
@@ -32,16 +32,11 @@ static inline bool mmap_window__in_window(struct mmap_window *self, void *p)
 	return (ssize_t)(p - self->mmap_end) < 0;
 }
 
-static inline size_t mmap_window__ptr_pos(struct mmap_window *self, void *p)
-{
-	return p - self->mmap - self->mmap_pos;
-}
-
 static inline bool mmap_window__in_region(struct mmap_window *self, void *p)
 {
-	size_t mmap_pos = mmap_window__ptr_pos(self, p);
+	uint64_t mmap_pos = p - self->mmap - self->mmap_pos;
 
-	return (int64_t)((uint64_t)(self->pos + mmap_pos) - self->length) < 0;
+	return (self->offset - self->start_off) + mmap_pos < self->length;
 }
 
 #endif /* PSTORE_MMAP_WINDOW_H */
