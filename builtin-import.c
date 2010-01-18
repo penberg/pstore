@@ -138,10 +138,28 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 	fclose(input);
 }
 
+static unsigned long parse_int_arg(char *arg)
+{
+	char *start = strchr(arg, '=');
+
+	return strtol(start + 1, NULL, 10);
+}
+
+static bool arg_matches(char *arg, const char *prefix)
+{
+	return strncmp(arg, prefix, strlen(prefix)) == 0;
+}
+
 static void parse_args(int argc, char *argv[])
 {
-	input_file		= argv[2];
-	output_file		= argv[3];
+	int ndx = 2;
+
+	if (arg_matches(argv[ndx], "--window-len=")) {
+		max_window_len = parse_int_arg(argv[ndx++]) * 1024UL * 1024UL;
+	}
+
+	input_file		= argv[ndx++];
+	output_file		= argv[ndx];
 }
 
 static void usage(void)
@@ -158,7 +176,7 @@ int cmd_import(int argc, char *argv[])
 	int input, output;
 	struct stat64 st;
 
-	if (argc != 4)
+	if (argc < 4)
 		usage();
 
 	parse_args(argc, argv);
