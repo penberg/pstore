@@ -13,19 +13,22 @@
 #define PAGE_SIZE		getpagesize()
 #define PAGE_MASK		(~(PAGE_SIZE-1))
 
-/*
- * The minimum mmap sliding window size is two pages. That's because when we
- * move the sliding window we need to align the starting offset at page
- * boundary.
- */
-#define MMAP_WINDOW_LEN		(128LL * 1024LL * 1024LL)	/* 128 MiB */
-
-static struct mmap_window *mmap_window__new(void)
+static struct mmap_window *mmap_window__new(unsigned long max_window_len)
 {
 	struct mmap_window *self = calloc(sizeof(*self), 1);
 
 	if (!self)
 		die("out of memory");
+
+	/*
+	 * The minimum mmap sliding window size is two pages. That's because
+	 * when we move the sliding window we need to align the starting offset
+	 * at page boundary.
+	 */
+	if (max_window_len < PAGE_SIZE * 2)
+		die("window too small");
+
+	self->max_window_len	= max_window_len;
 
 	return self;
 }
@@ -55,17 +58,17 @@ static void mmap_window__mmap(struct mmap_window *self, off64_t offset)
 	self->mmap_end	= mmap_window__end(self);
 }
 
-struct mmap_window *mmap_window__map(int fd, off64_t offset, off64_t length)
+struct mmap_window *mmap_window__map(uint64_t max_window_len, int fd, off64_t offset, off64_t length)
 {
-	struct mmap_window *self = mmap_window__new();
+	struct mmap_window *self = mmap_window__new(max_window_len);
 
 	self->fd	= fd;
 	self->start_off	= offset;
 	self->length	= length;
 
 	self->mmap_len = length + (offset & ~PAGE_MASK);
-	if (self->mmap_len > MMAP_WINDOW_LEN)
-		self->mmap_len = MMAP_WINDOW_LEN;
+	if (self->mmap_len > self->max_window_len)
+		self->mmap_len = self->max_window_len;
 
 	mmap_window__mmap(self, offset);
 
@@ -103,8 +106,8 @@ void *mmap_window__slide(struct mmap_window *self, void *p)
 		die("munmap");
 
 	self->mmap_len = remaining + (offset & ~PAGE_MASK);
-	if (self->mmap_len > MMAP_WINDOW_LEN)
-		self->mmap_len = MMAP_WINDOW_LEN;
+	if (self->mmap_len > self->max_window_len)
+		self->mmap_len = self->max_window_len;
 
 	mmap_window__mmap(self, offset);
 

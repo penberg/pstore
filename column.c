@@ -127,6 +127,8 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 	seek_or_die(fd, size, SEEK_CUR);
 }
 
+#define MMAP_WINDOW_LEN		(128LL * 1024LL * 1024LL)	/* 128 MiB */
+
 struct pstore_block *pstore_block__read(struct pstore_column *column, int fd)
 {
 	struct pstore_file_block f_block;
@@ -137,7 +139,7 @@ struct pstore_block *pstore_block__read(struct pstore_column *column, int fd)
 	seek_or_die(fd, column->f_offset, SEEK_SET);
 	read_or_die(fd, &f_block, sizeof(f_block));
 
-	self->mmap = mmap_window__map(fd, column->f_offset + sizeof(f_block), f_block.size);
+	self->mmap = mmap_window__map(MMAP_WINDOW_LEN, fd, column->f_offset + sizeof(f_block), f_block.size);
 
 	self->start = mmap_window__start(self->mmap);
 

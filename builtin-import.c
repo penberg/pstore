@@ -26,6 +26,12 @@ struct csv_iterator_state {
 	char			*pos;
 };
 
+#define MMAP_WINDOW_LEN		(128LL * 1024LL * 1024LL)	/* 128 MiB */
+
+static char		*input_file;
+static char		*output_file;
+static uint64_t		max_window_len = MMAP_WINDOW_LEN;
+
 static char *csv_iterator_next_line(struct csv_iterator_state *iter)
 {
 	char *start = NULL;
@@ -60,7 +66,7 @@ static void csv_iterator_begin(void *private)
 {
 	struct csv_iterator_state *iter = private;
 
-	iter->mmap = mmap_window__map(iter->fd, 0, iter->file_size);
+	iter->mmap = mmap_window__map(max_window_len, iter->fd, 0, iter->file_size);
 
 	iter->pos = mmap_window__start(iter->mmap);
 
@@ -131,9 +137,6 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 	}
 	fclose(input);
 }
-
-static char		*input_file;
-static char		*output_file;
 
 static void parse_args(int argc, char *argv[])
 {

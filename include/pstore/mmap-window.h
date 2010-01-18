@@ -15,6 +15,8 @@ struct mmap_window {
 	void		*mmap;		/* start pointer of the mmap window */
 	void		*mmap_end;	/* end pointer of the mmap window (exclusive) */
 
+	uint64_t	max_window_len;	/* mmap window maximum length */
+
 	uint64_t	offset;		/* offset in the full region */
 	uint64_t	length;		/* length of the full region */
 
@@ -22,7 +24,7 @@ struct mmap_window {
 	int		fd;
 };
 
-struct mmap_window *mmap_window__map(int fd, off64_t offset, off64_t length);
+struct mmap_window *mmap_window__map(uint64_t window_len, int fd, off64_t offset, off64_t length);
 void mmap_window__unmap(struct mmap_window *self);
 void *mmap_window__start(struct mmap_window *self);
 void *mmap_window__slide(struct mmap_window *self, void *p);
