@@ -132,6 +132,15 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 	fclose(input);
 }
 
+static char		*input_file;
+static char		*output_file;
+
+static void parse_args(int argc, char *argv[])
+{
+	input_file		= argv[2];
+	output_file		= argv[3];
+}
+
 static void usage(void)
 {
 	printf("\n usage: pstore import INPUT OUTPUT\n\n");
@@ -149,22 +158,24 @@ int cmd_import(int argc, char *argv[])
 	if (argc != 4)
 		usage();
 
-	input = open(argv[2], O_RDONLY|O_LARGEFILE);
+	parse_args(argc, argv);
+
+	input = open(input_file, O_RDONLY|O_LARGEFILE);
 	if (input < 0)
 		die("open: %s\n", strerror(errno));
 
 	if (fstat64(input, &st) < 0)
 		die("fstat");
 
-	output = open(argv[3], O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, S_IRUSR|S_IWUSR);
+	output = open(output_file, O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, S_IRUSR|S_IWUSR);
 	if (output < 0)
 		die("open: %s", strerror(errno));
 
 	header	= pstore_header__new();
-	table	= pstore_table__new(argv[3], 0);
+	table	= pstore_table__new(output_file, 0);
 
 	pstore_header__insert_table(header, table);
-	pstore_table__import_columns(table, argv[2]);
+	pstore_table__import_columns(table, input_file);
 
 	pstore_header__write(header, output);
 
