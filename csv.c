@@ -11,19 +11,20 @@ static inline bool is_space_or_tab(char c)
 	return c == ' ' || c == '\t';
 }
 
-bool csv_field_value(char *s, unsigned long field_idx, struct pstore_value *value)
+bool csv_field_value(char *s, unsigned long field_ndx, struct pstore_value *value)
 {
-	unsigned long current_field = 0;
+	unsigned long ndx;
 	char *start, *end;
 
 	start = s;
-	while (current_field < field_idx) {
-		if (*start == '\0')
+	for (ndx = 0; ndx < field_ndx; ndx++) {
+		char *tmp;
+
+		tmp = strchr(start, ',');
+		if (!tmp)
 			return false;
 
-		if (*start == ',')
-			current_field++;
-		start++;
+		start = tmp + 1;
 	}
 
         while (isspace(*start))
