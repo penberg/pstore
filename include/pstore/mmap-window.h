@@ -36,9 +36,9 @@ static inline bool mmap_window__in_window(struct mmap_window *self, void *p)
 
 static inline bool mmap_window__in_region(struct mmap_window *self, void *p)
 {
-	uint64_t mmap_pos = p - self->mmap - self->mmap_pos;
+	uint64_t mmap_pos = p - self->mmap;
 
-	return (self->offset - self->start_off) + mmap_pos < self->length;
+	return (int64_t)(self->offset - self->start_off + mmap_pos - self->length) < 0;
 }
 
 #endif /* PSTORE_MMAP_WINDOW_H */

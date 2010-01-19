@@ -27,7 +27,7 @@ static void setup(void)
 		.offset		= REGION_OFF,
 		.length		= REGION_LEN,
 
-		.start_off	= REGION_OFF,
+		.start_off	= REGION_OFF + MMAP_POS,
 	};
 
 	s_mmap = (struct mmap_window) {
@@ -38,7 +38,7 @@ static void setup(void)
 		.offset		= SLIDED_OFF,
 		.length		= REGION_LEN,
 
-		.start_off	= REGION_OFF,
+		.start_off	= REGION_OFF + MMAP_POS,
 	};
 }
 
@@ -68,6 +68,7 @@ void test_mmap_window_in_region(void)
 {
 	setup();
 
+	assert_true(mmap_window__in_region(&mmap, mmap_window__start(&mmap)));
 	assert_true(mmap_window__in_region(&mmap, mmap_window__start(&mmap) + MMAP_WINDOW_LEN));
 	assert_true(mmap_window__in_region(&mmap, mmap_window__start(&mmap) + REGION_LEN - 1));
 	assert_true(mmap_window__in_region(&s_mmap, mmap_window__start(&s_mmap) + REGION_LEN - (SLIDED_OFF - REGION_OFF) - 1));
