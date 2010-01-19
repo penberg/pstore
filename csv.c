@@ -27,7 +27,7 @@ bool csv_field_value(char *s, unsigned long field_ndx, struct pstore_value *valu
 		start = tmp + 1;
 	}
 
-        while (isspace(*start))
+        while (is_space_or_tab(*start))
 		start++;
 
 	end = start;
