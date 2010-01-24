@@ -43,14 +43,18 @@ static void *mmap_window__end(struct mmap_window *self)
 	return self->mmap + self->mmap_len;
 }
 
-static void mmap_window__mmap(struct mmap_window *self, off64_t offset)
+static void mmap_window__mmap(struct mmap_window *self, off64_t offset, size_t length)
 {
+	self->mmap_len = length + (offset & ~PAGE_MASK);
+	if (self->mmap_len > self->max_window_len)
+		self->mmap_len = self->max_window_len;
+
 	self->mmap = mmap(NULL, self->mmap_len, PROT_READ, MAP_PRIVATE, self->fd, offset & PAGE_MASK);
 	if (self->mmap == MAP_FAILED)
 		die("mmap");
 
 	self->mmap_pos	= offset & ~PAGE_MASK;
-	self->offset	= offset & PAGE_MASK;
+	self->pos	= ((offset - self->start_off) & PAGE_MASK);
 
 	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
 		die("posix_madvise");
@@ -66,11 +70,7 @@ struct mmap_window *mmap_window__map(uint64_t max_window_len, int fd, off64_t of
 	self->start_off	= offset;
 	self->length	= length;
 
-	self->mmap_len = length + (offset & ~PAGE_MASK);
-	if (self->mmap_len > self->max_window_len)
-		self->mmap_len = self->max_window_len;
-
-	mmap_window__mmap(self, offset);
+	mmap_window__mmap(self, offset, length);
 
 	return self;
 }
@@ -90,26 +90,19 @@ void *mmap_window__start(struct mmap_window *self)
 
 void *mmap_window__slide(struct mmap_window *self, void *p)
 {
-	size_t remaining;
-	size_t mmap_pos;
-	off64_t offset;
+	int64_t remaining;
+	uint64_t pos;
 
-	mmap_pos = p - self->mmap;
+	pos = mmap_window__pos_in_region(self, p);
 
-	offset = self->offset + mmap_pos;
-
-	remaining = self->length - offset;
-	if (remaining == 0)
+	remaining = self->length - pos;
+	if (remaining <= 0)
 		die("no remaining data");
 
 	if (munmap(self->mmap, self->mmap_len) < 0)
 		die("munmap");
 
-	self->mmap_len = remaining + (offset & ~PAGE_MASK);
-	if (self->mmap_len > self->max_window_len)
-		self->mmap_len = self->max_window_len;
-
-	mmap_window__mmap(self, offset);
+	mmap_window__mmap(self, self->start_off + pos, remaining);
 
 	return mmap_window__start(self);
 }

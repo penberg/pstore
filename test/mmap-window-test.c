@@ -2,86 +2,78 @@
 #include "pstore/mmap-window.h"
 #include "test-suite.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-#define MMAP_START	((void *) 0x1000ULL)
-#define MMAP_POS	0x100ULL
-#define MMAP_END	((void *) 0x2000ULL)
-#define MMAP_WINDOW_LEN	(MMAP_END - MMAP_START - MMAP_POS)
+#define PAGE_SIZE		sysconf(_SC_PAGE_SIZE)
 
-#define REGION_OFF	0x1000ULL
-#define SLIDED_OFF	0x2000ULL
-#define REGION_LEN	0x4000ULL
 
-static struct mmap_window mmap;
-static struct mmap_window s_mmap;	/* slided mmap */
+#define WINDOW_SIZE		(2 * PAGE_SIZE)
+#define FD_OFFSET		(4ULL * 1024ULL * 1024ULL) /* 4 MB */
+#define FD_SIZE			(1ULL * 1024ULL * 1024ULL) /* 1 MB */
+
+static struct mmap_window	*mmap;
+static int			fd;
 
 static void setup(void)
 {
-	mmap = (struct mmap_window) {
-		.mmap		= MMAP_START,
-		.mmap_pos	= MMAP_POS,
-		.mmap_end	= MMAP_END,
+	fd	= open("/dev/zero", O_RDONLY);
 
-		.offset		= REGION_OFF,
-		.length		= REGION_LEN,
-
-		.start_off	= REGION_OFF + MMAP_POS,
-	};
-
-	s_mmap = (struct mmap_window) {
-		.mmap		= MMAP_START,
-		.mmap_pos	= MMAP_POS,
-		.mmap_end	= MMAP_END,
-
-		.offset		= SLIDED_OFF,
-		.length		= REGION_LEN,
-
-		.start_off	= REGION_OFF + MMAP_POS,
-	};
+	mmap	= mmap_window__map(WINDOW_SIZE, fd, FD_OFFSET, FD_SIZE);
 }
 
 static void teardown(void)
 {
+	mmap_window__unmap(mmap);
+	close(fd);
 }
 
 void test_mmap_window_in_window(void)
 {
+	void *start;
+
 	setup();
 
-	assert_true(mmap_window__in_window(&mmap, mmap_window__start(&mmap) + MMAP_WINDOW_LEN - 1));
+	start = mmap_window__start(mmap);
 
-	teardown();
-}
-
-void test_mmap_window_not_in_window(void)
-{
-	setup();
-
-	assert_false(mmap_window__in_window(&mmap, mmap_window__start(&mmap) + MMAP_WINDOW_LEN));
+	assert_true(mmap_window__in_window(mmap, start + WINDOW_SIZE - 1));
+	assert_false(mmap_window__in_window(mmap, start + WINDOW_SIZE));
 
 	teardown();
 }
 
 void test_mmap_window_in_region(void)
 {
+	void *start;
+
 	setup();
 
-	assert_true(mmap_window__in_region(&mmap, mmap_window__start(&mmap)));
-	assert_true(mmap_window__in_region(&mmap, mmap_window__start(&mmap) + MMAP_WINDOW_LEN));
-	assert_true(mmap_window__in_region(&mmap, mmap_window__start(&mmap) + REGION_LEN - 1));
-	assert_true(mmap_window__in_region(&s_mmap, mmap_window__start(&s_mmap) + REGION_LEN - (SLIDED_OFF - REGION_OFF) - 1));
+	start = mmap_window__start(mmap);
+
+	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE - 1));
+	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE));
+	assert_true(mmap_window__in_region(mmap, start + FD_SIZE - 1));
+	assert_false(mmap_window__in_region(mmap, start + FD_SIZE));
 
 	teardown();
 }
 
-void test_mmap_window_not_in_region(void)
+void test_mmap_window_slide(void)
 {
+	void *start;
+
 	setup();
 
-	assert_false(mmap_window__in_region(&mmap, mmap_window__start(&mmap) + REGION_LEN));
-	assert_false(mmap_window__in_region(&s_mmap, mmap_window__start(&s_mmap) + REGION_LEN - 1));
+	start = mmap_window__start(mmap);
+	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE));
+
+	start = mmap_window__slide(mmap, start + WINDOW_SIZE);
+
+	assert_true(mmap_window__in_region(mmap, start + FD_SIZE - WINDOW_SIZE - 1));
 
 	teardown();
 }
