@@ -9,9 +9,13 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+
+static bool quiet_mode;
+static char *input_file;
 
 static void pstore_column__cat(struct pstore_column *self, int fd)
 {
@@ -23,7 +27,8 @@ static void pstore_column__cat(struct pstore_column *self, int fd)
 	block = pstore_block__read(self, fd);
 
 	while ((s = pstore_block__next_value(block)) != NULL) {
-		printf("%s\n", s);
+		if (!quiet_mode)
+			 printf("%s\n", s);
 	}
 
 	pstore_block__delete(block);
@@ -53,6 +58,23 @@ static void pstore_header__cat(struct pstore_header *self, int fd)
 	}
 }
 
+static bool arg_matches(char *arg, const char *prefix)
+{
+	return strncmp(arg, prefix, strlen(prefix)) == 0;
+}
+
+static void parse_args(int argc, char *argv[])
+{
+	int ndx = 2;
+
+	if (arg_matches(argv[ndx], "-q")) {
+		quiet_mode	= true;
+		ndx++;
+	}
+
+	input_file		= argv[ndx];
+}
+
 static void usage(void)
 {
 	printf("\n usage: pstore cat INPUT\n\n");
@@ -64,10 +86,12 @@ int cmd_cat(int argc, char *argv[])
 	struct pstore_header *header;
 	int input;
 
-	if (argc != 3)
+	if (argc < 3)
 		usage();
 
-	input = open(argv[2], O_RDONLY|O_LARGEFILE);
+	parse_args(argc, argv);
+
+	input = open(input_file, O_RDONLY|O_LARGEFILE);
 	if (input < 0)
 		die("open");
 
