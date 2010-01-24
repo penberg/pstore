@@ -100,7 +100,7 @@ void *mmap_window__slide(struct mmap_window *self, void *p)
 
 	remaining = self->length - offset;
 	if (remaining == 0)
-		return NULL;
+		die("no remaining data");
 
 	if (munmap(self->mmap, self->mmap_len) < 0)
 		die("munmap");
