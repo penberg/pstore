@@ -45,7 +45,9 @@ static void *mmap_window__end(struct mmap_window *self)
 
 static void mmap_window__mmap(struct mmap_window *self, off64_t offset, size_t length)
 {
-	self->mmap_len = length + (offset & ~PAGE_MASK);
+	self->mmap_pos	= offset & ~PAGE_MASK;
+
+	self->mmap_len	= length + self->mmap_pos;
 	if (self->mmap_len > self->max_window_len)
 		self->mmap_len = self->max_window_len;
 
@@ -53,8 +55,7 @@ static void mmap_window__mmap(struct mmap_window *self, off64_t offset, size_t l
 	if (self->mmap == MAP_FAILED)
 		die("mmap");
 
-	self->mmap_pos	= offset & ~PAGE_MASK;
-	self->pos	= ((offset - self->start_off) & PAGE_MASK);
+	self->pos	= offset - self->start_off;
 
 	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
 		die("posix_madvise");
