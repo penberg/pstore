@@ -192,7 +192,7 @@ int cmd_import(int argc, char *argv[])
 	if (output < 0)
 		die("open: %s", strerror(errno));
 
-	if (posix_fallocate(output, 0, st.st_size) < 0)
+	if (posix_fallocate(output, 0, st.st_size) != 0)
 		fprintf(stderr, "Note: Filesystem does not support preallocating file space.\n");
 
 	header	= pstore_header__new();

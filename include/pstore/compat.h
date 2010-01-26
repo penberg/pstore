@@ -43,8 +43,7 @@ static inline FILE *fopen64(const char *filename, const char *type)
 
 static inline int posix_fallocate(int fd, off_t offset, off_t len)
 {
-	errno = ENOTSUP;
-	return -1;
+	return 0;
 }
 #endif
 
