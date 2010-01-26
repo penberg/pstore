@@ -38,4 +38,14 @@ static inline FILE *fopen64(const char *filename, const char *type)
 }
 #endif /* CONFIG_NEED_LARGE_FILE_COMPAT */
 
+#ifdef CONFIG_NEED_POSIX_FALLOCATE
+#include <errno.h>
+
+static inline int posix_fallocate(int fd, off_t offset, off_t len)
+{
+	errno = ENOTSUP;
+	return -1;
+}
+#endif
+
 #endif /* PSTORE_COMPAT_H */
