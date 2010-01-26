@@ -218,7 +218,11 @@ int cmd_import(int argc, char *argv[])
 
 	pstore_header__delete(header);
 
-	close(output);
+	if (fsync(output) < 0)
+		die("fsync");
+
+	if (close(output) < 0)
+		die("close");
 
 	return 0;
 }
