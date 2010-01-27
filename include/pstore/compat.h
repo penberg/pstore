@@ -41,7 +41,7 @@ static inline FILE *fopen64(const char *filename, const char *type)
 #ifdef CONFIG_NEED_POSIX_FALLOCATE
 #include <errno.h>
 
-static inline int posix_fallocate(int fd, off_t offset, off_t len)
+static inline int posix_fallocate64(int fd, off_t offset, off_t len)
 {
 	return 0;
 }
