@@ -57,7 +57,7 @@ static void mmap_window__mmap(struct mmap_window *self, off64_t offset, size_t l
 
 	self->pos	= offset - self->start_off;
 
-	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
+	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_WILLNEED) < 0)
 		die("posix_madvise");
 
 	self->mmap_end	= mmap_window__end(self);
