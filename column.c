@@ -1,7 +1,7 @@
 #include "pstore/read-write.h"
 #include "pstore/buffer.h"
 #include "pstore/column.h"
-#include "pstore/block.h"
+#include "pstore/extent.h"
 #include "pstore/die.h"
 
 #include <sys/types.h>
@@ -23,9 +23,9 @@ struct pstore_file_column {
 	uint64_t		f_offset;
 };
 
-struct pstore_file_block {
+struct pstore_file_extent {
 	uint64_t		size;
-	uint64_t		block_next;
+	uint64_t		next_extent;
 };
 
 struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, uint8_t type)
@@ -87,7 +87,7 @@ static void pstore_column__write_value(struct pstore_column *self, struct buffer
 
 void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private)
 {
-	struct pstore_file_block f_block;
+	struct pstore_file_extent f_extent;
 	uint64_t start_off, end_off;
 	struct pstore_value value;
 	struct buffer *buffer;
@@ -97,7 +97,7 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 
 	iter->begin(private);
 
-	start_off = seek_or_die(fd, sizeof(f_block), SEEK_CUR);
+	start_off = seek_or_die(fd, sizeof(f_extent), SEEK_CUR);
 	while (iter->next(self, private, &value)) {
 		size_t len;
 
@@ -118,28 +118,28 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 
 	size = end_off - start_off;
 
-	seek_or_die(fd, -(sizeof(f_block) + size), SEEK_CUR);
-	f_block = (struct pstore_file_block) {
+	seek_or_die(fd, -(sizeof(f_extent) + size), SEEK_CUR);
+	f_extent = (struct pstore_file_extent) {
 		.size	= size,
 	};
-	write_or_die(fd, &f_block, sizeof(f_block));
+	write_or_die(fd, &f_extent, sizeof(f_extent));
 
 	seek_or_die(fd, size, SEEK_CUR);
 }
 
 #define MMAP_WINDOW_LEN		(128LL * 1024LL * 1024LL)	/* 128 MiB */
 
-struct pstore_block *pstore_block__read(struct pstore_column *column, int fd)
+struct pstore_extent *pstore_extent__read(struct pstore_column *column, int fd)
 {
-	struct pstore_file_block f_block;
-	struct pstore_block *self;
+	struct pstore_file_extent f_extent;
+	struct pstore_extent *self;
 
-	self = pstore_block__new();
+	self = pstore_extent__new();
 
 	seek_or_die(fd, column->f_offset, SEEK_SET);
-	read_or_die(fd, &f_block, sizeof(f_block));
+	read_or_die(fd, &f_extent, sizeof(f_extent));
 
-	self->mmap = mmap_window__map(MMAP_WINDOW_LEN, fd, column->f_offset + sizeof(f_block), f_block.size);
+	self->mmap = mmap_window__map(MMAP_WINDOW_LEN, fd, column->f_offset + sizeof(f_extent), f_extent.size);
 
 	self->start = mmap_window__start(self->mmap);
 

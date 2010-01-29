@@ -1,13 +1,13 @@
-#include "pstore/block.h"
+#include "pstore/extent.h"
 #include "pstore/die.h"
 
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <string.h>
 
-struct pstore_block *pstore_block__new(void)
+struct pstore_extent *pstore_extent__new(void)
 {
-	struct pstore_block *self = calloc(sizeof *self, 1);
+	struct pstore_extent *self = calloc(sizeof *self, 1);
 
 	if (!self)
 		die("out of memory");
@@ -15,14 +15,14 @@ struct pstore_block *pstore_block__new(void)
 	return self;
 }
 
-void pstore_block__delete(struct pstore_block *self)
+void pstore_extent__delete(struct pstore_extent *self)
 {
 	mmap_window__unmap(self->mmap);
 
 	free(self);
 }
 
-void *pstore_block__next_value(struct pstore_block *self)
+void *pstore_extent__next_value(struct pstore_extent *self)
 {
 	char *start, *end;
 

@@ -1,7 +1,7 @@
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
+#include "pstore/extent.h"
 #include "pstore/header.h"
-#include "pstore/block.h"
 #include "pstore/die.h"
 
 #include <sys/types.h>
@@ -19,19 +19,19 @@ static char *input_file;
 
 static void pstore_column__cat(struct pstore_column *self, int fd)
 {
-	struct pstore_block *block;
+	struct pstore_extent *extent;
 	char *s;
 
 	printf("# Column: %s (ID = %" PRIu64 ", type = %d)\n", self->name, self->column_id, self->type);
 
-	block = pstore_block__read(self, fd);
+	extent = pstore_extent__read(self, fd);
 
-	while ((s = pstore_block__next_value(block)) != NULL) {
+	while ((s = pstore_extent__next_value(extent)) != NULL) {
 		if (!quiet_mode)
 			 printf("%s\n", s);
 	}
 
-	pstore_block__delete(block);
+	pstore_extent__delete(extent);
 }
 
 static void pstore_table__cat(struct pstore_table *self, int fd)

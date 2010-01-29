@@ -75,13 +75,13 @@ ifeq ($(uname_S),SunOS)
 	COMPAT_OBJS += compat/strndup.o
 endif
 
-OBJS += block.o
 OBJS += buffer.o
 OBJS += builtin-cat.o
 OBJS += builtin-import.o
 OBJS += column.o
 OBJS += csv.o
 OBJS += die.o
+OBJS += extent.o
 OBJS += header.o
 OBJS += mmap-window.o
 OBJS += pstore.o
