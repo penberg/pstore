@@ -1,6 +1,6 @@
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
-#include "pstore/extent.h"
+#include "pstore/segment.h"
 #include "pstore/header.h"
 #include "pstore/die.h"
 
@@ -19,19 +19,19 @@ static char *input_file;
 
 static void pstore_column__cat(struct pstore_column *self, int fd)
 {
-	struct pstore_extent *extent;
+	struct pstore_segment *segment;
 	char *s;
 
 	printf("# Column: %s (ID = %" PRIu64 ", type = %d)\n", self->name, self->column_id, self->type);
 
-	extent = pstore_extent__read(self, fd);
+	segment = pstore_segment__read(self, fd);
 
-	while ((s = pstore_extent__next_value(extent)) != NULL) {
+	while ((s = pstore_segment__next_value(segment)) != NULL) {
 		if (!quiet_mode)
 			 printf("%s\n", s);
 	}
 
-	pstore_extent__delete(extent);
+	pstore_segment__delete(segment);
 }
 
 static void pstore_table__cat(struct pstore_table *self, int fd)

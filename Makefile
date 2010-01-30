@@ -86,6 +86,7 @@ OBJS += header.o
 OBJS += mmap-window.o
 OBJS += pstore.o
 OBJS += read-write.o
+OBJS += segment.o
 OBJS += table.o
 
 OBJS += $(COMPAT_OBJS)
