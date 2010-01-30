@@ -28,8 +28,12 @@ the stored columns.
 .ti 0
 1. File Structure
 
-A P-Store file consist of a header, table index, tables, per-table column
-indices, columns, and data blocks.
+A P-Store file consists of a header, a table index, a column index (one for
+each table), and a set of data segments (one for each column) which hold the
+actual values of a column. A segment is a set of extents allocated for a single
+column and an extent is a contiguous area of storage allocated from the file
+system.  Whether an extent is physically contiguous on disk or not is up to the
+backing filesystem.
 
 1.1 Header
 
@@ -91,18 +95,18 @@ A column has the following format:
 struct pstore_file_column {
         char                    name[COLUMN_NAME_LEN];
         uint64_t                column_id;
-        uint64_t                 type;
+        uint64_t                type;
         uint64_t                f_offset;
 };
 .fi
 
-1.6 Block
+1.6 Extent
 
-A block has the following format:
+An extent has the following format:
 
 .nf
-struct pstore_file_block {
+struct pstore_file_extent {
         uint64_t                size;
-        uint64_t                block_next;
+        uint64_t                extent_next;
 };
 .fi
