@@ -1,6 +1,7 @@
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
 #include "pstore/segment.h"
+#include "pstore/compat.h"
 #include "pstore/header.h"
 #include "pstore/die.h"
 
