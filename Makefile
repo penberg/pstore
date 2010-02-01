@@ -3,6 +3,7 @@ uname_R	:= $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
 # External programs
 CC	:= gcc
+AR	:= ar
 
 # Set up source directory for GNU Make
 srcdir		:= $(CURDIR)
@@ -75,40 +76,46 @@ ifeq ($(uname_S),SunOS)
 	COMPAT_OBJS += compat/strndup.o
 endif
 
-OBJS += buffer.o
 OBJS += builtin-cat.o
 OBJS += builtin-import.o
-OBJS += column.o
-OBJS += csv.o
-OBJS += die.o
-OBJS += extent.o
-OBJS += header.o
-OBJS += mmap-window.o
 OBJS += pstore.o
-OBJS += read-write.o
-OBJS += segment.o
-OBJS += table.o
 
 OBJS += $(COMPAT_OBJS)
+
+LIBS := -L. -lpstore
 
 CFLAGS += $(DEFINES)
 CFLAGS += $(CONFIG_OPTS)
 
 DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 
+LIB_FILE := libpstore.a
+
+LIB_OBJS += buffer.o
+LIB_OBJS += column.o
+LIB_OBJS += csv.o
+LIB_OBJS += die.o
+LIB_OBJS += extent.o
+LIB_OBJS += header.o
+LIB_OBJS += mmap-window.o
+LIB_OBJS += read-write.o
+LIB_OBJS += segment.o
+LIB_OBJS += table.o
+
+LIB_DEPS	:= $(patsubst %.o,%.d,$(LIB_OBJS))
+
 TEST_PROGRAM	:= test-pstore
 TEST_SUITE_H	:= test/test-suite.h
 TEST_RUNNER_C	:= test/test-runner.c
 
-TEST_OBJS := csv.o
-TEST_OBJS += die.o
 TEST_OBJS += harness.o
-TEST_OBJS += mmap-window.o
 TEST_OBJS += test/csv-test.o
 TEST_OBJS += test/mmap-window-test.o
 TEST_OBJS += test/test-runner.o
 
 TEST_DEPS	:= $(patsubst %.o,%.d,$(TEST_OBJS))
+
+TEST_LIBS := $(LIBS)
 
 # Targets
 all: sub-make
@@ -122,7 +129,7 @@ else
 sub-make: _all
 endif
 
-_all: $(PROGRAM)
+_all: $(PROGRAM) $(LIB_FILE)
 .PHONY: _all
 
 $(O):
@@ -138,9 +145,13 @@ endif
 	$(E) "  CC      " $@
 	$(Q) $(CC) -c $(CFLAGS) $< -o $@
 
-$(PROGRAM): $(DEPS) $(OBJS)
+$(PROGRAM): $(DEPS) $(LIB_FILE) $(OBJS)
 	$(E) "  LINK    " $@
-	$(Q) $(CC) $(OBJS) -o $(PROGRAM)
+	$(Q) $(CC) $(OBJS) $(LIBS) -o $(PROGRAM)
+
+$(LIB_FILE): $(LIB_DEPS) $(LIB_OBJS)
+	$(E) "  AR      " $@
+	$(Q) rm -f $@ && $(AR) rcs $@ $(LIB_OBJS)
 
 test: $(TEST_PROGRAM)
 	$(E) "  CHECK"
@@ -155,12 +166,13 @@ $(TEST_SUITE_H): $(FORCE)
 	$(E) "  GEN     " $@
 	$(Q) sh scripts/gen-test-proto "test/*-test.c" > $@
 
-$(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS)
+$(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(LIB_FILE)
 	$(E) "  LINK    " $@
-	$(Q) $(CC) $(TEST_OBJS) -o $(TEST_PROGRAM)
+	$(Q) $(CC) $(TEST_OBJS) $(TEST_LIBS) -o $(TEST_PROGRAM)
 
 clean:
 	$(E) "  CLEAN"
+	$(Q) rm -f $(LIB_FILE) $(LIB_OBJS) $(LIB_DEPS)
 	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS) $(TEST_RUNNER_C)
 .PHONY: clean
 
