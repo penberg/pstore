@@ -1,26 +1,15 @@
+#include "pstore/table.h"
+
+#include "pstore/disk-format.h"
 #include "pstore/read-write.h"
 #include "pstore/header.h"
 #include "pstore/column.h"
-#include "pstore/table.h"
 #include "pstore/die.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-struct pstore_file_column_idx {
-	uint64_t		nr_columns;
-	uint64_t		c_index_next;
-};
-
-#define TABLE_NAME_LEN		32
-
-struct pstore_file_table {
-	char				name[TABLE_NAME_LEN];
-	uint64_t			table_id;
-	struct pstore_file_column_idx	c_index;
-};
 
 struct pstore_table *pstore_table__new(const char *name, uint64_t table_id)
 {
@@ -113,7 +102,7 @@ void pstore_table__write(struct pstore_table *self, int fd)
 			.c_index_next	= PSTORE_END_OF_CHAIN,
 		},
 	};
-	strncpy(f_table.name, self->name, TABLE_NAME_LEN);
+	strncpy(f_table.name, self->name, PSTORE_TABLE_NAME_LEN);
 
 	write_or_die(fd, &f_table, sizeof(f_table));
 

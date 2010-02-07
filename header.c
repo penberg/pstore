@@ -1,5 +1,7 @@
-#include "pstore/read-write.h"
 #include "pstore/header.h"
+
+#include "pstore/disk-format.h"
+#include "pstore/read-write.h"
 #include "pstore/table.h"
 #include "pstore/die.h"
 
@@ -9,17 +11,6 @@
 static const char *pstore_magic = "PSTORE00";
 
 #define PSTORE_MAGIC		(*(uint64_t *)pstore_magic)
-
-struct pstore_file_table_idx {
-	uint64_t		nr_tables;
-	uint64_t		t_index_next;
-};
-
-struct pstore_file_header {
-	uint64_t		magic;
-	uint64_t		n_index_offset;
-	uint64_t		t_index_offset;
-};
 
 struct pstore_header *pstore_header__new(void)
 {

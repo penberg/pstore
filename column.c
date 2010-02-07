@@ -1,6 +1,8 @@
+#include "pstore/column.h"
+
+#include "pstore/disk-format.h"
 #include "pstore/read-write.h"
 #include "pstore/buffer.h"
-#include "pstore/column.h"
 #include "pstore/extent.h"
 #include "pstore/die.h"
 
@@ -13,20 +15,6 @@
 #include <errno.h>
 
 #define WRITEOUT_SIZE		(32 * 1024) /* 32 KB */
-
-#define COLUMN_NAME_LEN		32
-
-struct pstore_file_column {
-	char			name[COLUMN_NAME_LEN];
-	uint64_t		column_id;
-	uint64_t		type;
-	uint64_t		f_offset;
-};
-
-struct pstore_file_extent {
-	uint64_t		size;
-	uint64_t		next_extent;
-};
 
 struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, uint8_t type)
 {
@@ -71,7 +59,7 @@ void pstore_column__write(struct pstore_column *self, int fd)
 		.type		= self->type,
 		.f_offset	= self->f_offset,
 	};
-	strncpy(f_column.name, self->name, COLUMN_NAME_LEN);
+	strncpy(f_column.name, self->name, PSTORE_COLUMN_NAME_LEN);
 
 	write_or_die(fd, &f_column, sizeof(f_column));
 }
