@@ -3,6 +3,7 @@
 #include "pstore/disk-format.h"
 #include "pstore/read-write.h"
 #include "pstore/buffer.h"
+#include "pstore/core.h"
 #include "pstore/die.h"
 
 #include <sys/types.h>
@@ -13,7 +14,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define WRITEOUT_SIZE		(32 * 1024) /* 32 KB */
+#define WRITEOUT_SIZE		KB(32)
 
 struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, uint8_t type)
 {

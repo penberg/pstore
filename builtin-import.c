@@ -6,6 +6,7 @@
 #include "pstore/header.h"
 #include "pstore/string.h"
 #include "pstore/table.h"
+#include "pstore/core.h"
 #include "pstore/csv.h"
 #include "pstore/die.h"
 
@@ -26,7 +27,7 @@ struct csv_iterator_state {
 	char			*pos;
 };
 
-#define MMAP_WINDOW_LEN		(128LL * 1024LL * 1024LL)	/* 128 MiB */
+#define MMAP_WINDOW_LEN		MB(128)
 
 static char		*input_file;
 static char		*output_file;
@@ -155,9 +156,10 @@ static void parse_args(int argc, char *argv[])
 	int ndx = 2;
 
 	if (arg_matches(argv[ndx], "--window-len=")) {
-		max_window_len = parse_int_arg(argv[ndx++]) * 1024UL * 1024UL;
-	}
+		unsigned long x = parse_int_arg(argv[ndx++]);
 
+		max_window_len = MB(x);
+	}
 	input_file		= argv[ndx++];
 	output_file		= argv[ndx];
 }
