@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import random
+
+filename   = "aapl.csv"
+max_length = 128 * 1024 * 1024 # 128 MB
+
+symbol    = "AAPL"
+last      = 100.0
+timestamp = 34200000
+length    = 0
+
+file = open(filename, 'w')
+
+line = "Symbol,Timestamp,Last\n"
+length += len(line)
+file.write(line)
+
+while length < max_length:
+    last      += random.uniform(-1.0, 1.0)
+    timestamp += random.randint(500, 2000)
+
+    line = "%s,%d,%.2f\n" % (symbol, timestamp, last)
+    length += len(line)
+    file.write(line)
