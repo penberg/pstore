@@ -100,6 +100,8 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 	if (buffer__size(buffer) > 0)
 		buffer__write(buffer, fd);
 
+	buffer__delete(buffer);
+
 	end_off = seek_or_die(fd, 0, SEEK_CUR);
 
 	iter->end(private);
