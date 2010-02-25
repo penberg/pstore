@@ -2,6 +2,8 @@
 
 #include "pstore/disk-format.h"
 #include "pstore/read-write.h"
+#include "pstore/buffer.h"
+#include "pstore/core.h"
 #include "pstore/die.h"
 
 #include <sys/mman.h>
@@ -63,4 +65,47 @@ restart:
 	self->start = end;
 
 	return start;
+}
+
+#define WRITEOUT_SIZE		KB(32)
+
+void pstore_extent__prepare_write(struct pstore_extent *self, int fd)
+{
+	self->buffer		= buffer__new(WRITEOUT_SIZE);
+	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
+}
+
+void pstore_extent__finish_write(struct pstore_extent *self, int fd)
+{
+	struct pstore_file_extent f_extent;
+
+	if (buffer__size(self->buffer) > 0)
+		buffer__write(self->buffer, fd);
+
+	buffer__delete(self->buffer);
+
+	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
+	self->size		= self->end_off - self->start_off;
+
+	seek_or_die(fd, -(sizeof(f_extent) + self->size), SEEK_CUR);
+	f_extent = (struct pstore_file_extent) {
+		.size	= self->size,
+	};
+	write_or_die(fd, &f_extent, sizeof(f_extent));
+
+	seek_or_die(fd, self->size, SEEK_CUR);
+}
+
+void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value *value, int fd)
+{
+	if (self->parent->type != VALUE_TYPE_STRING)
+		die("unknown type");
+
+	if (!buffer__has_room(self->buffer, value->len + 1)) {
+		buffer__write(self->buffer, fd);
+		buffer__clear(self->buffer);
+	}
+
+	buffer__append(self->buffer, value->s, value->len);
+	buffer__append_char(self->buffer, '\0');
 }
