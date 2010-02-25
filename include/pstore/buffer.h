@@ -1,6 +1,7 @@
 #ifndef PSTORE_BUFFER_H
 #define PSTORE_BUFFER_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -22,6 +23,11 @@ static inline void *buffer__start(struct buffer *self)
 static inline size_t buffer__size(struct buffer *self)
 {
 	return self->offset;
+}
+
+static inline bool buffer__has_room(struct buffer *self, size_t len)
+{
+	return buffer__size(self) + len < self->capacity;
 }
 
 static inline void buffer__clear(struct buffer *self)

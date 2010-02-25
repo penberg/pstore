@@ -87,11 +87,7 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 
 	start_off = seek_or_die(fd, sizeof(f_extent), SEEK_CUR);
 	while (iter->next(self, private, &value)) {
-		size_t len;
-
-		len = value.len + 1;
-
-		if (buffer__size(buffer) + len > WRITEOUT_SIZE) {
+		if (!buffer__has_room(buffer, value.len + 1)) {
 			buffer__write(buffer, fd);
 			buffer__clear(buffer);
 		}
