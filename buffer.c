@@ -1,4 +1,6 @@
 #include "pstore/buffer.h"
+
+#include "pstore/read-write.h"
 #include "pstore/die.h"
 
 #include <stdlib.h>
@@ -24,4 +26,9 @@ void buffer__delete(struct buffer *self)
 {
 	free(self->data);
 	free(self);
+}
+
+void buffer__write(struct buffer *self, int fd)
+{
+	write_or_die(fd, buffer__start(self), buffer__size(self));
 }

@@ -92,13 +92,13 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 		len = value.len + 1;
 
 		if (buffer__size(buffer) + len > WRITEOUT_SIZE) {
-			write_or_die(fd, buffer__start(buffer), buffer__size(buffer));
+			buffer__write(buffer, fd);
 			buffer__clear(buffer);
 		}
 		pstore_column__write_value(self, buffer, value.s, value.len);
 	}
 	if (buffer__size(buffer) > 0)
-		write_or_die(fd, buffer__start(buffer), buffer__size(buffer));
+		buffer__write(buffer, fd);
 
 	end_off = seek_or_die(fd, 0, SEEK_CUR);
 

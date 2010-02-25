@@ -12,6 +12,7 @@ struct buffer {
 
 struct buffer *buffer__new(size_t capacity);
 void buffer__delete(struct buffer *self);
+void buffer__write(struct buffer *self, int fd);
 
 static inline void *buffer__start(struct buffer *self)
 {
