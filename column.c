@@ -3,6 +3,7 @@
 #include "pstore/disk-format.h"
 #include "pstore/read-write.h"
 #include "pstore/buffer.h"
+#include "pstore/extent.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
 
@@ -76,39 +77,38 @@ static void pstore_column__write_value(struct pstore_column *self, struct buffer
 void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private)
 {
 	struct pstore_file_extent f_extent;
-	uint64_t start_off, end_off;
+	struct pstore_extent *extent;
 	struct pstore_value value;
-	struct buffer *buffer;
-	uint64_t size;
 
-	buffer = buffer__new(WRITEOUT_SIZE);
+	extent = pstore_extent__new();
+
+	extent->buffer		= buffer__new(WRITEOUT_SIZE);
+	extent->start_off	= seek_or_die(fd, sizeof(f_extent), SEEK_CUR);
 
 	iter->begin(private);
 
-	start_off = seek_or_die(fd, sizeof(f_extent), SEEK_CUR);
 	while (iter->next(self, private, &value)) {
-		if (!buffer__has_room(buffer, value.len + 1)) {
-			buffer__write(buffer, fd);
-			buffer__clear(buffer);
+		if (!buffer__has_room(extent->buffer, value.len + 1)) {
+			buffer__write(extent->buffer, fd);
+			buffer__clear(extent->buffer);
 		}
-		pstore_column__write_value(self, buffer, value.s, value.len);
+		pstore_column__write_value(self, extent->buffer, value.s, value.len);
 	}
-	if (buffer__size(buffer) > 0)
-		buffer__write(buffer, fd);
-
-	buffer__delete(buffer);
-
-	end_off = seek_or_die(fd, 0, SEEK_CUR);
 
 	iter->end(private);
 
-	size = end_off - start_off;
+	if (buffer__size(extent->buffer) > 0)
+		buffer__write(extent->buffer, fd);
 
-	seek_or_die(fd, -(sizeof(f_extent) + size), SEEK_CUR);
+	buffer__delete(extent->buffer);
+	extent->end_off		= seek_or_die(fd, 0, SEEK_CUR);
+	extent->size		= extent->end_off - extent->start_off;
+
+	seek_or_die(fd, -(sizeof(f_extent) + extent->size), SEEK_CUR);
 	f_extent = (struct pstore_file_extent) {
-		.size	= size,
+		.size	= extent->size,
 	};
 	write_or_die(fd, &f_extent, sizeof(f_extent));
 
-	seek_or_die(fd, size, SEEK_CUR);
+	seek_or_die(fd, extent->size, SEEK_CUR);
 }

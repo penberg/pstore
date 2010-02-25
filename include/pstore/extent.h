@@ -6,8 +6,16 @@
 
 struct pstore_extent {
 	struct pstore_column	*parent;
+
+	/* read */
 	struct mmap_window	*mmap;
 	char			*start;
+
+	/* write */
+	struct buffer		*buffer;
+	uint64_t		start_off;
+	uint64_t		end_off;
+	uint64_t		size;
 };
 
 struct pstore_extent *pstore_extent__new(void);
