@@ -1,8 +1,11 @@
 #include "pstore/extent.h"
 
 #include "pstore/disk-format.h"
+#include "pstore/mmap-window.h"
 #include "pstore/read-write.h"
+#include "pstore/column.h"
 #include "pstore/buffer.h"
+#include "pstore/value.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
 
@@ -10,12 +13,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct pstore_extent *pstore_extent__new(void)
+struct pstore_extent *pstore_extent__new(struct pstore_column *parent)
 {
 	struct pstore_extent *self = calloc(sizeof *self, 1);
 
 	if (!self)
 		die("out of memory");
+
+	self->parent		= parent;
 
 	return self;
 }
@@ -34,7 +39,7 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, int fd)
 	struct pstore_file_extent f_extent;
 	struct pstore_extent *self;
 
-	self = pstore_extent__new();
+	self = pstore_extent__new(column);
 
 	seek_or_die(fd, column->f_offset, SEEK_SET);
 	read_or_die(fd, &f_extent, sizeof(f_extent));

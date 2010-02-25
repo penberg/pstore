@@ -68,8 +68,7 @@ void pstore_column__import_values(struct pstore_column *self, int fd, struct pst
 	struct pstore_extent *extent;
 	struct pstore_value value;
 
-	extent = pstore_extent__new();
-	extent->parent = self;
+	extent = pstore_extent__new(self);
 
 	pstore_extent__prepare_write(extent, fd);
 
