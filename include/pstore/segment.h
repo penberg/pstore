@@ -7,7 +7,7 @@ struct pstore_extent;
 struct pstore_segment {
 	int				fd;
 	struct pstore_column		*parent;
-	struct pstore_extent		*mapped_extent;
+	struct pstore_extent		*map_extent;	/* currently mapped extent */
 };
 
 void pstore_segment__delete(struct pstore_segment *self);

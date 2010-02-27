@@ -1,8 +1,10 @@
 #ifndef PSTORE_EXTENT_H
 #define PSTORE_EXTENT_H
 
+#include "pstore/disk-format.h"
 #include "pstore/compat.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 struct pstore_column;
@@ -32,5 +34,10 @@ void *pstore_extent__next_value(struct pstore_extent *self);
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd);
 void pstore_extent__finish_write(struct pstore_extent *self, int fd);
 void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value *value, int fd);
+
+static inline bool pstore_extent__is_last(struct pstore_extent *self)
+{
+	return self->next_extent == PSTORE_LAST_EXTENT;
+}
 
 #endif /* PSTORE_EXTENT_H */
