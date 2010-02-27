@@ -38,6 +38,8 @@ struct pstore_file_column {
 	uint64_t		f_offset;
 };
 
+#define PSTORE_LAST_EXTENT		0ULL
+
 struct pstore_file_extent {
 	uint64_t		size;
 	uint64_t		next_extent;

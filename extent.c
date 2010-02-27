@@ -94,7 +94,8 @@ void pstore_extent__finish_write(struct pstore_extent *self, int fd)
 
 	seek_or_die(fd, -(sizeof(f_extent) + self->size), SEEK_CUR);
 	f_extent = (struct pstore_file_extent) {
-		.size	= self->size,
+		.size		= self->size,
+		.next_extent	= PSTORE_LAST_EXTENT,
 	};
 	write_or_die(fd, &f_extent, sizeof(f_extent));
 
