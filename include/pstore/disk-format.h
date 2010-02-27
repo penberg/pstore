@@ -1,6 +1,8 @@
 #ifndef PSTORE_DISK_FORMAT_H
 #define PSTORE_DISK_FORMAT_H
 
+#include <stdint.h>
+
 /*
  * This header file contains on-disk data structures of pstore files.
  */

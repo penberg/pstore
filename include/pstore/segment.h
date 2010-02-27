@@ -5,6 +5,7 @@ struct pstore_column;
 struct pstore_extent;
 
 struct pstore_segment {
+	int				fd;
 	struct pstore_column		*parent;
 	struct pstore_extent		*mapped_extent;
 };
