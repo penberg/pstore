@@ -27,7 +27,7 @@ struct csv_iterator_state {
 	char			*pos;
 };
 
-#define MMAP_WINDOW_LEN		MB(128)
+#define MMAP_WINDOW_LEN		MiB(128)
 
 static char		*input_file;
 static char		*output_file;
@@ -158,7 +158,7 @@ static void parse_args(int argc, char *argv[])
 	if (arg_matches(argv[ndx], "--window-len=")) {
 		unsigned long x = parse_int_arg(argv[ndx++]);
 
-		max_window_len = MB(x);
+		max_window_len = MiB(x);
 	}
 	input_file		= argv[ndx++];
 	output_file		= argv[ndx];
