@@ -32,7 +32,7 @@ void pstore_extent__delete(struct pstore_extent *self)
 	free(self);
 }
 
-#define MMAP_WINDOW_LEN		(128LL * 1024LL * 1024LL)	/* 128 MiB */
+#define MMAP_WINDOW_LEN		MB(128)
 
 struct pstore_extent *pstore_extent__read(struct pstore_column *column, off64_t offset, int fd)
 {
