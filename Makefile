@@ -90,6 +90,7 @@ LIB_FILE := libpstore.a
 
 LIB_OBJS += buffer.o
 LIB_OBJS += column.o
+LIB_OBJS += compress.o
 LIB_OBJS += csv.o
 LIB_OBJS += die.o
 LIB_OBJS += extent.o

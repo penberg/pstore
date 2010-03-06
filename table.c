@@ -109,7 +109,10 @@ void pstore_table__write(struct pstore_table *self, int fd)
 	seek_or_die(fd, size, SEEK_CUR);
 }
 
-void pstore_table__import_values(struct pstore_table *self, int fd, struct pstore_iterator *iter, void *private, uint64_t max_extent_len)
+void pstore_table__import_values(struct pstore_table *self,
+				 int fd, struct pstore_iterator *iter,
+				 void *private,
+				 struct pstore_import_details *details)
 {
 	unsigned long ndx;
 
@@ -119,7 +122,7 @@ void pstore_table__import_values(struct pstore_table *self, int fd, struct pstor
 
 		f_offset = seek_or_die(fd, 0, SEEK_CUR);
 
-		pstore_column__import_values(column, fd, iter, private, max_extent_len);
+		pstore_column__import_values(column, fd, iter, private, details);
 
 		column->f_offset = f_offset;
 	}

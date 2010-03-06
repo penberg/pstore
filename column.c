@@ -4,6 +4,7 @@
 #include "pstore/read-write.h"
 #include "pstore/buffer.h"
 #include "pstore/extent.h"
+#include "pstore/table.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
 
@@ -65,14 +66,16 @@ void pstore_column__write(struct pstore_column *self, int fd)
 
 void pstore_column__import_values(struct pstore_column *self,
 				  int fd, struct pstore_iterator *iter,
-				  void *private, uint64_t max_extent_len)
+				  void *private,
+				  struct pstore_import_details *details)
 {
 	struct pstore_extent *extent;
 	struct pstore_value value;
 
 	extent = pstore_extent__new(self);
+	extent->comp	= details->comp;
 
-	pstore_extent__prepare_write(extent, fd, max_extent_len);
+	pstore_extent__prepare_write(extent, fd, details->max_extent_len);
 
 	iter->begin(private);
 
@@ -83,7 +86,7 @@ void pstore_column__import_values(struct pstore_column *self,
 			pstore_extent__flush_write(extent, fd);
 			offset = seek_or_die(fd, 0, SEEK_CUR);
 			pstore_extent__finish_write(extent, offset, fd);
-			pstore_extent__prepare_write(extent, fd, max_extent_len);
+			pstore_extent__prepare_write(extent, fd, details->max_extent_len);
 		}
 		pstore_extent__write_value(extent, &value, fd);
 	}

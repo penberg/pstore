@@ -3,8 +3,9 @@
 #include "pstore/disk-format.h"
 #include "pstore/mmap-window.h"
 #include "pstore/read-write.h"
-#include "pstore/column.h"
+#include "pstore/compress.h"
 #include "pstore/buffer.h"
+#include "pstore/column.h"
 #include "pstore/value.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
@@ -82,10 +83,25 @@ void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t m
 	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 }
 
+static void pstore_extent__do_flush(struct pstore_extent *self, int fd)
+{
+	switch (self->comp) {
+	case PSTORE_COMP_LZO1X_1: {
+		pstore_extent__compress(self, fd);
+		break;
+	}
+	case PSTORE_COMP_NONE:
+		buffer__write(self->buffer, fd);
+		break;
+	default:
+		die("unknown compression %d", self->comp);
+	};
+}
+
 void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 {
 	if (buffer__size(self->buffer) > 0)
-		buffer__write(self->buffer, fd);
+		pstore_extent__do_flush(self, fd);
 
 	buffer__delete(self->buffer);
 }

@@ -1,3 +1,4 @@
+#include "pstore/disk-format.h"
 #include "pstore/mmap-window.h"
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
@@ -30,10 +31,10 @@ struct csv_iterator_state {
 #define MMAP_WINDOW_LEN		MiB(128)
 #define MMAP_EXTENT_LEN		MiB(128)
 
-static char		*input_file;
-static char		*output_file;
-static uint64_t		max_window_len = MMAP_WINDOW_LEN;
-static uint64_t		max_extent_len = MMAP_EXTENT_LEN;
+static char			*input_file;
+static char			*output_file;
+static uint64_t			max_window_len = MMAP_WINDOW_LEN;
+struct pstore_import_details	details;
 
 static char *csv_iterator_next_line(struct csv_iterator_state *iter)
 {
@@ -157,6 +158,9 @@ static void parse_args(int argc, char *argv[])
 {
 	int ndx = 2;
 
+	details.max_extent_len	= MMAP_EXTENT_LEN;
+	details.comp		= PSTORE_COMP_NONE;
+
 	for (;;) {
 		if (arg_matches(argv[ndx], "--window-len=")) {
 			unsigned long x = parse_int_arg(argv[ndx++]);
@@ -165,7 +169,10 @@ static void parse_args(int argc, char *argv[])
 		} else if (arg_matches(argv[ndx], "--max-extent-len=")) {
 			unsigned long x = parse_int_arg(argv[ndx++]);
 
-			max_extent_len = MiB(x);
+			details.max_extent_len = MiB(x);
+		} else if (arg_matches(argv[ndx], "--compress")) {
+			details.comp		= PSTORE_COMP_LZO1X_1;
+			ndx++;
 		} else
 			break;
 	}
@@ -218,7 +225,7 @@ int cmd_import(int argc, char *argv[])
 		.fd		= input,
 		.file_size	= st.st_size,
 	};
-	pstore_table__import_values(table, output, &csv_iterator, &state, max_extent_len);
+	pstore_table__import_values(table, output, &csv_iterator, &state, &details);
 
 	/*
 	 * Write out the header again because offsets to data were not known

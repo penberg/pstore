@@ -7,6 +7,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct pstore_import_details;
+
 struct pstore_column {
 	char			*name;		/* column name */
 	uint64_t		column_id;	/* unique ID */
@@ -29,6 +31,6 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 void pstore_column__delete(struct pstore_column *self);
 struct pstore_column *pstore_column__read(int fd);
 void pstore_column__write(struct pstore_column *self, int fd);
-void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private, uint64_t max_extent_len);
+void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private, struct pstore_import_details *details);
 
 #endif /* PSTORE_COLUMN_H */
