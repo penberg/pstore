@@ -139,6 +139,11 @@ endif
 %.d: %.c
 	$(Q) $(CC) -M -MT $(patsubst %.d,%.o,$@) $(CFLAGS) $< -o $@
 
+# MiniLZO doesn't compile cleanly with our CFLAGS so make a special case out of it.
+minilzo/minilzo.o: minilzo/minilzo.c
+	$(E) "  CC      " $@
+	$(Q) $(CC) -c $< -o $@
+
 %.o: %.c
 	$(E) "  CC      " $@
 	$(Q) $(CC) -c $(CFLAGS) $< -o $@
