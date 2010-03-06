@@ -1,5 +1,7 @@
 #include "pstore/mmap-window.h"
+
 #include "pstore/compat.h"
+#include "pstore/core.h"
 #include "pstore/die.h"
 
 #include <sys/types.h>
@@ -9,9 +11,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#define PAGE_SIZE		getpagesize()
-#define PAGE_MASK		(~(PAGE_SIZE-1))
 
 static struct mmap_window *mmap_window__new(unsigned long max_window_len)
 {
