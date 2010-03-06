@@ -8,7 +8,7 @@
 
 void read_or_die(int fd, void *buf, size_t count);
 void write_or_die(int fd, const void *buf, size_t count);
-off64_t seek_or_die(int fd, off64_t offset, int whence);
+off_t seek_or_die(int fd, off_t offset, int whence);
 
 ssize_t xread(int fd, void *buf, size_t count);
 ssize_t xwrite(int fd, const void *buf, size_t count);

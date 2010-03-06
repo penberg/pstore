@@ -43,7 +43,7 @@ static void *mmap_window__end(struct mmap_window *self)
 	return self->mmap + self->mmap_len;
 }
 
-static void mmap_window__mmap(struct mmap_window *self, off64_t offset, size_t length)
+static void mmap_window__mmap(struct mmap_window *self, off_t offset, size_t length)
 {
 	self->mmap_pos	= offset & ~PAGE_MASK;
 
@@ -63,7 +63,7 @@ static void mmap_window__mmap(struct mmap_window *self, off64_t offset, size_t l
 	self->mmap_end	= mmap_window__end(self);
 }
 
-struct mmap_window *mmap_window__map(uint64_t max_window_len, int fd, off64_t offset, off64_t length)
+struct mmap_window *mmap_window__map(uint64_t max_window_len, int fd, off_t offset, off_t length)
 {
 	struct mmap_window *self = mmap_window__new(max_window_len);
 

@@ -24,7 +24,7 @@ struct mmap_window {
 	int		fd;
 };
 
-struct mmap_window *mmap_window__map(uint64_t window_len, int fd, off64_t offset, off64_t length);
+struct mmap_window *mmap_window__map(uint64_t window_len, int fd, off_t offset, off_t length);
 void mmap_window__unmap(struct mmap_window *self);
 void *mmap_window__start(struct mmap_window *self);
 void *mmap_window__slide(struct mmap_window *self, void *p);

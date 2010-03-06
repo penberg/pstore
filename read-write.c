@@ -92,13 +92,13 @@ void write_or_die(int fd, const void *buf, size_t count)
 		die("write_or_die: %s", strerror(errno));
 }
 
-off64_t seek_or_die(int fd, off64_t offset, int whence)
+off_t seek_or_die(int fd, off_t offset, int whence)
 {
-	off64_t ret;
+	off_t ret;
 
-	ret = lseek64(fd, offset, whence);
+	ret = lseek(fd, offset, whence);
 	if (ret < 0)
-		die("lseek64: %s", strerror(errno));
+		die("lseek: %s", strerror(errno));
 
 	return ret;
 }

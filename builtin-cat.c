@@ -85,7 +85,7 @@ static void usage(void)
 int cmd_cat(int argc, char *argv[])
 {
 	struct pstore_header *header;
-	struct stat64 st;
+	struct stat st;
 	int input;
 
 	if (argc < 3)
@@ -93,14 +93,14 @@ int cmd_cat(int argc, char *argv[])
 
 	parse_args(argc, argv);
 
-	input = open(input_file, O_RDONLY|O_LARGEFILE);
+	input = open(input_file, O_RDONLY);
 	if (input < 0)
 		die("open");
 
-	if (fstat64(input, &st) < 0)
+	if (fstat(input, &st) < 0)
 		die("fstat");
 
-	if (posix_fadvise64(input, 0, st.st_size, POSIX_FADV_SEQUENTIAL) != 0)
+	if (posix_fadvise(input, 0, st.st_size, POSIX_FADV_SEQUENTIAL) != 0)
 		die("posix_fadvise");
 
 	header = pstore_header__read(input);

@@ -21,7 +21,7 @@
 
 struct csv_iterator_state {
 	int			fd;
-	off64_t			file_size;
+	off_t			file_size;
 
 	struct mmap_window	*mmap;
 	char			*pos;
@@ -111,9 +111,9 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 	FILE *input;
 	char *s;
 
-	input = fopen64(filename, "r");
+	input = fopen(filename, "r");
 	if (input == NULL)
-		die("fopen64: %s", strerror(errno));
+		die("fopen: %s", strerror(errno));
 
 	if (fgets(line, BUF_LEN, input) == NULL)
 		die("fgets");
@@ -176,26 +176,26 @@ int cmd_import(int argc, char *argv[])
 	struct pstore_header *header;
 	struct pstore_table *table;
 	int input, output;
-	struct stat64 st;
+	struct stat st;
 
 	if (argc < 4)
 		usage();
 
 	parse_args(argc, argv);
 
-	input = open(input_file, O_RDONLY|O_LARGEFILE);
+	input = open(input_file, O_RDONLY);
 	if (input < 0)
 		die("open: %s\n", strerror(errno));
 
-	if (fstat64(input, &st) < 0)
+	if (fstat(input, &st) < 0)
 		die("fstat");
 
-	output = open(output_file, O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, S_IRUSR|S_IWUSR);
+	output = open(output_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
 	if (output < 0)
 		die("open: %s", strerror(errno));
 
-	if (posix_fallocate64(output, 0, st.st_size) != 0)
-		die("posix_fallocate64");
+	if (posix_fallocate(output, 0, st.st_size) != 0)
+		die("posix_fallocate");
 
 	header	= pstore_header__new();
 	table	= pstore_table__new(output_file, 0);
