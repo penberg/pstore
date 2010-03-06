@@ -30,6 +30,11 @@ static inline bool buffer__has_room(struct buffer *self, size_t len)
 	return buffer__size(self) + len < self->capacity;
 }
 
+static inline bool buffer__in_region(struct buffer *self, void *p)
+{
+	return p < buffer__start(self) + buffer__size(self);
+}
+
 static inline void buffer__clear(struct buffer *self)
 {
 	self->offset = 0;
