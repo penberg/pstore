@@ -4,6 +4,7 @@
 #include "pstore/disk-format.h"
 #include "pstore/compat.h"
 
+#include <sys/types.h>
 #include <stdbool.h>
 #include <stdint.h>
 
