@@ -157,15 +157,17 @@ static void parse_args(int argc, char *argv[])
 {
 	int ndx = 2;
 
-	if (arg_matches(argv[ndx], "--window-len=")) {
-		unsigned long x = parse_int_arg(argv[ndx++]);
+	for (;;) {
+		if (arg_matches(argv[ndx], "--window-len=")) {
+			unsigned long x = parse_int_arg(argv[ndx++]);
 
-		max_window_len = MiB(x);
-	}
-	if (arg_matches(argv[ndx], "--max-extent-len=")) {
-		unsigned long x = parse_int_arg(argv[ndx++]);
+			max_window_len = MiB(x);
+		} else if (arg_matches(argv[ndx], "--max-extent-len=")) {
+			unsigned long x = parse_int_arg(argv[ndx++]);
 
-		max_extent_len = MiB(x);
+			max_extent_len = MiB(x);
+		} else
+			break;
 	}
 	input_file		= argv[ndx++];
 	output_file		= argv[ndx];
