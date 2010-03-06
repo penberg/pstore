@@ -74,6 +74,7 @@ endif
 
 OBJS += builtin-cat.o
 OBJS += builtin-import.o
+OBJS += builtin-stat.o
 OBJS += pstore.o
 
 OBJS += $(COMPAT_OBJS)

@@ -47,6 +47,7 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 	self->mmap = mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(f_extent), f_extent.size);
 
 	self->start		= mmap_window__start(self->mmap);
+	self->size		= f_extent.size;
 	self->next_extent	= f_extent.next_extent;
 
 	return self;

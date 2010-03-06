@@ -15,17 +15,17 @@ struct buffer;
 
 struct pstore_extent {
 	struct pstore_column	*parent;
+	off_t			next_extent;
+	uint64_t		size;
 
 	/* read */
 	struct mmap_window	*mmap;
 	char			*start;
-	off_t			next_extent;
 
 	/* write */
 	struct buffer		*buffer;
 	uint64_t		start_off;
 	uint64_t		end_off;
-	uint64_t		size;
 };
 
 struct pstore_extent *pstore_extent__new(struct pstore_column *parent);

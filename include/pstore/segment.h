@@ -13,5 +13,6 @@ struct pstore_segment {
 void pstore_segment__delete(struct pstore_segment *self);
 struct pstore_segment *pstore_segment__read(struct pstore_column *column, int fd);
 void *pstore_segment__next_value(struct pstore_segment *self);
+struct pstore_extent *pstore_segment__next_extent(struct pstore_segment *self);
 
 #endif /* PSTORE_SEGMENT_H */

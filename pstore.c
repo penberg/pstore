@@ -19,6 +19,7 @@ struct builtin_cmd {
 static struct builtin_cmd builtins[] = {
 	DEFINE_BUILTIN("cat",		cmd_cat),
 	DEFINE_BUILTIN("import",	cmd_import),
+	DEFINE_BUILTIN("stat",		cmd_stat),
 };
 
 static struct builtin_cmd *parse_builtin_cmd(int argc, char *argv[])
