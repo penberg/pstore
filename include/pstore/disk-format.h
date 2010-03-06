@@ -42,8 +42,15 @@ struct pstore_file_column {
 
 #define PSTORE_LAST_EXTENT		0ULL
 
+enum pstore_comp {
+	PSTORE_COMP_NONE	= 0,
+};
+
 struct pstore_file_extent {
-	uint64_t		size;
+	uint64_t		lsize;		/* logical size before compression */
+	uint64_t		psize;		/* physical size after compression */
+	uint8_t			comp;		/* compression algorithm */
+	uint8_t			padding[3];
 	uint64_t		next_extent;
 };
 

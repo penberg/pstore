@@ -44,10 +44,12 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 	seek_or_die(fd, offset, SEEK_SET);
 	read_or_die(fd, &f_extent, sizeof(f_extent));
 
-	self->mmap = mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(f_extent), f_extent.size);
+	self->mmap = mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(f_extent), f_extent.psize);
 
 	self->start		= mmap_window__start(self->mmap);
-	self->size		= f_extent.size;
+	self->lsize		= f_extent.lsize;
+	self->psize		= f_extent.psize;
+	self->comp		= f_extent.comp;
 	self->next_extent	= f_extent.next_extent;
 
 	return self;
@@ -93,16 +95,19 @@ void pstore_extent__finish_write(struct pstore_extent *self, off_t next_extent, 
 	struct pstore_file_extent f_extent;
 
 	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
-	self->size		= self->end_off - self->start_off;
+	self->psize		= self->end_off - self->start_off;
+	self->lsize		= self->psize;
 
-	seek_or_die(fd, -(sizeof(f_extent) + self->size), SEEK_CUR);
+	seek_or_die(fd, -(sizeof(f_extent) + self->psize), SEEK_CUR);
 	f_extent = (struct pstore_file_extent) {
-		.size		= self->size,
+		.psize		= self->psize,
+		.lsize		= self->lsize,
+		.comp		= self->comp,
 		.next_extent	= next_extent,
 	};
 	write_or_die(fd, &f_extent, sizeof(f_extent));
 
-	seek_or_die(fd, self->size, SEEK_CUR);
+	seek_or_die(fd, self->psize, SEEK_CUR);
 }
 
 void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value *value, int fd)

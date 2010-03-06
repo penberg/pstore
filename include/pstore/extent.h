@@ -16,7 +16,9 @@ struct buffer;
 struct pstore_extent {
 	struct pstore_column	*parent;
 	off_t			next_extent;
-	uint64_t		size;
+	uint64_t		lsize;
+	uint64_t		psize;
+	uint8_t			comp;
 
 	/* read */
 	struct mmap_window	*mmap;
