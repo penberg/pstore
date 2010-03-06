@@ -8,6 +8,7 @@ char *strndup(const char *s, size_t n);
 #endif
 
 #ifdef CONFIG_NEED_POSIX_FALLOCATE
+#include <sys/types.h>
 #include <errno.h>
 
 static inline int posix_fallocate(int fd, off_t offset, off_t len)
