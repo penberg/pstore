@@ -46,7 +46,8 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 
 	self->mmap = mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(f_extent), f_extent.size);
 
-	self->start = mmap_window__start(self->mmap);
+	self->start		= mmap_window__start(self->mmap);
+	self->next_extent	= f_extent.next_extent;
 
 	return self;
 }
@@ -72,22 +73,23 @@ restart:
 	return start;
 }
 
-#define WRITEOUT_SIZE		KiB(32)
-
-void pstore_extent__prepare_write(struct pstore_extent *self, int fd)
+void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len)
 {
-	self->buffer		= buffer__new(WRITEOUT_SIZE);
+	self->buffer		= buffer__new(max_extent_len);
 	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 }
 
-void pstore_extent__finish_write(struct pstore_extent *self, int fd)
+void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 {
-	struct pstore_file_extent f_extent;
-
 	if (buffer__size(self->buffer) > 0)
 		buffer__write(self->buffer, fd);
 
 	buffer__delete(self->buffer);
+}
+
+void pstore_extent__finish_write(struct pstore_extent *self, off_t next_extent, int fd)
+{
+	struct pstore_file_extent f_extent;
 
 	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
 	self->size		= self->end_off - self->start_off;
@@ -95,7 +97,7 @@ void pstore_extent__finish_write(struct pstore_extent *self, int fd)
 	seek_or_die(fd, -(sizeof(f_extent) + self->size), SEEK_CUR);
 	f_extent = (struct pstore_file_extent) {
 		.size		= self->size,
-		.next_extent	= PSTORE_LAST_EXTENT,
+		.next_extent	= next_extent,
 	};
 	write_or_die(fd, &f_extent, sizeof(f_extent));
 
@@ -107,11 +109,14 @@ void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value 
 	if (self->parent->type != VALUE_TYPE_STRING)
 		die("unknown type");
 
-	if (!buffer__has_room(self->buffer, value->len + 1)) {
-		buffer__write(self->buffer, fd);
-		buffer__clear(self->buffer);
-	}
+	if (!pstore_extent__has_room(self, value))
+		die("no room in extent buffer");
 
 	buffer__append(self->buffer, value->s, value->len);
 	buffer__append_char(self->buffer, '\0');
+}
+
+bool pstore_extent__has_room(struct pstore_extent *self, struct pstore_value *value)
+{
+	return buffer__has_room(self->buffer, value->len + 1);
 }

@@ -29,6 +29,6 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 void pstore_column__delete(struct pstore_column *self);
 struct pstore_column *pstore_column__read(int fd);
 void pstore_column__write(struct pstore_column *self, int fd);
-void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private);
+void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private, uint64_t max_extent_len);
 
 #endif /* PSTORE_COLUMN_H */

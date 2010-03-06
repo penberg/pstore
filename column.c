@@ -63,21 +63,33 @@ void pstore_column__write(struct pstore_column *self, int fd)
 	write_or_die(fd, &f_column, sizeof(f_column));
 }
 
-void pstore_column__import_values(struct pstore_column *self, int fd, struct pstore_iterator *iter, void *private)
+void pstore_column__import_values(struct pstore_column *self,
+				  int fd, struct pstore_iterator *iter,
+				  void *private, uint64_t max_extent_len)
 {
 	struct pstore_extent *extent;
 	struct pstore_value value;
 
 	extent = pstore_extent__new(self);
 
-	pstore_extent__prepare_write(extent, fd);
+	pstore_extent__prepare_write(extent, fd, max_extent_len);
 
 	iter->begin(private);
 
-	while (iter->next(self, private, &value))
+	while (iter->next(self, private, &value)) {
+		if (!pstore_extent__has_room(extent, &value)) {
+			off_t offset;
+
+			pstore_extent__flush_write(extent, fd);
+			offset = seek_or_die(fd, 0, SEEK_CUR);
+			pstore_extent__finish_write(extent, offset, fd);
+			pstore_extent__prepare_write(extent, fd, max_extent_len);
+		}
 		pstore_extent__write_value(extent, &value, fd);
+	}
 
 	iter->end(private);
 
-	pstore_extent__finish_write(extent, fd);
+	pstore_extent__flush_write(extent, fd);
+	pstore_extent__finish_write(extent, PSTORE_LAST_EXTENT, fd);
 }

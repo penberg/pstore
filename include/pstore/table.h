@@ -18,6 +18,6 @@ void pstore_table__delete(struct pstore_table *self);
 void pstore_table__add(struct pstore_table *self, struct pstore_column *column);
 struct pstore_table *pstore_table__read(int fd);
 void pstore_table__write(struct pstore_table *self, int fd);
-void pstore_table__import_values(struct pstore_table *self, int fd, struct pstore_iterator *iter, void *private);
+void pstore_table__import_values(struct pstore_table *self, int fd, struct pstore_iterator *iter, void *private, uint64_t max_extent_len);
 
 #endif /* PSTORE_TABLE_H */
