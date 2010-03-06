@@ -1873,24 +1873,24 @@ extern "C" {
 #  error "version mismatch"
 #endif
 
-#if (LZO_CC_BORLANDC && LZO_ARCH_I086)
+#if (defined(LZO_CC_BORLANDC) && defined(LZO_ARCH_I086))
 #  pragma option -h
 #endif
 
-#if (LZO_CC_MSC && (_MSC_VER >= 1000))
+#if (defined(LZO_CC_MSC) && (_MSC_VER >= 1000))
 #  pragma warning(disable: 4127 4701)
 #endif
-#if (LZO_CC_MSC && (_MSC_VER >= 1300))
+#if (defined(LZO_CC_MSC) && (_MSC_VER >= 1300))
 #  pragma warning(disable: 4820)
 #  pragma warning(disable: 4514 4710 4711)
 #endif
 
-#if (LZO_CC_SUNPROC)
+#if defined(LZO_CC_SUNPROC)
 #  pragma error_messages(off,E_END_OF_LOOP_CODE_NOT_REACHED)
 #  pragma error_messages(off,E_LOOP_NOT_ENTERED_AT_TOP)
 #endif
 
-#if defined(__LZO_MMODEL_HUGE) && (!LZO_HAVE_MM_HUGE_PTR)
+#if defined(__LZO_MMODEL_HUGE) && (!defined(LZO_HAVE_MM_HUGE_PTR))
 #  error "this should not happen - check defines for __huge"
 #endif
 
@@ -1905,7 +1905,7 @@ extern "C" {
 #  define ACC_WANT_ACC_INCD_H 1
 #endif
 
-#if (LZO_ARCH_I086)
+#if defined(LZO_ARCH_I086)
 #  define ACC_MM_AHSHIFT        LZO_MM_AHSHIFT
 #  define ACC_PTR_FP_OFF(x)     (((const unsigned __far*)&(x))[0])
 #  define ACC_PTR_FP_SEG(x)     (((const unsigned __far*)&(x))[1])
@@ -2101,11 +2101,11 @@ extern "C" {
 #  endif
 #endif
 
-#if (LZO_ARCH_I086)
+#if defined(LZO_ARCH_I086)
 #define PTR(a)              ((lzo_bytep) (a))
 #define PTR_ALIGNED_4(a)    ((ACC_PTR_FP_OFF(a) & 3) == 0)
 #define PTR_ALIGNED2_4(a,b) (((ACC_PTR_FP_OFF(a) | ACC_PTR_FP_OFF(b)) & 3) == 0)
-#elif (LZO_MM_PVP)
+#elif defined(LZO_MM_PVP)
 #define PTR(a)              ((lzo_bytep) (a))
 #define PTR_ALIGNED_8(a)    ((((lzo_uintptr_t)(a)) >> 61) == 0)
 #define PTR_ALIGNED2_8(a,b) ((((lzo_uintptr_t)(a)|(lzo_uintptr_t)(b)) >> 61) == 0)
@@ -2185,9 +2185,9 @@ __lzo_ptr_linear(const lzo_voidp ptr)
 {
     lzo_uintptr_t p;
 
-#if (LZO_ARCH_I086)
+#if defined(LZO_ARCH_I086)
     p = (((lzo_uintptr_t)(ACC_PTR_FP_SEG(ptr))) << (16 - ACC_MM_AHSHIFT)) + (ACC_PTR_FP_OFF(ptr));
-#elif (LZO_MM_PVP)
+#elif defined(LZO_MM_PVP)
     p = (lzo_uintptr_t) (ptr);
     p = (p << 3) | (p >> 61);
 #else
@@ -2238,7 +2238,7 @@ const char __lzo_copyright[] =
 LZO_PUBLIC(const lzo_bytep)
 lzo_copyright(void)
 {
-#if (LZO_OS_DOS16 && LZO_CC_TURBOC)
+#if (defined(LZO_OS_DOS16) && defined(LZO_CC_TURBOC))
     return (lzo_voidp) __lzo_copyright;
 #else
     return (const lzo_bytep) __lzo_copyright;
@@ -2343,7 +2343,7 @@ lzo_adler32(lzo_uint32 adler, const lzo_bytep buf, lzo_uint len)
 #endif
 LZOLIB_PUBLIC(int, lzo_hmemcmp) (const lzo_hvoid_p s1, const lzo_hvoid_p s2, lzo_hsize_t len)
 {
-#if (LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMCMP)
+#if defined(LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMCMP)
     const lzo_hbyte_p p1 = (const lzo_hbyte_p) s1;
     const lzo_hbyte_p p2 = (const lzo_hbyte_p) s2;
     if __lzo_likely(len > 0) do
@@ -2360,7 +2360,7 @@ LZOLIB_PUBLIC(int, lzo_hmemcmp) (const lzo_hvoid_p s1, const lzo_hvoid_p s2, lzo
 }
 LZOLIB_PUBLIC(lzo_hvoid_p, lzo_hmemcpy) (lzo_hvoid_p dest, const lzo_hvoid_p src, lzo_hsize_t len)
 {
-#if (LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMCPY)
+#if defined(LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMCPY)
     lzo_hbyte_p p1 = (lzo_hbyte_p) dest;
     const lzo_hbyte_p p2 = (const lzo_hbyte_p) src;
     if (!(len > 0) || p1 == p2)
@@ -2375,7 +2375,7 @@ LZOLIB_PUBLIC(lzo_hvoid_p, lzo_hmemcpy) (lzo_hvoid_p dest, const lzo_hvoid_p src
 }
 LZOLIB_PUBLIC(lzo_hvoid_p, lzo_hmemmove) (lzo_hvoid_p dest, const lzo_hvoid_p src, lzo_hsize_t len)
 {
-#if (LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMMOVE)
+#if defined(LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMMOVE)
     lzo_hbyte_p p1 = (lzo_hbyte_p) dest;
     const lzo_hbyte_p p2 = (const lzo_hbyte_p) src;
     if (!(len > 0) || p1 == p2)
@@ -2401,7 +2401,7 @@ LZOLIB_PUBLIC(lzo_hvoid_p, lzo_hmemmove) (lzo_hvoid_p dest, const lzo_hvoid_p sr
 }
 LZOLIB_PUBLIC(lzo_hvoid_p, lzo_hmemset) (lzo_hvoid_p s, int c, lzo_hsize_t len)
 {
-#if (LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMSET)
+#if defined(LZO_HAVE_MM_HUGE_PTR) || !defined(HAVE_MEMSET)
     lzo_hbyte_p p = (lzo_hbyte_p) s;
     if __lzo_likely(len > 0) do
         *p++ = (unsigned char) c;
