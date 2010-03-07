@@ -46,12 +46,51 @@ static void *pstore_extent__mmap(struct pstore_extent *self, int fd, off_t offse
 	return mmap_window__start(self->mmap);
 }
 
+static void *pstore_extent__mmap_next_value(struct pstore_extent *self)
+{
+	char *start, *end;
+
+restart:
+	start = end = self->start;
+	do {
+		if (mmap_window__in_window(self->mmap, end))
+			continue;
+
+		if (!mmap_window__in_region(self->mmap, end))
+			return NULL;
+
+		self->start = mmap_window__slide(self->mmap, start);
+		goto restart;
+	} while (*end++);
+	self->start = end;
+
+	return start;
+}
+
 static const struct pstore_extent_ops extent_uncomp_ops = {
 	.read		= pstore_extent__mmap,
+	.next_value	= pstore_extent__mmap_next_value,
 };
+
+static void *pstore_extent__buffer_next_value(struct pstore_extent *self)
+{
+	char *start, *end;
+
+	start = end = self->start;
+	do {
+		if (buffer__in_region(self->buffer, end))
+			continue;
+
+		return NULL;
+	} while (*end++);
+	self->start = end;
+
+	return start;
+}
 
 static const struct pstore_extent_ops extent_lzo1x_1_ops = {
 	.read		= pstore_extent__decompress,
+	.next_value	= pstore_extent__buffer_next_value,
 };
 
 static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
@@ -82,61 +121,6 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 	self->start		= self->ops->read(self, fd, offset);
 
 	return self;
-}
-
-static void *pstore_extent__buffer_next_value(struct pstore_extent *self)
-{
-	char *start, *end;
-
-	start = end = self->start;
-	do {
-		if (buffer__in_region(self->buffer, end))
-			continue;
-
-		return NULL;
-	} while (*end++);
-	self->start = end;
-
-	return start;
-}
-
-static void *pstore_extent__mmap_next_value(struct pstore_extent *self)
-{
-	char *start, *end;
-
-restart:
-	start = end = self->start;
-	do {
-		if (mmap_window__in_window(self->mmap, end))
-			continue;
-
-		if (!mmap_window__in_region(self->mmap, end))
-			return NULL;
-
-		self->start = mmap_window__slide(self->mmap, start);
-		goto restart;
-	} while (*end++);
-	self->start = end;
-
-	return start;
-}
-
-void *pstore_extent__next_value(struct pstore_extent *self)
-{
-	void *ret;
-
-	switch (self->comp) {
-	case PSTORE_COMP_LZO1X_1:
-		ret = pstore_extent__buffer_next_value(self);
-		break;
-	case PSTORE_COMP_NONE:
-		ret = pstore_extent__mmap_next_value(self);
-		break;
-	default:
-		die("unknown compression %d", self->comp);
-	};
-
-	return ret;
 }
 
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len)

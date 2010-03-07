@@ -17,6 +17,7 @@ struct pstore_extent;
 
 struct pstore_extent_ops {
 	void *(*read)(struct pstore_extent *self, int fd, off_t offset);
+	void *(*next_value)(struct pstore_extent *self);
 };
 
 struct pstore_extent {
@@ -40,7 +41,6 @@ struct pstore_extent {
 struct pstore_extent *pstore_extent__new(struct pstore_column *parent);
 void pstore_extent__delete(struct pstore_extent *self);
 struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd);
-void *pstore_extent__next_value(struct pstore_extent *self);
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len);
 void pstore_extent__flush_write(struct pstore_extent *self, int fd);
 void pstore_extent__finish_write(struct pstore_extent *self, off_t next_extent, int fd);
@@ -50,6 +50,11 @@ bool pstore_extent__has_room(struct pstore_extent *self, struct pstore_value *va
 static inline bool pstore_extent__is_last(struct pstore_extent *self)
 {
 	return self->next_extent == PSTORE_LAST_EXTENT;
+}
+
+static inline void *pstore_extent__next_value(struct pstore_extent *self)
+{
+	return self->ops->next_value(self);
 }
 
 #endif /* PSTORE_EXTENT_H */
