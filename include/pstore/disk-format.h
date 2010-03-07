@@ -46,6 +46,7 @@ enum pstore_comp {
 	PSTORE_COMP_NONE	= 0,
 	PSTORE_COMP_LZO1X_1	= 1,
 };
+#define	NR_PSTORE_COMP		2
 
 struct pstore_file_extent {
 	uint64_t		lsize;		/* logical size before compression */

@@ -46,6 +46,19 @@ static void *pstore_extent__mmap(struct pstore_extent *self, int fd, off_t offse
 	return mmap_window__start(self->mmap);
 }
 
+static const struct pstore_extent_ops extent_uncomp_ops = {
+	.read		= pstore_extent__mmap,
+};
+
+static const struct pstore_extent_ops extent_lzo1x_1_ops = {
+	.read		= pstore_extent__decompress,
+};
+
+static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
+	[PSTORE_COMP_NONE]	= &extent_uncomp_ops,
+	[PSTORE_COMP_LZO1X_1]	= &extent_lzo1x_1_ops,
+};
+
 struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd)
 {
 	struct pstore_file_extent f_extent;
@@ -61,18 +74,12 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 	self->comp		= f_extent.comp;
 	self->next_extent	= f_extent.next_extent;
 
-	switch (self->comp) {
-	case PSTORE_COMP_LZO1X_1: {
-		self->start	= pstore_extent__decompress(self, fd, offset);
-		break;
-	}
-	case PSTORE_COMP_NONE: {
-		self->start	= pstore_extent__mmap(self, fd, offset);
-		break;
-	}
-	default:
+	if (self->comp >= NR_PSTORE_COMP)
 		die("unknown compression %d", self->comp);
-	};
+
+	self->ops		= extent_ops_table[self->comp];
+
+	self->start		= self->ops->read(self, fd, offset);
 
 	return self;
 }

@@ -13,21 +13,28 @@ struct pstore_value;
 struct mmap_window;
 struct buffer;
 
+struct pstore_extent;
+
+struct pstore_extent_ops {
+	void *(*read)(struct pstore_extent *self, int fd, off_t offset);
+};
+
 struct pstore_extent {
-	struct pstore_column	*parent;
-	off_t			next_extent;
-	uint64_t		lsize;
-	uint64_t		psize;
-	uint8_t			comp;
+	const struct pstore_extent_ops	*ops;
+	struct pstore_column		*parent;
+	off_t				next_extent;
+	uint64_t			lsize;
+	uint64_t			psize;
+	uint8_t				comp;
 
 	/* read */
-	struct mmap_window	*mmap;
-	char			*start;
+	struct mmap_window		*mmap;
+	char				*start;
 
 	/* write */
-	struct buffer		*buffer;
-	uint64_t		start_off;
-	uint64_t		end_off;
+	struct buffer			*buffer;
+	uint64_t			start_off;
+	uint64_t			end_off;
 };
 
 struct pstore_extent *pstore_extent__new(struct pstore_column *parent);
