@@ -48,6 +48,7 @@ void pstore_extent__compress(struct pstore_extent *self, int fd)
 
 void pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset)
 {
+	struct mmap_window *mmap;
 	lzo_uint new_len;
 	void *out;
 	void *in;
@@ -57,7 +58,7 @@ void pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset)
 	 * We need extra PAGE_SIZE to maximum mmap window size because of mmap
 	 * alignment requirements.
 	 */
-	self->mmap	= mmap_window__map(self->psize + PAGE_SIZE, fd, offset + sizeof(struct pstore_file_extent), self->psize);
+	mmap		= mmap_window__map(self->psize + PAGE_SIZE, fd, offset + sizeof(struct pstore_file_extent), self->psize);
 	in		= mmap_window__start(self->mmap);
 
 	self->buffer	= buffer__new(self->lsize);
@@ -71,6 +72,5 @@ void pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset)
 	if (new_len != self->lsize)
 		die("decompression failed");
 
-	mmap_window__unmap(self->mmap);
-	self->mmap	 = NULL;
+	mmap_window__unmap(mmap);
 }
