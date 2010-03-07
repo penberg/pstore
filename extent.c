@@ -39,6 +39,13 @@ void pstore_extent__delete(struct pstore_extent *self)
 
 #define MMAP_WINDOW_LEN		MiB(128)
 
+static void *pstore_extent__mmap(struct pstore_extent *self, int fd, off_t offset)
+{
+	self->mmap	= mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(struct pstore_file_extent), self->psize);
+	
+	return mmap_window__start(self->mmap);
+}
+
 struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd)
 {
 	struct pstore_file_extent f_extent;
@@ -56,13 +63,11 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 
 	switch (self->comp) {
 	case PSTORE_COMP_LZO1X_1: {
-		pstore_extent__decompress(self, fd, offset);
-		self->start	= buffer__start(self->buffer);
+		self->start	= pstore_extent__decompress(self, fd, offset);
 		break;
 	}
 	case PSTORE_COMP_NONE: {
-		self->mmap	= mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(f_extent), self->psize);
-		self->start	= mmap_window__start(self->mmap);
+		self->start	= pstore_extent__mmap(self, fd, offset);
 		break;
 	}
 	default:

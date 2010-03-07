@@ -46,7 +46,7 @@ void pstore_extent__compress(struct pstore_extent *self, int fd)
 	free(out);
 }
 
-void pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset)
+void *pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset)
 {
 	struct mmap_window *mmap;
 	lzo_uint new_len;
@@ -73,4 +73,6 @@ void pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset)
 		die("decompression failed");
 
 	mmap_window__unmap(mmap);
+
+	return buffer__start(self->buffer);
 }
