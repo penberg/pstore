@@ -68,6 +68,8 @@ void *pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset
 	if (new_len != self->lsize)
 		die("decompression failed");
 
+	self->buffer->offset	= self->lsize;
+
 	mmap_window__unmap(mmap);
 
 	return buffer__start(self->buffer);
