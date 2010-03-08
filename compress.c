@@ -54,11 +54,7 @@ void *pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset
 	void *in;
 	int err;
 
-	/*
-	 * We need extra PAGE_SIZE to maximum mmap window size because of mmap
-	 * alignment requirements.
-	 */
-	mmap		= mmap_window__map(self->psize + PAGE_SIZE, fd, offset + sizeof(struct pstore_file_extent), self->psize);
+	mmap		= mmap_window__map(self->psize, fd, offset + sizeof(struct pstore_file_extent), self->psize);
 	in		= mmap_window__start(mmap);
 
 	self->buffer	= buffer__new(self->lsize);

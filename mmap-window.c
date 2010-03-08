@@ -44,11 +44,11 @@ static void *mmap_window__end(struct mmap_window *self)
 
 static void mmap_window__mmap(struct mmap_window *self, off_t offset, size_t length)
 {
-	self->mmap_pos	= offset & ~PAGE_MASK;
-
-	self->mmap_len	= length + self->mmap_pos;
 	if (self->mmap_len > self->max_window_len)
 		self->mmap_len = self->max_window_len;
+
+	self->mmap_pos	= offset & ~PAGE_MASK;
+	self->mmap_len	= length + self->mmap_pos;
 
 	self->mmap = mmap(NULL, self->mmap_len, PROT_READ, MAP_PRIVATE, self->fd, offset & PAGE_MASK);
 	if (self->mmap == MAP_FAILED)
