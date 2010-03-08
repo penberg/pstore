@@ -59,7 +59,7 @@ void *pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset
 	 * alignment requirements.
 	 */
 	mmap		= mmap_window__map(self->psize + PAGE_SIZE, fd, offset + sizeof(struct pstore_file_extent), self->psize);
-	in		= mmap_window__start(self->mmap);
+	in		= mmap_window__start(mmap);
 
 	self->buffer	= buffer__new(self->lsize);
 	out		= buffer__start(self->buffer);
