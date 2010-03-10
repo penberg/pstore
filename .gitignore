@@ -1,5 +1,6 @@
 *.d
 *.o
+tags
 pstore
 test-pstore
 test-runner.c
