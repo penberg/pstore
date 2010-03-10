@@ -13,6 +13,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -149,41 +150,47 @@ static unsigned long parse_int_arg(char *arg)
 	return strtol(start + 1, NULL, 10);
 }
 
-static bool arg_matches(char *arg, const char *prefix)
-{
-	return strncmp(arg, prefix, strlen(prefix)) == 0;
-}
-
-static void parse_args(int argc, char *argv[])
-{
-	int ndx = 2;
-
-	details.max_extent_len	= MMAP_EXTENT_LEN;
-	details.comp		= PSTORE_COMP_NONE;
-
-	for (;;) {
-		if (arg_matches(argv[ndx], "--window-len=")) {
-			unsigned long x = parse_int_arg(argv[ndx++]);
-
-			max_window_len = MiB(x);
-		} else if (arg_matches(argv[ndx], "--max-extent-len=")) {
-			unsigned long x = parse_int_arg(argv[ndx++]);
-
-			details.max_extent_len = MiB(x);
-		} else if (arg_matches(argv[ndx], "--compress")) {
-			details.comp		= PSTORE_COMP_LZO1X_1;
-			ndx++;
-		} else
-			break;
-	}
-	input_file		= argv[ndx++];
-	output_file		= argv[ndx];
-}
-
 static void usage(void)
 {
 	printf("\n usage: pstore import INPUT OUTPUT\n\n");
 	exit(EXIT_FAILURE);
+}
+
+static const struct option options[] = {
+	{ "compress",		no_argument,		NULL, 'c' },
+	{ "max-extent-len",	required_argument,	NULL, 'e' },
+	{ "window-len",		required_argument,	NULL, 'w' },
+	{ }
+};
+
+static void parse_args(int argc, char *argv[])
+{
+	int ch;
+
+	details.max_extent_len	= MMAP_EXTENT_LEN;
+	details.comp		= PSTORE_COMP_NONE;
+
+	while ((ch = getopt_long(argc, argv, "ce:w:", options, NULL)) != -1) {
+		switch (ch) {
+		case 'c':
+			details.comp		= PSTORE_COMP_LZO1X_1;
+			break;
+		case 'e':
+			details.max_extent_len	= MiB(parse_int_arg(optarg));
+			break;
+		case 'w':
+			max_window_len		= MiB(parse_int_arg(optarg));
+			break;
+		default:
+			usage();
+			break;
+		}
+	}
+	argc -= optind;
+	argv += optind;
+
+	input_file		= argv[0];
+	output_file		= argv[1];
 }
 
 int cmd_import(int argc, char *argv[])
@@ -197,18 +204,18 @@ int cmd_import(int argc, char *argv[])
 	if (argc < 4)
 		usage();
 
-	parse_args(argc, argv);
+	parse_args(argc - 1, argv + 1);
 
 	input = open(input_file, O_RDONLY);
 	if (input < 0)
-		die("open: %s\n", strerror(errno));
+		die("Failed to open input file '%s': %s", input_file, strerror(errno));
 
 	if (fstat(input, &st) < 0)
 		die("fstat");
 
 	output = open(output_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
 	if (output < 0)
-		die("open: %s", strerror(errno));
+		die("Failed to open output file '%s': %s", output_file, strerror(errno));
 
 	if (posix_fallocate(output, 0, st.st_size) != 0)
 		die("posix_fallocate");
