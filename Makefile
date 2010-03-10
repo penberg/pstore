@@ -106,12 +106,15 @@ LIB_DEPS	:= $(patsubst %.o,%.d,$(LIB_OBJS))
 TEST_PROGRAM	:= test-pstore
 TEST_SUITE_H	:= test/test-suite.h
 TEST_RUNNER_C	:= test/test-runner.c
+TEST_RUNNER_OBJ := test/test-runner.o
 
 TEST_OBJS += harness.o
 TEST_OBJS += test/csv-test.o
+ifneq ($(uname_S),Darwin)
 TEST_OBJS += test/mmap-window-test.o
-TEST_OBJS += test/test-runner.o
+endif
 
+TEST_SRC	:= $(patsubst %.o,%.c,$(TEST_OBJS))
 TEST_DEPS	:= $(patsubst %.o,%.d,$(TEST_OBJS))
 
 TEST_LIBS := $(LIBS)
@@ -164,20 +167,21 @@ test: $(TEST_PROGRAM)
 
 $(TEST_RUNNER_C): $(FORCE)
 	$(E) "  GEN     " $@
-	$(Q) sh scripts/gen-test-runner "test/*-test.c" > $@
+	$(Q) sh scripts/gen-test-runner "$(TEST_SRC)" > $@
 
 $(TEST_SUITE_H): $(FORCE)
 	$(E) "  GEN     " $@
-	$(Q) sh scripts/gen-test-proto "test/*-test.c" > $@
+	$(Q) sh scripts/gen-test-proto "$(TEST_SRC)" > $@
 
-$(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(LIB_FILE)
+$(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(LIB_FILE)
 	$(E) "  LINK    " $@
-	$(Q) $(CC) $(TEST_OBJS) $(TEST_LIBS) -o $(TEST_PROGRAM)
+	$(E) "  LINK    " $<
+	$(Q) $(CC) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(TEST_LIBS) -o $(TEST_PROGRAM)
 
 clean:
 	$(E) "  CLEAN"
 	$(Q) rm -f $(LIB_FILE) $(LIB_OBJS) $(LIB_DEPS)
-	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS) $(TEST_RUNNER_C)
+	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS) $(TEST_RUNNER_OBJ)
 .PHONY: clean
 
 regress: $(PROGRAM)
