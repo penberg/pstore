@@ -3,8 +3,8 @@ Feature: CSV import
   As an user
   I want to import a CSV file into a pstore database
 
-  Scenario: Import CSV as uncompressed database
-  Given the following rows in a CSV:
+  Background:
+    Given a CSV file with the following content:
     """
     Symbol,Close
     AAPL,223.02
@@ -12,7 +12,24 @@ Feature: CSV import
     GOOG,564.34
 
     """
-  When I execute the import command
+
+  Scenario: Uncompressed import
+  Given a CSV file
+  When I execute "pstore import" command
+  Then the database should contain the following data:
+    """
+    AAPL
+    AAZN
+    GOOG
+    223.02
+    128.82
+    564.34
+
+    """
+
+  Scenario: Compressed import
+  Given a CSV file
+  When I execute "pstore import --compress" command
   Then the database should contain the following data:
     """
     AAPL

@@ -2,14 +2,16 @@
 
 #include "pstore/mmap-window.h"
 #include "pstore/read-write.h"
-#include "pstore/extent.h"
 #include "pstore/buffer.h"
+#include "pstore/column.h"
+#include "pstore/extent.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
 
 #include "minilzo/minilzo.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #define HEAP_ALLOC(var,size) \
     lzo_align_t __LZO_MMODEL var [ ((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ]
@@ -37,7 +39,7 @@ void pstore_extent__compress(struct pstore_extent *self, int fd)
 		die("lzo1x_1_compress");
 
 	if (out_len >= in_len)
-		die("incompressible block");
+		fprintf(stderr, "warning: Column '%s' contains incompressible data.\n", self->parent->name);
 
 	self->lsize	= in_len;
 

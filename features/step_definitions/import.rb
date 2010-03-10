@@ -11,13 +11,16 @@ After do
   @csv_file.delete
 end
 
-Given /^the following rows in a CSV:$/ do |string|
+Given /^a CSV file with the following content:$/ do |string|
   @csv_file.write string
   @csv_file.close
 end
 
-When /^I execute the import command$/ do
-  `./pstore import #{@csv_file.path} #{@pstore_file.path}`
+Given /^a CSV file$/ do
+end
+
+When /^I execute "([^\"]*)" command$/ do |command|
+  `./#{command} #{@csv_file.path} #{@pstore_file.path}`
 end
 
 Then /^the database should contain the following data:$/ do |string|
