@@ -39,7 +39,7 @@ void pstore_extent__compress(struct pstore_extent *self, int fd)
 		die("lzo1x_1_compress");
 
 	if (out_len >= in_len)
-		fprintf(stderr, "warning: Column '%s' contains incompressible data.\n", self->parent->name);
+		fprintf(stdout, "warning: Column '%s' contains incompressible data.\n", self->parent->name);
 
 	self->lsize	= in_len;
 
