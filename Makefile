@@ -181,8 +181,8 @@ clean:
 .PHONY: clean
 
 regress: $(PROGRAM)
-	$(E) "  REGRESS"
-	$(Q) $(MAKE) -s -C regress
+	$(E) "  CUCUMBER"
+	$(Q) cucumber
 .PHONY: regress
 
 check: test regress
