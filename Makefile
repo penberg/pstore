@@ -186,7 +186,7 @@ clean:
 
 regress: $(PROGRAM)
 	$(E) "  CUCUMBER"
-	$(Q) cucumber
+	$(Q) cucumber --format progress
 .PHONY: regress
 
 check: test regress
