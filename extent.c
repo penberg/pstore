@@ -49,10 +49,16 @@ static void pstore_extent__mmap_flush(struct pstore_extent *self, int fd)
 	buffer__write(self->buffer, fd);
 }
 
+static void pstore_extent__mmap_finish_write(struct pstore_extent *self)
+{
+	self->lsize		= self->psize;
+}
+
 static const struct pstore_extent_ops extent_uncomp_ops = {
 	.read		= pstore_extent__mmap,
 	.next_value	= pstore_extent__mmap_next_value,
 	.flush		= pstore_extent__mmap_flush,
+	.finish_write	= pstore_extent__mmap_finish_write,
 };
 
 static void *pstore_extent__buffer_next_value(struct pstore_extent *self)
@@ -150,8 +156,8 @@ void pstore_extent__finish_write(struct pstore_extent *self, off_t next_extent, 
 	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
 	self->psize		= self->end_off - self->start_off;
 
-	if (self->comp == PSTORE_COMP_NONE)
-		self->lsize		= self->psize;
+	if (self->ops->finish_write)
+		self->ops->finish_write(self);
 
 	seek_or_die(fd, -(sizeof(f_extent) + self->psize), SEEK_CUR);
 	f_extent = (struct pstore_file_extent) {
