@@ -44,9 +44,15 @@ restart:
 	return start;
 }
 
+static void pstore_extent__mmap_flush(struct pstore_extent *self, int fd)
+{
+	buffer__write(self->buffer, fd);
+}
+
 static const struct pstore_extent_ops extent_uncomp_ops = {
 	.read		= pstore_extent__mmap,
 	.next_value	= pstore_extent__mmap_next_value,
+	.flush		= pstore_extent__mmap_flush,
 };
 
 static void *pstore_extent__buffer_next_value(struct pstore_extent *self)
@@ -68,6 +74,7 @@ static void *pstore_extent__buffer_next_value(struct pstore_extent *self)
 static const struct pstore_extent_ops extent_lzo1x_1_ops = {
 	.read		= pstore_extent__decompress,
 	.next_value	= pstore_extent__buffer_next_value,
+	.flush		= pstore_extent__compress,
 };
 
 static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
@@ -128,25 +135,10 @@ void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t m
 	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 }
 
-static void pstore_extent__do_flush(struct pstore_extent *self, int fd)
-{
-	switch (self->comp) {
-	case PSTORE_COMP_LZO1X_1: {
-		pstore_extent__compress(self, fd);
-		break;
-	}
-	case PSTORE_COMP_NONE:
-		buffer__write(self->buffer, fd);
-		break;
-	default:
-		die("unknown compression %d", self->comp);
-	};
-}
-
 void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 {
 	if (buffer__size(self->buffer) > 0)
-		pstore_extent__do_flush(self, fd);
+		self->ops->flush(self, fd);
 
 	buffer__delete(self->buffer);
 }

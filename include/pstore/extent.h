@@ -18,6 +18,7 @@ struct pstore_extent;
 struct pstore_extent_ops {
 	void *(*read)(struct pstore_extent *self, int fd, off_t offset);
 	void *(*next_value)(struct pstore_extent *self);
+	void (*flush)(struct pstore_extent *self, int fd);
 };
 
 struct pstore_extent {
