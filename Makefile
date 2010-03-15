@@ -94,6 +94,7 @@ LIB_OBJS += compress.o
 LIB_OBJS += csv.o
 LIB_OBJS += die.o
 LIB_OBJS += extent.o
+LIB_OBJS += fastlz/fastlz.o
 LIB_OBJS += header.o
 LIB_OBJS += minilzo/minilzo.o
 LIB_OBJS += mmap-window.o
