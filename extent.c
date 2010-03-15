@@ -14,29 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct pstore_extent *pstore_extent__new(struct pstore_column *parent)
-{
-	struct pstore_extent *self = calloc(sizeof *self, 1);
-
-	if (!self)
-		die("out of memory");
-
-	self->parent		= parent;
-
-	return self;
-}
-
-void pstore_extent__delete(struct pstore_extent *self)
-{
-	if (self->mmap)
-		mmap_window__unmap(self->mmap);
-
-	if (self->buffer)
-		buffer__delete(self->buffer);
-
-	free(self);
-}
-
 #define MMAP_WINDOW_LEN		MiB(128)
 
 static void *pstore_extent__mmap(struct pstore_extent *self, int fd, off_t offset)
@@ -98,25 +75,47 @@ static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
 	[PSTORE_COMP_LZO1X_1]	= &extent_lzo1x_1_ops,
 };
 
+struct pstore_extent *pstore_extent__new(struct pstore_column *parent, uint8_t comp)
+{
+	struct pstore_extent *self = calloc(sizeof *self, 1);
+
+	if (!self)
+		die("out of memory");
+
+	self->parent		= parent;
+	self->comp		= comp;
+	self->ops		= extent_ops_table[self->comp];
+
+	return self;
+}
+
+void pstore_extent__delete(struct pstore_extent *self)
+{
+	if (self->mmap)
+		mmap_window__unmap(self->mmap);
+
+	if (self->buffer)
+		buffer__delete(self->buffer);
+
+	free(self);
+}
+
 struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd)
 {
 	struct pstore_file_extent f_extent;
 	struct pstore_extent *self;
 
-	self = pstore_extent__new(column);
-
 	seek_or_die(fd, offset, SEEK_SET);
 	read_or_die(fd, &f_extent, sizeof(f_extent));
 
+	self = pstore_extent__new(column, f_extent.comp);
+
 	self->lsize		= f_extent.lsize;
 	self->psize		= f_extent.psize;
-	self->comp		= f_extent.comp;
 	self->next_extent	= f_extent.next_extent;
 
 	if (self->comp >= NR_PSTORE_COMP)
 		die("unknown compression %d", self->comp);
-
-	self->ops		= extent_ops_table[self->comp];
 
 	self->start		= self->ops->read(self, fd, offset);
 

@@ -38,7 +38,7 @@ struct pstore_extent {
 	uint64_t			end_off;
 };
 
-struct pstore_extent *pstore_extent__new(struct pstore_column *parent);
+struct pstore_extent *pstore_extent__new(struct pstore_column *parent, uint8_t comp);
 void pstore_extent__delete(struct pstore_extent *self);
 struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd);
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len);
