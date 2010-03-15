@@ -168,6 +168,9 @@ static uint8_t parse_comp_arg(char *arg)
 	if (strcmp(arg, "lzo") == 0)
 		return PSTORE_COMP_LZO1X_1;
 
+	if (strcmp(arg, "fastlz") == 0)
+		return PSTORE_COMP_FASTLZ;
+
 	usage();
 
 	return -1;

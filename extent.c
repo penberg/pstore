@@ -64,6 +64,7 @@ static const struct pstore_extent_ops extent_uncomp_ops = {
 static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
 	[PSTORE_COMP_NONE]	= &extent_uncomp_ops,
 	[PSTORE_COMP_LZO1X_1]	= &extent_lzo1x_1_ops,
+	[PSTORE_COMP_FASTLZ]	= &extent_fastlz_ops,
 };
 
 struct pstore_extent *pstore_extent__new(struct pstore_column *parent, uint8_t comp)

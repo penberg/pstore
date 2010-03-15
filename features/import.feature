@@ -27,9 +27,23 @@ Feature: CSV import
 
     """
 
-  Scenario: Compressed import
+  Scenario: LZO compressed import
   Given a CSV file
   When I execute "pstore import --compress lzo" command
+  Then the database should contain the following data:
+    """
+    AAPL
+    AAZN
+    GOOG
+    223.02
+    128.82
+    564.34
+
+    """
+
+  Scenario: FastLZ compressed import
+  Given a CSV file
+  When I execute "pstore import --compress fastlz" command
   Then the database should contain the following data:
     """
     AAPL
