@@ -157,11 +157,21 @@ static void usage(void)
 }
 
 static const struct option options[] = {
-	{ "compress",		no_argument,		NULL, 'c' },
+	{ "compress",		required_argument,	NULL, 'c' },
 	{ "max-extent-len",	required_argument,	NULL, 'e' },
 	{ "window-len",		required_argument,	NULL, 'w' },
 	{ }
 };
+
+static uint8_t parse_comp_arg(char *arg)
+{
+	if (strcmp(arg, "lzo") == 0)
+		return PSTORE_COMP_LZO1X_1;
+
+	usage();
+
+	return -1;
+}
 
 static void parse_args(int argc, char *argv[])
 {
@@ -173,7 +183,7 @@ static void parse_args(int argc, char *argv[])
 	while ((ch = getopt_long(argc, argv, "ce:w:", options, NULL)) != -1) {
 		switch (ch) {
 		case 'c':
-			details.comp		= PSTORE_COMP_LZO1X_1;
+			details.comp		= parse_comp_arg(optarg);
 			break;
 		case 'e':
 			details.max_extent_len	= MiB(parse_int_arg(optarg));

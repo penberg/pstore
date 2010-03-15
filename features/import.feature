@@ -29,7 +29,7 @@ Feature: CSV import
 
   Scenario: Compressed import
   Given a CSV file
-  When I execute "pstore import --compress" command
+  When I execute "pstore import --compress lzo" command
   Then the database should contain the following data:
     """
     AAPL
