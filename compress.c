@@ -18,7 +18,7 @@
 
 static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
-void pstore_extent__compress(struct pstore_extent *self, int fd)
+static void extent__lzo1x_1_compress(struct pstore_extent *self, int fd)
 {
 	lzo_uint out_len;
 	lzo_uint in_len;
@@ -48,7 +48,7 @@ void pstore_extent__compress(struct pstore_extent *self, int fd)
 	free(out);
 }
 
-void *pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset)
+static void *extent__lzo1x_1_decompress(struct pstore_extent *self, int fd, off_t offset)
 {
 	struct mmap_window *mmap;
 	lzo_uint new_len;
@@ -76,3 +76,25 @@ void *pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset
 
 	return buffer__start(self->buffer);
 }
+
+static void *extent__next_value(struct pstore_extent *self)
+{
+	char *start, *end;
+
+	start = end = self->start;
+	do {
+		if (buffer__in_region(self->buffer, end))
+			continue;
+
+		return NULL;
+	} while (*end++);
+	self->start = end;
+
+	return start;
+}
+
+struct pstore_extent_ops extent_lzo1x_1_ops = {
+	.read		= extent__lzo1x_1_decompress,
+	.next_value	= extent__next_value,
+	.flush		= extent__lzo1x_1_compress,
+};

@@ -61,28 +61,6 @@ static const struct pstore_extent_ops extent_uncomp_ops = {
 	.finish_write	= pstore_extent__mmap_finish_write,
 };
 
-static void *pstore_extent__buffer_next_value(struct pstore_extent *self)
-{
-	char *start, *end;
-
-	start = end = self->start;
-	do {
-		if (buffer__in_region(self->buffer, end))
-			continue;
-
-		return NULL;
-	} while (*end++);
-	self->start = end;
-
-	return start;
-}
-
-static const struct pstore_extent_ops extent_lzo1x_1_ops = {
-	.read		= pstore_extent__decompress,
-	.next_value	= pstore_extent__buffer_next_value,
-	.flush		= pstore_extent__compress,
-};
-
 static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
 	[PSTORE_COMP_NONE]	= &extent_uncomp_ops,
 	[PSTORE_COMP_LZO1X_1]	= &extent_lzo1x_1_ops,

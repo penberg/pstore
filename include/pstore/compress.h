@@ -1,11 +1,8 @@
 #ifndef PSTORE_COMPRESS_H
 #define PSTORE_COMPRESS_H
 
-#include <sys/types.h>
+#include "pstore/extent.h"
 
-struct pstore_extent;
-
-void pstore_extent__compress(struct pstore_extent *self, int fd);
-void *pstore_extent__decompress(struct pstore_extent *self, int fd, off_t offset);
+extern struct pstore_extent_ops extent_lzo1x_1_ops;
 
 #endif /* PSTORE_COMPRESS_H */
