@@ -145,9 +145,7 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 
 static unsigned long parse_int_arg(char *arg)
 {
-	char *start = strchr(arg, '=');
-
-	return strtol(start + 1, NULL, 10);
+	return strtol(arg, NULL, 10);
 }
 
 static void usage(void)
