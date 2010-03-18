@@ -1,4 +1,5 @@
 require 'spec/expectations'
+require 'fastercsv'
 require 'tempfile'
 
 Before do
@@ -11,19 +12,30 @@ After do
   @csv_file.delete
 end
 
-Given /^a CSV file with the following content:$/ do |string|
-  @csv_file.write string
-  @csv_file.close
-end
-
-Given /^a CSV file$/ do
+Given /^a "([^\"]*)" long CSV file$/ do |size|
+  `./torture/gencsv #{@csv_file.path} #{size}`
 end
 
 When /^I execute "([^\"]*)" command$/ do |command|
   `./#{command} #{@csv_file.path} #{@pstore_file.path}`
 end
 
-Then /^the database should contain the following data:$/ do |string|
+Then /^the database should contain the same data in column order$/ do
   output = `./pstore cat #{@pstore_file.path} | grep -v "^#"`
-  output.should == string
+  output.should == parse_csv(@csv_file.path)
+end
+
+def parse_csv(file)
+  values = Hash.new
+  values.default = ""
+  FasterCSV.foreach(file, :headers => true) do |row|
+    (0..row.length-1).each do |column|
+      values[column] = values[column] + row[column] + "\n"
+    end
+  end
+  result = ""
+  values.each_key do |key|
+    result += values[key]
+  end
+  result
 end

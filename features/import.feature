@@ -3,54 +3,17 @@ Feature: CSV import
   As an user
   I want to import a CSV file into a pstore database
 
-  Background:
-    Given a CSV file with the following content:
-    """
-    Symbol,Close
-    AAPL,223.02
-    AAZN,128.82
-    GOOG,564.34
-
-    """
-
   Scenario: Uncompressed import
-  Given a CSV file
+  Given a "32K" long CSV file
   When I execute "pstore import" command
-  Then the database should contain the following data:
-    """
-    AAPL
-    AAZN
-    GOOG
-    223.02
-    128.82
-    564.34
-
-    """
+  Then the database should contain the same data in column order
 
   Scenario: LZO compressed import
-  Given a CSV file
-  When I execute "pstore import --compress lzo" command
-  Then the database should contain the following data:
-    """
-    AAPL
-    AAZN
-    GOOG
-    223.02
-    128.82
-    564.34
-
-    """
+  Given a "32K" long CSV file
+  When I execute "pstore import --compress=lzo" command
+  Then the database should contain the same data in column order
 
   Scenario: FastLZ compressed import
-  Given a CSV file
-  When I execute "pstore import --compress fastlz" command
-  Then the database should contain the following data:
-    """
-    AAPL
-    AAZN
-    GOOG
-    223.02
-    128.82
-    564.34
-
-    """
+  Given a "32K" long CSV file
+  When I execute "pstore import --compress=fastlz" command
+  Then the database should contain the same data in column order

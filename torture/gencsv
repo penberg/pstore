@@ -7,6 +7,8 @@ def parse_byte_size(s):
     result = -1
     number = float(s[0:len(s)-1])
     suffix = s[len(s)-1:len(s)]
+    if suffix == "K":
+        result = int(1024 * number)
     if suffix == "M":
         result = int(1024 * 1024 * number)
     if suffix == "G":
