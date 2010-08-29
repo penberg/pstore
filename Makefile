@@ -18,7 +18,7 @@ EXTRA_WARNINGS += -Winit-self
 EXTRA_WARNINGS += -Wpacked
 EXTRA_WARNINGS += -Wredundant-decls
 EXTRA_WARNINGS += -Wstrict-aliasing=3
-EXTRA_WARNINGS += -Wswitch-default
+#EXTRA_WARNINGS += -Wswitch-default
 EXTRA_WARNINGS += -Wswitch-enum
 EXTRA_WARNINGS += -Wno-system-headers
 #EXTRA_WARNINGS += -Wundef		# This is disabled because of MiniLZO brain-damage
@@ -98,6 +98,7 @@ LIB_OBJS += fastlz/fastlz.o
 LIB_OBJS += header.o
 LIB_OBJS += minilzo/minilzo.o
 LIB_OBJS += mmap-window.o
+LIB_OBJS += quicklz/quicklz.o
 LIB_OBJS += read-write.o
 LIB_OBJS += segment.o
 LIB_OBJS += table.o
