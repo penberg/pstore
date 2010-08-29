@@ -211,6 +211,7 @@ int cmd_import(int argc, char *argv[])
 	struct pstore_table *table;
 	int input, output;
 	struct stat st;
+	off_t f_size;
 
 	if (argc < 4)
 		usage();
@@ -244,6 +245,11 @@ int cmd_import(int argc, char *argv[])
 		.file_size	= st.st_size,
 	};
 	pstore_table__import_values(table, output, &csv_iterator, &state, &details);
+
+	f_size = seek_or_die(output, 0, SEEK_CUR);
+
+	if (ftruncate(output, f_size) != 0)
+		die("ftruncate");
 
 	/*
 	 * Write out the header again because offsets to data were not known
