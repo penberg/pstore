@@ -9,6 +9,7 @@
 #include "pstore/die.h"
 
 #include "minilzo/minilzo.h"
+#include "quicklz/quicklz.h"
 #include "fastlz/fastlz.h"
 
 #include <stdlib.h>
@@ -162,4 +163,80 @@ struct pstore_extent_ops extent_fastlz_ops = {
 	.read		= extent__fastlz_decompress,
 	.next_value	= extent__next_value,
 	.flush		= extent__fastlz_compress,
+};
+
+/*
+ * 	QuickLZ
+ */
+
+static void extent__quicklz_compress(struct pstore_extent *self, int fd)
+{
+	void *scratch;
+	int in_len;
+	void *out;
+	void *in;
+	int size;
+
+	in_len		= buffer__size(self->buffer);
+	in		= buffer__start(self->buffer);
+
+	out		= malloc(in_len + 400);
+	if (!out)
+		die("out of memory");
+
+	scratch		= malloc(QLZ_SCRATCH_COMPRESS);
+	if (!scratch)
+		die("out of memory");
+
+	/* XXX: errors? */
+	size = qlz_compress(in, out, in_len, scratch);
+
+	self->lsize	= in_len;
+
+	write_or_die(fd, out, size);
+
+	free(out);
+	free(scratch);
+}
+
+static void *extent__quicklz_decompress(struct pstore_extent *self, int fd, off_t offset)
+{
+	struct mmap_window *mmap;
+	void *scratch;
+	void *out;
+	void *in;
+	int size;
+	int len;
+
+	mmap		= mmap_window__map(self->psize, fd, offset + sizeof(struct pstore_file_extent), self->psize);
+	in		= mmap_window__start(mmap);
+
+	len		= qlz_size_decompressed(in);
+	if (len != self->lsize)
+		die("error");
+
+	self->buffer	= buffer__new(self->lsize);
+	out		= buffer__start(self->buffer);
+
+	scratch		= malloc(QLZ_SCRATCH_DECOMPRESS);
+	if (!scratch)
+		die("out of memory");
+
+	size = qlz_decompress(in, out, scratch); 
+	if (size != self->lsize)
+		die("decompression failed");
+
+	self->buffer->offset	= self->lsize;
+
+	mmap_window__unmap(mmap);
+
+	free(scratch);
+
+	return out;
+}
+
+struct pstore_extent_ops extent_quicklz_ops = {
+	.read		= extent__quicklz_decompress,
+	.next_value	= extent__next_value,
+	.flush		= extent__quicklz_compress,
 };

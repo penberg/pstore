@@ -17,3 +17,8 @@ Feature: CSV import
   Given a "32K" long CSV file
   When I execute "pstore import --compress=fastlz" command
   Then the database should contain the same data in column order
+
+  Scenario: QuickLZ compressed import
+  Given a "32K" long CSV file
+  When I execute "pstore import --compress=quicklz" command
+  Then the database should contain the same data in column order
