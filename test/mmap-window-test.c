@@ -11,10 +11,9 @@
 
 #define PAGE_SIZE		sysconf(_SC_PAGE_SIZE)
 
-
 #define WINDOW_SIZE		(2 * PAGE_SIZE)
 #define FD_OFFSET		(4ULL * 1024ULL * 1024ULL) /* 4 MB */
-#define FD_SIZE			(1ULL * 1024ULL * 1024ULL) /* 1 MB */
+#define MMAP_LENGTH		(1ULL * 1024ULL * 1024ULL) /* 1 MB */
 
 static struct mmap_window	*mmap;
 static int			fd;
@@ -23,7 +22,7 @@ static void setup(void)
 {
 	fd	= open("/dev/zero", O_RDONLY);
 
-	mmap	= mmap_window__map(WINDOW_SIZE, fd, FD_OFFSET, FD_SIZE);
+	mmap	= mmap_window__map(WINDOW_SIZE, fd, FD_OFFSET, MMAP_LENGTH);
 }
 
 static void teardown(void)
@@ -40,6 +39,7 @@ void test_mmap_window_in_window(void)
 
 	start = mmap_window__start(mmap);
 
+	assert_true(mmap_window__in_window(mmap, start));
 	assert_true(mmap_window__in_window(mmap, start + WINDOW_SIZE - 1));
 	assert_false(mmap_window__in_window(mmap, start + WINDOW_SIZE));
 
@@ -56,8 +56,8 @@ void test_mmap_window_in_region(void)
 
 	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE - 1));
 	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE));
-	assert_true(mmap_window__in_region(mmap, start + FD_SIZE - 1));
-	assert_false(mmap_window__in_region(mmap, start + FD_SIZE));
+	assert_true(mmap_window__in_region(mmap, start + MMAP_LENGTH - 1));
+	assert_false(mmap_window__in_region(mmap, start + MMAP_LENGTH));
 
 	teardown();
 }
@@ -73,7 +73,7 @@ void test_mmap_window_slide(void)
 
 	start = mmap_window__slide(mmap, start + WINDOW_SIZE);
 
-	assert_true(mmap_window__in_region(mmap, start + FD_SIZE - WINDOW_SIZE - 1));
+	assert_true(mmap_window__in_region(mmap, start + MMAP_LENGTH - WINDOW_SIZE - 1));
 
 	teardown();
 }

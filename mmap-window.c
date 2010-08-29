@@ -36,8 +36,8 @@ static void *mmap_window__end(struct mmap_window *self)
 
 static void mmap_window__mmap(struct mmap_window *self, off_t offset, size_t length)
 {
-	if (self->mmap_len > self->max_window_len)
-		self->mmap_len = self->max_window_len;
+	if (length > self->max_window_len)
+		length = self->max_window_len;
 
 	self->mmap_pos	= offset & ~PAGE_MASK;
 	self->mmap_len	= length + self->mmap_pos;
