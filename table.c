@@ -2,9 +2,11 @@
 
 #include "pstore/disk-format.h"
 #include "pstore/read-write.h"
-#include "pstore/header.h"
 #include "pstore/column.h"
+#include "pstore/extent.h"
+#include "pstore/header.h"
 #include "pstore/die.h"
+#include "pstore/row.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -107,6 +109,43 @@ void pstore_table__write(struct pstore_table *self, int fd)
 	write_or_die(fd, &f_table, sizeof(f_table));
 
 	seek_or_die(fd, size, SEEK_CUR);
+}
+
+static void pstore_column__import_values(struct pstore_column *self,
+				  int fd, struct pstore_iterator *iter,
+				  void *private,
+				  struct pstore_import_details *details)
+{
+	struct pstore_extent *extent;
+	struct pstore_row row;
+
+	extent = pstore_extent__new(self, details->comp);
+
+	pstore_extent__prepare_write(extent, fd, details->max_extent_len);
+
+	iter->begin(private);
+
+	while (iter->next(self, private, &row)) {
+		struct pstore_value value;
+
+		if (!pstore_row__value(&row, self, &value))
+			die("premature end of file");
+
+		if (!pstore_extent__has_room(extent, &value)) {
+			off_t offset;
+
+			pstore_extent__flush_write(extent, fd);
+			offset = seek_or_die(fd, 0, SEEK_CUR);
+			pstore_extent__finish_write(extent, offset, fd);
+			pstore_extent__prepare_write(extent, fd, details->max_extent_len);
+		}
+		pstore_extent__write_value(extent, &value, fd);
+	}
+
+	iter->end(private);
+
+	pstore_extent__flush_write(extent, fd);
+	pstore_extent__finish_write(extent, PSTORE_LAST_EXTENT, fd);
 }
 
 void pstore_table__import_values(struct pstore_table *self,
