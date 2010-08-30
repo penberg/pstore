@@ -118,12 +118,7 @@ void pstore_table__import_values(struct pstore_table *self,
 
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
-		uint64_t f_offset;
-
-		f_offset = seek_or_die(fd, 0, SEEK_CUR);
 
 		pstore_column__import_values(column, fd, iter, private, details);
-
-		column->f_offset = f_offset;
 	}
 }

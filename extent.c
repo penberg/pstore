@@ -117,6 +117,9 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len)
 {
+	if (self->parent->f_offset == 0)
+		self->parent->f_offset = seek_or_die(fd, 0, SEEK_CUR);
+
 	self->buffer		= buffer__new(max_extent_len);
 	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 }
