@@ -10,6 +10,7 @@
 #include "pstore/core.h"
 #include "pstore/csv.h"
 #include "pstore/die.h"
+#include "pstore/row.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -80,7 +81,18 @@ static void csv_iterator_begin(void *private)
 		die("premature end of file");
 }
 
-static bool csv_iterator_next(struct pstore_column *self, void *private, struct pstore_value *value)
+static bool cvs_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
+{
+	char *start = self->private;
+
+	return csv_field_value(start, column->column_id, value);
+}
+
+static struct pstore_row_operations row_ops = {
+	.row_value	= cvs_row_value,
+};
+
+static bool csv_iterator_next(struct pstore_column *self, void *private, struct pstore_row *row)
 {
 	struct csv_iterator_state *iter = private;
 	char *start;
@@ -89,8 +101,10 @@ static bool csv_iterator_next(struct pstore_column *self, void *private, struct 
 	if (!start)
 		return false;
 
-	if (!csv_field_value(start, self->column_id, value))
-		die("premature end of file");
+	*row		= (struct pstore_row) {
+		.private	= start,
+		.ops		= &row_ops,
+	};
 
 	return true;
 }

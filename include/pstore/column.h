@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 struct pstore_import_details;
+struct pstore_row;
 
 struct pstore_column {
 	char			*name;		/* column name */
@@ -23,7 +24,7 @@ struct pstore_column_iterator_state {
 
 struct pstore_iterator {
 	void (*begin)(void *private);
-	bool (*next)(struct pstore_column *self, void *private, struct pstore_value *value);
+	bool (*next)(struct pstore_column *self, void *private, struct pstore_row *row);
 	void (*end)(void *private);
 };
 

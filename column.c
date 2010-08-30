@@ -7,6 +7,7 @@
 #include "pstore/table.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
+#include "pstore/row.h"
 
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -70,7 +71,7 @@ void pstore_column__import_values(struct pstore_column *self,
 				  struct pstore_import_details *details)
 {
 	struct pstore_extent *extent;
-	struct pstore_value value;
+	struct pstore_row row;
 
 	extent = pstore_extent__new(self, details->comp);
 
@@ -78,7 +79,12 @@ void pstore_column__import_values(struct pstore_column *self,
 
 	iter->begin(private);
 
-	while (iter->next(self, private, &value)) {
+	while (iter->next(self, private, &row)) {
+		struct pstore_value value;
+
+		if (!pstore_row__value(&row, self, &value))
+			die("premature end of file");
+
 		if (!pstore_extent__has_room(extent, &value)) {
 			off_t offset;
 
