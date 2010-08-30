@@ -111,53 +111,56 @@ void pstore_table__write(struct pstore_table *self, int fd)
 	seek_or_die(fd, size, SEEK_CUR);
 }
 
-static void pstore_column__import_values(struct pstore_column *self,
-				  int fd, struct pstore_iterator *iter,
-				  void *private,
-				  struct pstore_import_details *details)
-{
-	struct pstore_extent *extent;
-	struct pstore_row row;
-
-	extent = pstore_extent__new(self, details->comp);
-
-	pstore_extent__prepare_write(extent, fd, details->max_extent_len);
-
-	iter->begin(private);
-
-	while (iter->next(self, private, &row)) {
-		struct pstore_value value;
-
-		if (!pstore_row__value(&row, self, &value))
-			die("premature end of file");
-
-		if (!pstore_extent__has_room(extent, &value)) {
-			off_t offset;
-
-			pstore_extent__flush_write(extent, fd);
-			offset = seek_or_die(fd, 0, SEEK_CUR);
-			pstore_extent__finish_write(extent, offset, fd);
-			pstore_extent__prepare_write(extent, fd, details->max_extent_len);
-		}
-		pstore_extent__write_value(extent, &value, fd);
-	}
-
-	iter->end(private);
-
-	pstore_extent__flush_write(extent, fd);
-	pstore_extent__finish_write(extent, PSTORE_LAST_EXTENT, fd);
-}
-
 void pstore_table__import_values(struct pstore_table *self,
 				 int fd, struct pstore_iterator *iter,
 				 void *private,
 				 struct pstore_import_details *details)
 {
+	struct pstore_row row;
 	unsigned long ndx;
 
+	/*
+	 * Prepare extents
+	 */
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_column__import_values(column, fd, iter, private, details);
+		column->extent = pstore_extent__new(column, details->comp);
+
+		pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
+	}
+
+	iter->begin(private);
+
+	while (iter->next(private, &row)) {
+		for (ndx = 0; ndx < self->nr_columns; ndx++) {
+			struct pstore_column *column = self->columns[ndx];
+			struct pstore_value value;
+
+			if (!pstore_row__value(&row, column, &value))
+				die("premature end of file");
+
+			if (!pstore_extent__has_room(column->extent, &value)) {
+				off_t offset;
+
+				pstore_extent__flush_write(column->extent, fd);
+				offset = seek_or_die(fd, 0, SEEK_CUR);
+				pstore_extent__finish_write(column->extent, offset, fd);
+				pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
+			}
+			pstore_extent__write_value(column->extent, &value, fd);
+		}
+	}
+
+	iter->end(private);
+
+	/*
+	 * Finish extents
+	 */
+	for (ndx = 0; ndx < self->nr_columns; ndx++) {
+		struct pstore_column *column = self->columns[ndx];
+
+		pstore_extent__flush_write(column->extent, fd);
+		pstore_extent__finish_write(column->extent, PSTORE_LAST_EXTENT, fd);
 	}
 }

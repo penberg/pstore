@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 struct pstore_import_details;
+struct pstore_extent;
 struct pstore_row;
 
 struct pstore_column {
@@ -15,6 +16,8 @@ struct pstore_column {
 	uint64_t		column_id;	/* unique ID */
 	uint8_t			type;		/* type of data (see enum value_type) */
 	uint64_t		f_offset;	/* offset of data in file */
+
+	struct pstore_extent	*extent;
 };
 
 struct pstore_column_iterator_state {
@@ -24,7 +27,7 @@ struct pstore_column_iterator_state {
 
 struct pstore_iterator {
 	void (*begin)(void *private);
-	bool (*next)(struct pstore_column *self, void *private, struct pstore_row *row);
+	bool (*next)(void *private, struct pstore_row *row);
 	void (*end)(void *private);
 };
 
