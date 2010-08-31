@@ -46,7 +46,7 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 
 			pstore_extent__flush_write(new_column->extent, output);
 			offset = seek_or_die(output, 0, SEEK_CUR);
-			pstore_extent__finish_write(new_column->extent, offset, output);
+			pstore_extent__write_metadata(new_column->extent, offset, output);
 
 			pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_SIZE);
 		}
@@ -54,7 +54,7 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 	}
 
 	pstore_extent__flush_write(new_column->extent, output);
-	pstore_extent__finish_write(new_column->extent, PSTORE_LAST_EXTENT, output);
+	pstore_extent__write_metadata(new_column->extent, PSTORE_LAST_EXTENT, output);
 
 	pstore_segment__delete(segment);
 

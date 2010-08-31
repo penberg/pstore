@@ -146,7 +146,7 @@ void pstore_table__import_values(struct pstore_table *self,
 
 				pstore_extent__flush_write(column->extent, fd);
 				offset = seek_or_die(fd, 0, SEEK_CUR);
-				pstore_extent__finish_write(column->extent, offset, fd);
+				pstore_extent__write_metadata(column->extent, offset, fd);
 				pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
 			}
 			pstore_extent__write_value(column->extent, &value, fd);
@@ -162,6 +162,6 @@ void pstore_table__import_values(struct pstore_table *self,
 		struct pstore_column *column = self->columns[ndx];
 
 		pstore_extent__flush_write(column->extent, fd);
-		pstore_extent__finish_write(column->extent, PSTORE_LAST_EXTENT, fd);
+		pstore_extent__write_metadata(column->extent, PSTORE_LAST_EXTENT, fd);
 	}
 }

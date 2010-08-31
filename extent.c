@@ -130,20 +130,23 @@ void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 	if (buffer__size(self->buffer) > 0)
 		self->ops->flush(self, fd);
 
-	buffer__delete(self->buffer);
-}
-
-void pstore_extent__finish_write(struct pstore_extent *self, off_t next_extent, int fd)
-{
-	struct pstore_file_extent f_extent;
-
 	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
 	self->psize		= self->end_off - self->start_off;
 
 	if (self->ops->finish_write)
 		self->ops->finish_write(self);
 
-	seek_or_die(fd, -(sizeof(f_extent) + self->psize), SEEK_CUR);
+	buffer__delete(self->buffer);
+}
+
+void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent, int fd)
+{
+	struct pstore_file_extent f_extent;
+	off_t offset;
+
+	offset = seek_or_die(fd, 0, SEEK_CUR);
+
+	seek_or_die(fd, self->start_off - sizeof(f_extent), SEEK_SET);
 	f_extent = (struct pstore_file_extent) {
 		.psize		= self->psize,
 		.lsize		= self->lsize,
@@ -152,7 +155,7 @@ void pstore_extent__finish_write(struct pstore_extent *self, off_t next_extent, 
 	};
 	write_or_die(fd, &f_extent, sizeof(f_extent));
 
-	seek_or_die(fd, self->psize, SEEK_CUR);
+	seek_or_die(fd, offset, SEEK_SET);
 }
 
 void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value *value, int fd)
