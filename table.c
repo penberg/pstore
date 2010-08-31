@@ -5,6 +5,7 @@
 #include "pstore/column.h"
 #include "pstore/extent.h"
 #include "pstore/header.h"
+#include "pstore/value.h"
 #include "pstore/die.h"
 #include "pstore/row.h"
 

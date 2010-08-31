@@ -19,6 +19,7 @@ struct builtin_cmd {
 static struct builtin_cmd builtins[] = {
 	DEFINE_BUILTIN("cat",		cmd_cat),
 	DEFINE_BUILTIN("import",	cmd_import),
+	DEFINE_BUILTIN("repack",	cmd_repack),
 	DEFINE_BUILTIN("stat",		cmd_stat),
 };
 
@@ -40,6 +41,7 @@ static void usage(void)
 	printf("\n usage: pstore [--version] [--help] COMMAND [ARGS]\n");
 	printf("\n The most commonly used pstore commands are:\n");
 	printf("   cat        Print database data to standard output\n");
+	printf("   repack     Optimize database on-disk layout\n");
 	printf("   import     Import data to a database\n");
 	printf("\n See 'pstore help COMMAND' for more information on a specific command.\n\n");
 	exit(EXIT_FAILURE);
