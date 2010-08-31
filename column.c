@@ -3,6 +3,7 @@
 #include "pstore/disk-format.h"
 #include "pstore/read-write.h"
 #include "pstore/buffer.h"
+#include "pstore/extent.h"
 #include "pstore/table.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
@@ -61,4 +62,17 @@ void pstore_column__write(struct pstore_column *self, int fd)
 	strncpy(f_column.name, self->name, PSTORE_COLUMN_NAME_LEN);
 
 	write_or_die(fd, &f_column, sizeof(f_column));
+}
+
+void pstore_column__flush_write(struct pstore_column *self, int fd)
+{
+	if (self->prev_extent != NULL) {
+		off_t offset;
+
+		offset = seek_or_die(fd, 0, SEEK_CUR);
+
+		pstore_extent__write_metadata(self->prev_extent, offset, fd);
+		pstore_extent__delete(self->prev_extent);
+	}
+	pstore_extent__flush_write(self->extent, fd);
 }

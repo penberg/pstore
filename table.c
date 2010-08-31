@@ -127,7 +127,6 @@ void pstore_table__import_values(struct pstore_table *self,
 		struct pstore_column *column = self->columns[ndx];
 
 		column->extent = pstore_extent__new(column, details->comp);
-
 		pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
 	}
 
@@ -142,11 +141,11 @@ void pstore_table__import_values(struct pstore_table *self,
 				die("premature end of file");
 
 			if (!pstore_extent__has_room(column->extent, &value)) {
-				off_t offset;
+				pstore_column__flush_write(column, fd);
 
-				pstore_extent__flush_write(column->extent, fd);
-				offset = seek_or_die(fd, 0, SEEK_CUR);
-				pstore_extent__write_metadata(column->extent, offset, fd);
+				column->prev_extent = column->extent;
+
+				column->extent = pstore_extent__new(column, details->comp);
 				pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
 			}
 			pstore_extent__write_value(column->extent, &value, fd);
@@ -161,7 +160,8 @@ void pstore_table__import_values(struct pstore_table *self,
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_extent__flush_write(column->extent, fd);
+		pstore_column__flush_write(column, fd);
+
 		pstore_extent__write_metadata(column->extent, PSTORE_LAST_EXTENT, fd);
 	}
 }

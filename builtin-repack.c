@@ -30,7 +30,6 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 	segment = pstore_segment__read(old_column, input);
 
 	new_column->extent = pstore_extent__new(new_column, PSTORE_COMP_FASTLZ);
-
 	pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_SIZE);
 
 	while ((s = pstore_segment__next_value(segment)) != NULL) {
@@ -42,18 +41,15 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 		};
 
 		if (!pstore_extent__has_room(new_column->extent, &value)) {
-			off_t offset;
+			pstore_column__flush_write(new_column, output);
 
-			pstore_extent__flush_write(new_column->extent, output);
-			offset = seek_or_die(output, 0, SEEK_CUR);
-			pstore_extent__write_metadata(new_column->extent, offset, output);
-
+			new_column->extent = pstore_extent__new(new_column, PSTORE_COMP_FASTLZ);
 			pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_SIZE);
 		}
 		pstore_extent__write_value(new_column->extent, &value, output);
 	}
 
-	pstore_extent__flush_write(new_column->extent, output);
+	pstore_column__flush_write(new_column, output);
 	pstore_extent__write_metadata(new_column->extent, PSTORE_LAST_EXTENT, output);
 
 	pstore_segment__delete(segment);

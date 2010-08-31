@@ -17,6 +17,7 @@ struct pstore_column {
 	uint8_t			type;		/* type of data (see enum value_type) */
 	uint64_t		f_offset;	/* offset of data in file */
 
+	struct pstore_extent	*prev_extent;
 	struct pstore_extent	*extent;
 };
 
@@ -35,5 +36,6 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 void pstore_column__delete(struct pstore_column *self);
 struct pstore_column *pstore_column__read(int fd);
 void pstore_column__write(struct pstore_column *self, int fd);
+void pstore_column__flush_write(struct pstore_column *self, int fd);
 
 #endif /* PSTORE_COLUMN_H */

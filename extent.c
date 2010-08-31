@@ -135,8 +135,6 @@ void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 
 	if (self->ops->finish_write)
 		self->ops->finish_write(self);
-
-	buffer__delete(self->buffer);
 }
 
 void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent, int fd)
