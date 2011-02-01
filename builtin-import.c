@@ -270,7 +270,7 @@ int cmd_import(int argc, char *argv[])
 
 	/*
 	 * Write out the header again because offsets to data were not known
-	 * until know.
+	 * until now.
 	 */
 	seek_or_die(output, 0, SEEK_SET);
 	pstore_header__write(header, output);
