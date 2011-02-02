@@ -81,7 +81,7 @@ static void csv_iterator_begin(void *private)
 		die("premature end of file");
 }
 
-static bool cvs_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
+static bool csv_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
 {
 	char *start = self->private;
 
@@ -89,7 +89,7 @@ static bool cvs_row_value(struct pstore_row *self, struct pstore_column *column,
 }
 
 static struct pstore_row_operations row_ops = {
-	.row_value	= cvs_row_value,
+	.row_value	= csv_row_value,
 };
 
 static bool csv_iterator_next(void *private, struct pstore_row *row)
