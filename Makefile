@@ -98,7 +98,6 @@ LIB_OBJS += extent.o
 LIB_OBJS += fastlz/fastlz.o
 LIB_OBJS += header.o
 LIB_OBJS += mmap-window.o
-LIB_OBJS += quicklz/quicklz.o
 LIB_OBJS += read-write.o
 LIB_OBJS += segment.o
 LIB_OBJS += table.o

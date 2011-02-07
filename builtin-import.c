@@ -180,9 +180,6 @@ static uint8_t parse_comp_arg(char *arg)
 	if (strcmp(arg, "fastlz") == 0)
 		return PSTORE_COMP_FASTLZ;
 
-	if (strcmp(arg, "quicklz") == 0)
-		return PSTORE_COMP_QUICKLZ;
-
 	usage();
 
 	return -1;
