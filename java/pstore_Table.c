@@ -7,6 +7,7 @@
 #include "pstore/table.h"
 
 #include <string.h>
+#include <unistd.h>
 
 #define MAX_EXTENT_LEN MiB(128)
 
