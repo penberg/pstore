@@ -1,7 +1,7 @@
-JAVAC := $(JAVA_HOME)/bin/javac
-JAVAH := $(JAVA_HOME)/bin/javah
-JAVA := $(JAVA_HOME)/bin/java
-CC := gcc
+JAVAC	?= javac
+JAVAH	?= javah
+JAVA	?= java
+CC	?= gcc
 
 LIBRARY := libpstore-java.so
 LD_LIBRARY_PATH := .
