@@ -97,7 +97,6 @@ LIB_OBJS += die.o
 LIB_OBJS += extent.o
 LIB_OBJS += fastlz/fastlz.o
 LIB_OBJS += header.o
-LIB_OBJS += minilzo/minilzo.o
 LIB_OBJS += mmap-window.o
 LIB_OBJS += quicklz/quicklz.o
 LIB_OBJS += read-write.o
@@ -145,11 +144,6 @@ endif
 
 %.d: %.c
 	$(Q) $(CC) -M -MT $(patsubst %.d,%.o,$@) $(CFLAGS) $< -o $@
-
-# MiniLZO doesn't compile cleanly with our CFLAGS so make a special case out of it.
-minilzo/minilzo.o: minilzo/minilzo.c
-	$(E) "  CC      " $@
-	$(Q) $(CC) -c $< -o $@
 
 %.o: %.c
 	$(E) "  CC      " $@

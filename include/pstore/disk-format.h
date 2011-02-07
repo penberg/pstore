@@ -44,7 +44,6 @@ struct pstore_file_column {
 
 enum pstore_comp {
 	PSTORE_COMP_NONE	= 0,
-	PSTORE_COMP_LZO1X_1	= 1,
 	PSTORE_COMP_FASTLZ	= 2,
 	PSTORE_COMP_QUICKLZ	= 3,
 

@@ -8,10 +8,6 @@ Feature: CSV import
   When I execute "pstore import" command
   Then the database should contain the same data in column order
 
-  Scenario: LZO compressed import
-  Given a "32K" long CSV file
-  When I execute "pstore import --compress=lzo" command
-  Then the database should contain the same data in column order
 
   Scenario: FastLZ compressed import
   Given a "32K" long CSV file
