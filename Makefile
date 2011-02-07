@@ -64,6 +64,7 @@ ifeq ($(uname_S),Darwin)
 endif
 ifeq ($(uname_S),Linux)
 	DEFINES += -D_FILE_OFFSET_BITS=64
+	DEFINES += -D_GNU_SOURCE
 endif
 ifeq ($(uname_S),SunOS)
 	DEFINES += -D_FILE_OFFSET_BITS=64
