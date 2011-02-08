@@ -11,5 +11,5 @@ public class Column {
     this.ptr = ptr;
   }
 
-  private native long create(String name, long id, int type);
+  private static native long create(String name, long id, int type);
 }
