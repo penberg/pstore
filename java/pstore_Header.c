@@ -9,7 +9,7 @@ JNIEXPORT void JNICALL Java_pstore_Header_write(JNIEnv *env, jclass clazz, jlong
 
 JNIEXPORT jlong JNICALL Java_pstore_Header_create(JNIEnv *env, jclass clazz)
 {
-  return (long) pstore_header__new();
+  return PTR_TO_LONG(pstore_header__new());
 }
 
 JNIEXPORT void JNICALL Java_pstore_Header_destroy(JNIEnv *env, jclass clazz, jlong ptr)
