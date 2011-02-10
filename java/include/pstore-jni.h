@@ -5,7 +5,7 @@
 
 #ifdef __i386__
   #define LONG_TO_PTR(ptr) (void *) (uint32_t) ptr
-#elif __X86_64__
+#elif __x86_64__
   #define LONG_TO_PTR(ptr) (void *) ptr
 #endif
 
