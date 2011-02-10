@@ -41,12 +41,14 @@ JNIEXPORT jlong JNICALL Java_pstore_Row_create(JNIEnv *env, jclass clazz, jobjec
   struct row_values *row_values;
 
   row_values = calloc(sizeof(*row_values), 1);
-  if (row_values == NULL)
+  if (!row_values)
     goto error;
-  row_values->nr_values = (*env)->GetArrayLength(env, values);
+
   row_values->values = calloc(sizeof(char *), row_values->nr_values);
-  if (row_values->values == NULL)
-    goto error;
+  if (!row_values->values)
+    goto error_free_row;
+
+  row_values->nr_values = (*env)->GetArrayLength(env, values);
 
   for (i = 0; i < row_values->nr_values; i++) {
     const char *value0;
@@ -56,27 +58,31 @@ JNIEXPORT jlong JNICALL Java_pstore_Row_create(JNIEnv *env, jclass clazz, jobjec
     value0 = (*env)->GetStringUTFChars(env, value, NULL);
     if (!value0)
       goto error;
+
     row_values->values[i] = strdup(value0);
     (*env)->ReleaseStringUTFChars(env, value, value0);
-    if (row_values->values[i] == NULL)
-      goto error;
+    if (!row_values->values[i])
+      goto error_free_row_values;
   }
 
   row = calloc(sizeof(struct pstore_row), 1);
-  if (row == NULL)
-    goto error;
+  if (!row)
+    goto error_free_row_values;
   row->ops = &row_ops;
   row->private = row_values;
 
   return PTR_TO_LONG(row);
 
-error:
-  if (row_values != NULL) {
-    for (i = 0; i < row_values->nr_values; i++)
-      free(row_values->values[i]);
-    free(row_values->values);
-  }
+error_free_row_values:
+  for (i = 0; i < row_values->nr_values; i++)
+    free(row_values->values[i]);
+
+  free(row_values->values);
+
+error_free_row:
   free(row_values);
+
+error:
   return PTR_TO_LONG(NULL);
 }
 
