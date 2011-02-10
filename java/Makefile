@@ -5,7 +5,14 @@ JAVAH	?= javah
 JAVA	?= java
 CC	?= gcc
 
-LIBRARY := libpstore-java.so
+ifeq ($(uname_S),Darwin)
+  EXT := jnilib
+endif
+ifeq ($(uname_S),Linux)
+  EXT := so
+endif
+LIBRARY := libpstore-java.$(EXT)
+
 LD_LIBRARY_PATH := .
 JAVA_CLASSPATH := .
 
