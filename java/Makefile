@@ -1,3 +1,5 @@
+uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+
 JAVAC	?= javac
 JAVAH	?= javah
 JAVA	?= java
@@ -25,12 +27,17 @@ JAVA_HEADER_FILES := $(patsubst %.o,%.h,$(OBJS))
 
 CFLAGS := -Wall -g -O6 -std=gnu99
 DEFINES := -D_FILE_OFFSET_BITS=64
-
 INCLUDE := \
-	-Iinclude/ \
-	-I../include \
-	-I$(JAVA_HOME)/include \
-	-I$(JAVA_HOME)/include/linux
+  -Iinclude/ \
+  -I../include
+ifeq ($(uname_S),Darwin)
+  INCLUDE += -I$(JAVA_HOME)/../Headers
+endif
+ifeq ($(uname_S),Linux)
+  INCLUDE += \
+    -I$(JAVA_HOME)/include/linux \
+    -I$(JAVA_HOME)/include
+endif
 LIBS := -L../ -lpstore
 
 all: test
