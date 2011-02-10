@@ -1,3 +1,3 @@
-libpstore-java.so
+libpstore-java.*
 include/
 *.class
