@@ -19,6 +19,7 @@ static void throw_io_exception(JNIEnv *env, const char *message)
   if (!clazz)
     (*env)->FatalError(env, "Exception class not found");
   (*env)->ThrowNew(env, clazz, message);
+  (*env)->DeleteLocalRef(env, clazz);
 }
 
 JNIEXPORT jint JNICALL Java_pstore_PStoreFile_open(JNIEnv *env, jclass clazz, jstring filename, jint mode)
