@@ -1,7 +1,6 @@
 #include "pstore_Row.h"
 
 #include "pstore/column.h"
-#include "pstore/die.h"
 #include "pstore/row.h"
 #include "pstore/value.h"
 #include "pstore-jni.h"
@@ -42,29 +41,43 @@ JNIEXPORT jlong JNICALL Java_pstore_Row_create(JNIEnv *env, jclass clazz, jobjec
   struct row_values *row_values;
 
   row_values = calloc(sizeof(*row_values), 1);
+  if (row_values == NULL)
+    goto error;
   row_values->nr_values = (*env)->GetArrayLength(env, values);
   row_values->values = calloc(sizeof(char *), row_values->nr_values);
+  if (row_values->values == NULL)
+    goto error;
 
   for (i = 0; i < row_values->nr_values; i++) {
     const char *value0;
     jstring value;
 
     value = (jstring) (*env)->GetObjectArrayElement(env, values, i);
-    if (!value)
-      die("array element must not be NULL");
-
     value0 = (*env)->GetStringUTFChars(env, value, NULL);
     if (!value0)
-      return PTR_TO_LONG(NULL);
+      goto error;
     row_values->values[i] = strdup(value0);
     (*env)->ReleaseStringUTFChars(env, value, value0);
+    if (row_values->values[i] == NULL)
+      goto error;
   }
 
   row = calloc(sizeof(struct pstore_row), 1);
+  if (row == NULL)
+    goto error;
   row->ops = &row_ops;
   row->private = row_values;
 
   return PTR_TO_LONG(row);
+
+error:
+  if (row_values != NULL) {
+    for (i = 0; i < row_values->nr_values; i++)
+      free(row_values->values[i]);
+    free(row_values->values);
+  }
+  free(row_values);
+  return PTR_TO_LONG(NULL);
 }
 
 JNIEXPORT void JNICALL Java_pstore_Row_destroy(JNIEnv *env, jclass clazz, jlong ptr)
