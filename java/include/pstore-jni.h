@@ -4,9 +4,9 @@
 #include <inttypes.h>
 
 #ifdef __i386__
-  #define LONG_TO_PTR(ptr) (void *) (uint32_t) ptr
+#define LONG_TO_PTR(ptr) (void *) (uint32_t) ptr
 #elif __x86_64__
-  #define LONG_TO_PTR(ptr) (void *) ptr
+#define LONG_TO_PTR(ptr) (void *) ptr
 #endif
 
 #define PTR_TO_LONG(ptr) (long) ptr
