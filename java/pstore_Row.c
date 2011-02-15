@@ -44,11 +44,10 @@ JNIEXPORT jlong JNICALL Java_pstore_Row_create(JNIEnv * env, jclass clazz, jobje
 	if (!row_values)
 		goto error;
 
+	row_values->nr_values = (*env)->GetArrayLength(env, values);
 	row_values->values = calloc(sizeof(char *), row_values->nr_values);
 	if (!row_values->values)
 		goto error_free_row;
-
-	row_values->nr_values = (*env)->GetArrayLength(env, values);
 
 	for (i = 0; i < row_values->nr_values; i++) {
 		const char *value0;
