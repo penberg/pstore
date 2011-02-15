@@ -40,6 +40,7 @@ JNIEXPORT jint JNICALL Java_pstore_PStoreFile_open(JNIEnv * env, jclass clazz, j
 		throw_io_exception(env, "Unknown file access mode: %d");
 
 	fd = open(output_file, flags, S_IRUSR | S_IWUSR);
+	(*env)->ReleaseStringUTFChars(env, filename, output_file);
 	if (fd < 0)
 		throw_io_exception(env, strerror(errno));
 
