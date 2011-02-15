@@ -30,6 +30,7 @@ JAVA_NATIVE_CLASSES := \
 	pstore.Table
 
 OBJS := $(patsubst %,%.o,$(subst .,_,$(JAVA_NATIVE_CLASSES)))
+OBJS += pstore-jni.o
 JAVA_HEADER_FILES := $(patsubst %.o,%.h,$(OBJS))
 
 CFLAGS := -Wall -g -O6 -std=gnu99

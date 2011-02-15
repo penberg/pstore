@@ -5,6 +5,7 @@
 #include "pstore/value.h"
 #include "pstore-jni.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -42,7 +43,7 @@ JNIEXPORT jlong JNICALL Java_pstore_Row_create(JNIEnv * env, jclass clazz, jobje
 
 	row_values = calloc(sizeof(*row_values), 1);
 	if (!row_values)
-		goto error;
+		goto error_out_of_memory;
 
 	row_values->nr_values = (*env)->GetArrayLength(env, values);
 	row_values->values = calloc(sizeof(char *), row_values->nr_values);
@@ -80,6 +81,9 @@ error_free_row_values:
 
 error_free_row:
 	free(row_values);
+
+error_out_of_memory:
+	throw_out_of_memory_error(env, strerror(errno));
 
 error:
 	return PTR_TO_LONG(NULL);
