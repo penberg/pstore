@@ -20,11 +20,17 @@ Running the Cucumber tests
 
 You can use the following command to install Cucumber on your machine:
 
-  $ sudo gem install cucumber rspec
+  $ sudo gem install cucumber rspec fastercsv
 
 Please note that the rubygem version in Mac OS X 10.5, for example, is too old
-to install Cucumber successfully, so you need to upgrade it first.
+to install Cucumber successfully, so you need to upgrade it first. Also, Ruby
+version 1.8.7 must be used as at least 'fastercsv' shall no longer be used in
+1.9.x versions.
 
+On Mac OS X, it is recommended to use Ruby Version Manager (rvm) instead of
+installing Ruby with ports or brew:
+
+  http://rvm.beginrescueend.com/
 
 How can I try it out?
 =====================
