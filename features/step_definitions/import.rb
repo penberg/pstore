@@ -1,4 +1,4 @@
-require 'spec/expectations'
+require 'rspec/expectations'
 require 'fastercsv'
 require 'tempfile'
 
