@@ -177,6 +177,7 @@ $(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(
 
 clean:
 	$(E) "  CLEAN"
+	$(Q) $(MAKE) -C java clean
 	$(Q) rm -f $(LIB_FILE) $(LIB_OBJS) $(LIB_DEPS)
 	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS) $(TEST_RUNNER_OBJ)
 .PHONY: clean
@@ -184,6 +185,9 @@ clean:
 regress: $(PROGRAM)
 	$(E) "  CUCUMBER"
 	$(Q) cucumber --format progress
+ifneq ($(JAVA_HOME),)
+	$(Q) $(MAKE) -C java check
+endif
 .PHONY: regress
 
 check: test regress
