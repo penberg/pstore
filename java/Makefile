@@ -56,6 +56,11 @@ test: $(JAVA_CLASSES) $(LIBRARY)
 	@LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) java -classpath $(JAVA_CLASSPATH) pstore.examples.PStore
 .PHONY: test
 
+check: $(JAVA_CLASSES) $(LIBRARY)
+	@echo "  CUCUMBER"
+	cucumber --format progress
+.PHONY: check
+
 clean:
 	@rm -rf $(JAVA_CLASSES) $(JAVA_HEADER_FILES) $(LIBRARY) $(OBJS)
 .PHONY: clean
