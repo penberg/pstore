@@ -22,6 +22,10 @@ struct pstore_table *pstore_table__new(const char *name, uint64_t table_id)
 		die("out of memory");
 
 	self->name	= strdup(name);
+
+	if (!self->name)
+		die("out of memory");
+
 	self->table_id	= table_id;
 
 	return self;

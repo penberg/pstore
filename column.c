@@ -24,6 +24,10 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 		die("out of memory");
 
 	self->name	= strdup(name);
+
+	if (!self->name)
+		die("out of memory");
+
 	self->column_id	= column_id;
 	self->type	= type;
 
