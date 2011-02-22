@@ -22,6 +22,7 @@ void pstore_segment__delete(struct pstore_segment *self)
 {
 	if (self->map_extent)
 		pstore_extent__delete(self->map_extent);
+	free(self);
 }
 
 struct pstore_segment *pstore_segment__read(struct pstore_column *column, int fd)
