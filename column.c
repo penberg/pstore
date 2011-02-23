@@ -36,6 +36,12 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 
 void pstore_column__delete(struct pstore_column *self)
 {
+	if (self->prev_extent)
+		pstore_extent__delete(self->prev_extent);
+
+	if (self->extent)
+		pstore_extent__delete(self->extent);
+
 	free(self->name);
 	free(self);
 }
