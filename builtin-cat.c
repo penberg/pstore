@@ -29,7 +29,7 @@ static void pstore_column__cat(struct pstore_column *self, int fd)
 
 	while ((s = pstore_segment__next_value(segment)) != NULL) {
 		if (!quiet_mode)
-			 printf("%s\n", s);
+			 puts(s);
 	}
 
 	pstore_segment__delete(segment);
