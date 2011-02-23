@@ -8,7 +8,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-static const char *pstore_magic = "PSTORE00";
+static const char *pstore_magic = "PSTORE01";
 
 #define PSTORE_MAGIC		(*(uint64_t *)pstore_magic)
 

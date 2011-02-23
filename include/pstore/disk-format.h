@@ -53,7 +53,7 @@ struct pstore_file_extent {
 	uint64_t		lsize;		/* logical size before compression */
 	uint64_t		psize;		/* physical size after compression */
 	uint8_t			comp;		/* compression algorithm */
-	uint8_t			padding[3];
+	uint8_t			padding[7];
 	uint64_t		next_extent;
 };
 
