@@ -54,17 +54,19 @@ static void mmap_window__mmap(struct mmap_window *self, off_t offset, size_t len
 	self->mmap_end	= mmap_window__end(self);
 }
 
+/*
+ * The minimum mmap sliding window size is two pages. That's because when we
+ * move the sliding window we need to align the starting offset at page
+ * boundary.
+ */
+#define MIN_MMAP_WINDOW_LEN	(PAGE_SIZE * 2)
+
 struct mmap_window *mmap_window__map(uint64_t max_window_len, int fd, off_t offset, off_t length)
 {
 	struct mmap_window *self;
 
-	/*
-	 * The minimum mmap sliding window size is two pages. That's because
-	 * when we move the sliding window we need to align the starting offset
-	 * at page boundary.
-	 */
-	if (max_window_len < PAGE_SIZE * 2)
-		max_window_len = PAGE_SIZE * 2;
+	if (max_window_len < MIN_MMAP_WINDOW_LEN)
+		max_window_len = MIN_MMAP_WINDOW_LEN;
 
 	self		= mmap_window__new(max_window_len);
 
