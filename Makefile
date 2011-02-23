@@ -193,6 +193,12 @@ endif
 check: test regress
 .PHONY: check
 
+tags: FORCE
+	$(E) "  TAGS"
+	$(Q) rm -f tags
+	$(Q) ctags-exuberant -a *.c
+	$(Q) ctags-exuberant -a -R include
+
 PHONY += FORCE
 
 FORCE:
