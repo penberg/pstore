@@ -29,6 +29,10 @@ public class Table {
     return columns;
   }
 
+  public void release() {
+      destroy(ptr);
+  }
+
   private static native long create(String name, long id);
   private static native void destroy(long ptr);
   private static native void add(long tablePtr, long colPtr);
