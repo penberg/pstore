@@ -5,6 +5,17 @@ JAVAH	?= javah
 JAVA	?= java
 CC	?= gcc
 
+# Make the build silent by default
+V =
+ifeq ($(strip $(V)),)
+	E = @echo
+	Q = @
+else
+	E = @\#
+	Q =
+endif
+export E Q
+
 ifeq ($(uname_S),Darwin)
   EXT := jnilib
 endif
@@ -53,28 +64,34 @@ all: test
 .PHONY: all
 
 test: $(JAVA_CLASSES) $(LIBRARY)
-	@LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) java -classpath $(JAVA_CLASSPATH) pstore.examples.PStore
+	$(E) "  TEST      "
+	$(Q) LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) java -classpath $(JAVA_CLASSPATH) pstore.examples.PStore
 .PHONY: test
 
 check: $(JAVA_CLASSES) $(LIBRARY)
-	@echo "  CUCUMBER"
-	cucumber --format progress
+	$(E) "  CUCUMBER  "
+	$(Q) cucumber --format progress
 .PHONY: check
 
 clean:
-	@rm -rf $(JAVA_CLASSES) $(JAVA_HEADER_FILES) $(LIBRARY) $(OBJS)
+	$(E) "  CLEAN     "
+	$(Q) rm -rf $(JAVA_CLASSES) $(JAVA_HEADER_FILES) $(LIBRARY) $(OBJS)
 .PHONY: clean
 
 $(LIBRARY): $(JAVA_HEADER_FILES) $(OBJS)
-	@$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -shared -o $(LIBRARY) $(OBJS) $(LIBS)
+	$(E) "  LINK      " $@
+	$(Q) $(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -shared -o $(LIBRARY) $(OBJS) \
+		$(LIBS)
 
 $(JAVA_HEADER_FILES):
-	@$(JAVAH) -classpath $(JAVA_CLASSPATH) -d include -jni $(JAVA_NATIVE_CLASSES)
+	$(E) "  JAVAH     " $@
+	$(Q) $(JAVAH) -classpath $(JAVA_CLASSPATH) -d include -jni \
+		$(JAVA_NATIVE_CLASSES)
 
 %.class: %.java
-	@echo "  JAVAC   " $@
-	@$(JAVAC) -classpath $(JAVA_CLASSPATH) $<
+	$(E) "  JAVAC     " $@
+	$(Q) $(JAVAC) -classpath $(JAVA_CLASSPATH) $<
 
 %.o: %.c
-	@echo "  CC      " $@
-	@$(CC) $(CFLAGS) $(DEFINES) -c $(INCLUDE) $< -o $@
+	$(E) "  CC        " $@
+	$(Q) $(CC) $(CFLAGS) $(DEFINES) -c $(INCLUDE) $< -o $@
