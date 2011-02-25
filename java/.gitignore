@@ -1,3 +1,4 @@
 libpstore-java.*
 include/
+!include/pstore-jni.h
 *.class

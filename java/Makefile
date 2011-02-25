@@ -41,8 +41,10 @@ JAVA_NATIVE_CLASSES := \
 	pstore.Table
 
 OBJS := $(patsubst %,%.o,$(subst .,_,$(JAVA_NATIVE_CLASSES)))
+JAVA_HEADER_FILES := $(patsubst %.o,include/%.h,$(OBJS))
+
+# pstore-jni.h is not part of $(JAVA_HEADER_FILES).
 OBJS += pstore-jni.o
-JAVA_HEADER_FILES := $(patsubst %.o,%.h,$(OBJS))
 
 CFLAGS := -Wall -g -O6 -std=gnu99
 DEFINES := -D_FILE_OFFSET_BITS=64
@@ -84,7 +86,7 @@ $(LIBRARY): $(JAVA_HEADER_FILES) $(OBJS)
 		$(LIBS)
 
 $(JAVA_HEADER_FILES):
-	$(E) "  JAVAH     " $@
+	$(E) "  JAVAH     "
 	$(Q) $(JAVAH) -classpath $(JAVA_CLASSPATH) -d include -jni \
 		$(JAVA_NATIVE_CLASSES)
 
