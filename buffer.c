@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 
-struct buffer *buffer__new(size_t capacity)
+struct buffer *buffer__new(void *data, size_t capacity)
 {
 	struct buffer *self = calloc(1, sizeof(*self));
 
@@ -14,10 +14,22 @@ struct buffer *buffer__new(size_t capacity)
 
 	self->capacity	= capacity;
 
-	self->data	= malloc(capacity);
+	self->data	= data;
 
-	if (!self->data)
+	return self;
+}
+
+struct buffer *buffer__new_malloc(size_t capacity)
+{
+	struct buffer *self;
+	void *data;
+
+	data		= malloc(capacity);
+
+	if (!data)
 		die("out of memory");
+
+	self		= buffer__new(data, capacity);
 
 	return self;
 }

@@ -115,7 +115,7 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len)
 {
-	self->buffer		= buffer__new(max_extent_len);
+	self->buffer		= buffer__new_malloc(max_extent_len);
 }
 
 void pstore_extent__flush_write(struct pstore_extent *self, int fd)

@@ -11,7 +11,8 @@ struct buffer {
 	size_t			capacity;
 };
 
-struct buffer *buffer__new(size_t capacity);
+struct buffer *buffer__new(void *data, size_t capacity);
+struct buffer *buffer__new_malloc(size_t capacity);
 void buffer__delete(struct buffer *self);
 void buffer__write(struct buffer *self, int fd);
 

@@ -69,7 +69,7 @@ static void *extent__fastlz_decompress(struct pstore_extent *self, int fd, off_t
 	mmap		= mmap_window__map(self->psize, fd, offset + sizeof(struct pstore_file_extent), self->psize);
 	in		= mmap_window__start(mmap);
 
-	self->buffer	= buffer__new(self->lsize);
+	self->buffer	= buffer__new_malloc(self->lsize);
 	out		= buffer__start(self->buffer);
 
 	size = fastlz_decompress(in, self->psize, out, self->lsize); 
