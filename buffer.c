@@ -36,7 +36,9 @@ struct buffer *buffer__new(size_t capacity)
 
 void buffer__resize(struct buffer *self, size_t capacity)
 {
-	self->data	= realloc(self->data, capacity);
+	free(self->data);
+
+	self->data	= malloc(capacity);
 	if (!self->data)
 		die("out of memory");
 
