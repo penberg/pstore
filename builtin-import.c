@@ -232,6 +232,9 @@ int cmd_import(int argc, char *argv[])
 
 	parse_args(argc - 1, argv + 1);
 
+	if (!input_file || !output_file)
+		usage();
+
 	input = open(input_file, O_RDONLY);
 	if (input < 0)
 		die("Failed to open input file '%s': %s", input_file, strerror(errno));
