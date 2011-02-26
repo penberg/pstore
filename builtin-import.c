@@ -45,6 +45,9 @@ static char *csv_iterator_next_line(struct csv_iterator_state *iter)
 restart:
 	start = iter->pos;
 
+	if (!mmap_window__in_window(iter->mmap, iter->pos))
+		goto slide_mmap;
+
 	while (*iter->pos != '\n') {
 		iter->pos++;
 
