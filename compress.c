@@ -61,15 +61,20 @@ static void extent__fastlz_compress(struct pstore_extent *self, int fd)
 
 static void *extent__fastlz_decompress(struct pstore_extent *self, int fd, off_t offset)
 {
+	struct pstore_column *column = self->parent;
 	struct mmap_window *mmap;
 	void *out;
 	void *in;
 	int size;
 
+	column->work_mem = realloc(column->work_mem, self->lsize);
+	if (!column->work_mem)
+		die("out of memory");
+
 	mmap		= mmap_window__map(self->psize, fd, offset + sizeof(struct pstore_file_extent), self->psize);
 	in		= mmap_window__start(mmap);
 
-	self->buffer	= buffer__new_malloc(self->lsize);
+	self->buffer	= buffer__new(column->work_mem, self->lsize);
 	out		= buffer__start(self->buffer);
 
 	size = fastlz_decompress(in, self->psize, out, self->lsize); 

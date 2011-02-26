@@ -19,6 +19,8 @@ struct pstore_column {
 
 	struct pstore_extent	*prev_extent;
 	struct pstore_extent	*extent;
+
+	void			*work_mem;	/* uncompression working memory */
 };
 
 struct pstore_column_iterator_state {
