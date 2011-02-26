@@ -19,7 +19,7 @@ static void *extent__next_value(struct pstore_extent *self)
 
 	start = end = self->start;
 	do {
-		if (buffer__in_region(self->buffer, end))
+		if (buffer__in_region(self->parent->buffer, end))
 			continue;
 
 		return NULL;
@@ -40,8 +40,8 @@ static void extent__fastlz_compress(struct pstore_extent *self, int fd)
 	void *in;
 	int size;
 
-	in_len		= buffer__size(self->buffer);
-	in		= buffer__start(self->buffer);
+	in_len		= buffer__size(self->write_buffer);
+	in		= buffer__start(self->write_buffer);
 
 	out		= malloc(in_len * 2);	/* FIXME: buffer is too large */
 	if (!out)
@@ -61,27 +61,23 @@ static void extent__fastlz_compress(struct pstore_extent *self, int fd)
 
 static void *extent__fastlz_decompress(struct pstore_extent *self, int fd, off_t offset)
 {
-	struct pstore_column *column = self->parent;
 	struct mmap_window *mmap;
 	void *out;
 	void *in;
 	int size;
 
-	column->work_mem = realloc(column->work_mem, self->lsize);
-	if (!column->work_mem)
-		die("out of memory");
+	buffer__resize(self->parent->buffer, self->lsize);
 
 	mmap		= mmap_window__map(self->psize, fd, offset + sizeof(struct pstore_file_extent), self->psize);
 	in		= mmap_window__start(mmap);
 
-	self->buffer	= buffer__new(column->work_mem, self->lsize);
-	out		= buffer__start(self->buffer);
+	out		= buffer__start(self->parent->buffer);
 
 	size = fastlz_decompress(in, self->psize, out, self->lsize); 
 	if (size != self->lsize)
 		die("decompression failed");
 
-	self->buffer->offset	= self->lsize;
+	self->parent->buffer->offset	= self->lsize;
 
 	mmap_window__unmap(mmap);
 

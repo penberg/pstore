@@ -46,7 +46,7 @@ restart:
 
 static void pstore_extent__mmap_flush(struct pstore_extent *self, int fd)
 {
-	buffer__write(self->buffer, fd);
+	buffer__write(self->write_buffer, fd);
 }
 
 static void pstore_extent__mmap_finish_write(struct pstore_extent *self)
@@ -85,8 +85,8 @@ void pstore_extent__delete(struct pstore_extent *self)
 	if (self->mmap)
 		mmap_window__unmap(self->mmap);
 
-	if (self->buffer)
-		buffer__delete(self->buffer);
+	if (self->write_buffer)
+		buffer__delete(self->write_buffer);
 
 	free(self);
 }
@@ -115,7 +115,7 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len)
 {
-	self->buffer		= buffer__new_malloc(max_extent_len);
+	self->write_buffer	= buffer__new(max_extent_len);
 }
 
 void pstore_extent__flush_write(struct pstore_extent *self, int fd)
@@ -125,7 +125,7 @@ void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 
 	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 
-	if (buffer__size(self->buffer) > 0)
+	if (buffer__size(self->write_buffer) > 0)
 		self->ops->flush(self, fd);
 
 	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
@@ -162,11 +162,11 @@ void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value 
 	if (!pstore_extent__has_room(self, value))
 		die("no room in extent buffer");
 
-	buffer__append(self->buffer, value->s, value->len);
-	buffer__append_char(self->buffer, '\0');
+	buffer__append(self->write_buffer, value->s, value->len);
+	buffer__append_char(self->write_buffer, '\0');
 }
 
 bool pstore_extent__has_room(struct pstore_extent *self, struct pstore_value *value)
 {
-	return buffer__has_room(self->buffer, value->len + 1);
+	return buffer__has_room(self->write_buffer, value->len + 1);
 }

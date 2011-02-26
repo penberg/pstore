@@ -28,6 +28,8 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 	if (!self->name)
 		die("out of memory");
 
+	self->buffer	= buffer__new(0);
+
 	self->column_id	= column_id;
 	self->type	= type;
 
@@ -36,6 +38,8 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 
 void pstore_column__delete(struct pstore_column *self)
 {
+	buffer__delete(self->buffer);
+
 	if (self->extent)
 		pstore_extent__delete(self->extent);
 

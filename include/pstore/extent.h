@@ -35,7 +35,7 @@ struct pstore_extent {
 	char				*start;
 
 	/* write */
-	struct buffer			*buffer;
+	struct buffer			*write_buffer;
 	uint64_t			start_off;
 	uint64_t			end_off;
 };
