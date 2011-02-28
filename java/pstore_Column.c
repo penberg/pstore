@@ -24,3 +24,21 @@ JNIEXPORT void JNICALL Java_pstore_Column_destroy(JNIEnv *env, jclass clazz, jlo
   struct pstore_column *column = LONG_TO_PTR(ptr);
   pstore_column__delete(column);
 }
+
+JNIEXPORT jstring JNICALL Java_pstore_Column_name(JNIEnv *env, jclass clazz, jlong ptr)
+{
+  struct pstore_column *column = LONG_TO_PTR(ptr);
+  return (*env)->NewStringUTF(env, column->name);
+}
+
+JNIEXPORT jlong JNICALL Java_pstore_Column_id(JNIEnv *env, jclass clazz, jlong ptr)
+{
+  struct pstore_column *column = LONG_TO_PTR(ptr);
+  return column->column_id;
+}
+
+JNIEXPORT int JNICALL Java_pstore_Column_type(JNIEnv *env, jclass clazz, jlong ptr)
+{
+  struct pstore_column *column = LONG_TO_PTR(ptr);
+  return column->type;
+}

@@ -52,6 +52,7 @@ public class PStore {
   }
 
   private static void printColumn(Column col, PStoreFile input) {
+    System.out.println(col.getName() + ", " + col.getId() + ", " + col.getType());
     Segment segment = Segment.read(col, input);
     for (;;) {
       String value = segment.next();
