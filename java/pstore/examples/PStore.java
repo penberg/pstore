@@ -20,9 +20,13 @@ public class PStore {
   private static void writeDatabase() {
     PStoreFile file = new PStoreFile(FILENAME, WRITE_ONLY);
     Table table = table();
-    writeTable(table, rows(), file);
-    file.close();
+    List<Row> rows = rows();
+    writeTable(table, rows, file);
+    for (Row row : rows) {
+      row.release();
+    }
     table.release();
+    file.close();
   }
 
   private static void writeTable(Table table, List<Row> rows, PStoreFile output) {
