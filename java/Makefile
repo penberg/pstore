@@ -3,6 +3,7 @@ uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 JAVAC	?= javac
 JAVAH	?= javah
 JAVA	?= java
+JAR   ?= jar
 CC	?= gcc
 
 # Make the build silent by default
@@ -23,6 +24,9 @@ ifeq ($(uname_S),Linux)
   EXT := so
 endif
 LIBRARY := libpstore-java.$(EXT)
+
+LIBRARY_JAR := pstore.jar
+SOURCE_JAR := pstore-sources.jar
 
 LD_LIBRARY_PATH := .
 JAVA_CLASSPATH := .
@@ -61,7 +65,7 @@ ifeq ($(uname_S),Linux)
 endif
 LIBS := -L../ -lpstore
 
-all: test
+all: test dist
 .DEFAULT: all
 .PHONY: all
 
@@ -77,8 +81,20 @@ check: $(JAVA_CLASSES) $(LIBRARY)
 
 clean:
 	$(E) "  CLEAN     "
-	$(Q) rm -rf $(JAVA_CLASSES) $(JAVA_HEADER_FILES) $(LIBRARY) $(OBJS)
+	$(Q) rm -rf $(JAVA_CLASSES) $(JAVA_HEADER_FILES) $(LIBRARY) $(OBJS) \
+		$(LIBRARY_JAR) $(SOURCE_JAR)
 .PHONY: clean
+
+dist: $(LIBRARY_JAR) $(SOURCE_JAR)
+.PHONY: dist
+
+$(LIBRARY_JAR): $(JAVA_CLASSES)
+	$(E) "  JAR       " $@
+	$(Q) $(JAR) cf $(LIBRARY_JAR) $(JAVA_CLASSES)
+
+$(SOURCE_JAR): $(JAVA_FILES)
+	$(E) "  JAR       " $@
+	$(Q) $(JAR) cf $(SOURCE_JAR) $(JAVA_FILES)
 
 $(LIBRARY): $(JAVA_HEADER_FILES) $(OBJS)
 	$(E) "  LINK      " $@
