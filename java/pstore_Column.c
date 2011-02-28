@@ -18,3 +18,9 @@ JNIEXPORT jlong JNICALL Java_pstore_Column_create(JNIEnv *env, jobject obj, jstr
 
 	return PTR_TO_LONG(ptr);
 }
+
+JNIEXPORT void JNICALL Java_pstore_Column_destroy(JNIEnv *env, jclass clazz, jlong ptr)
+{
+  struct pstore_column *column = LONG_TO_PTR(ptr);
+  pstore_column__delete(column);
+}

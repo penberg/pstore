@@ -14,6 +14,8 @@ public class Table {
     this.ptr = ptr;
   }
 
+  // This Table instance takes the ownership of "col": Column#release() must not
+  // be invoked after Table#add().
   public void add(Column col) {
     add(ptr, col.ptr);
   }
