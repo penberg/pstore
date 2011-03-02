@@ -17,16 +17,18 @@ else
 endif
 export E Q
 
+VERSION = 0.0.1
+
 ifeq ($(uname_S),Darwin)
   EXT := jnilib
 endif
 ifeq ($(uname_S),Linux)
   EXT := so
 endif
-LIBRARY := libpstore-java.$(EXT)
+LIBRARY := libpstore-java-$(VERSION).$(EXT)
 
-LIBRARY_JAR := pstore.jar
-SOURCE_JAR := pstore-sources.jar
+LIBRARY_JAR := pstore-$(VERSION).jar
+SOURCE_JAR := pstore-$(VERSION)-sources.jar
 
 LD_LIBRARY_PATH := .
 JAVA_CLASSPATH := .
