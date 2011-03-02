@@ -8,6 +8,7 @@ Feature: JNI
   When I run "java -Djava.library.path=. -cp . pstore.examples.PStore" command
   Then P-Store should output
     """
+    table, 0
     Column1, 0, STRING
     col1.1
     col2.1

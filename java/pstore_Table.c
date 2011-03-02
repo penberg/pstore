@@ -105,3 +105,15 @@ JNIEXPORT jlong JNICALL Java_pstore_Table_columns(JNIEnv *env, jclass clazz, jlo
 
 	return PTR_TO_LONG(table->columns[ndx]);
 }
+
+JNIEXPORT jstring JNICALL Java_pstore_Table_name(JNIEnv *env, jclass clazz, jlong ptr)
+{
+  struct pstore_table *table = LONG_TO_PTR(ptr);
+  return (*env)->NewStringUTF(env, table->name);
+}
+
+JNIEXPORT jlong JNICALL Java_pstore_Table_id(JNIEnv *env, jclass clazz, jlong ptr)
+{
+  struct pstore_table *table = LONG_TO_PTR(ptr);
+  return table->table_id;
+}

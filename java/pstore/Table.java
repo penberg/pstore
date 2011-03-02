@@ -35,10 +35,20 @@ public class Table {
       destroy(ptr);
   }
 
+  public String getName() {
+    return name(ptr);
+  }
+
+  public long getId() {
+    return id(ptr);
+  }
+
   private static native long create(String name, long id);
   private static native void destroy(long ptr);
   private static native void add(long tablePtr, long colPtr);
   private static native void importValues(long tablePtr, int fd, long iterStatePtr);
   private static native int nrColumns(long ptr);
   private static native long columns(long ptr, int ndx);
+  private static native String name(long ptr);
+  private static native long id(long ptr);
 }

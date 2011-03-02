@@ -47,6 +47,7 @@ public class PStore {
   }
 
   private static void printTable(Table table, PStoreFile input) {
+    System.out.println(table.getName() + ", " + table.getId());
     for (Column col : table.getColumns())
       printColumn(col, input);
   }
