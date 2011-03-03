@@ -47,13 +47,17 @@ public class PStore {
   }
 
   private static void printTable(Table table, PStoreFile input) {
-    System.out.println(table.getName() + ", " + table.getId());
+    printTableMetadata(table);
     for (Column col : table.getColumns())
       printColumn(col, input);
   }
 
+  private static void printTableMetadata(Table table) {
+    System.out.println("# Table: " + table.getName());
+  }
+
   private static void printColumn(Column col, PStoreFile input) {
-    System.out.println(col.getName() + ", " + col.getId() + ", " + col.getType());
+    printColumnMetadata(col);
     Segment segment = Segment.read(col, input);
     for (;;) {
       String value = segment.next();
@@ -62,6 +66,11 @@ public class PStore {
       System.out.println(value);
     }
     segment.release();
+  }
+
+  private static void printColumnMetadata(Column col) {
+    System.out.println("# Column: " + col.getName() + " (ID = " + col.getId() +
+      ", type = " + col.getType().getValue() + ")");
   }
 
   private static Table table() {

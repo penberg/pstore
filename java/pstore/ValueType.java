@@ -18,4 +18,8 @@ public enum ValueType {
     }
     throw new IllegalArgumentException("No such value: " + value);
   }
+
+  public int getValue() {
+    return value;
+  }
 }

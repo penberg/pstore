@@ -8,14 +8,14 @@ Feature: JNI
   When I run "java -Djava.library.path=. -cp . pstore.examples.PStore" command
   Then P-Store should output
     """
-    table, 0
-    Column1, 0, STRING
+    # Table: table
+    # Column: Column1 (ID = 0, type = 1)
     col1.1
     col2.1
-    Column2, 1, STRING
+    # Column: Column2 (ID = 1, type = 1)
     col1.2
     col2.2
-    Column3, 2, STRING
+    # Column: Column3 (ID = 2, type = 1)
     col1.3
     col2.3
 
