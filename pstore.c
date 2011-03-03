@@ -43,6 +43,7 @@ static void usage(void)
 	printf("   cat        Print database data to standard output\n");
 	printf("   repack     Optimize database on-disk layout\n");
 	printf("   import     Import data to a database\n");
+	printf("   stat       Examine database file structure\n");
 	printf("\n See 'pstore help COMMAND' for more information on a specific command.\n\n");
 	exit(EXIT_FAILURE);
 }
