@@ -1,6 +1,8 @@
 package pstore;
 
-public class PStoreFile {
+import java.io.Closeable;
+
+public class PStoreFile implements Closeable {
   final int fd;
 
   public PStoreFile(String filename, PStoreFileMode mode) {
