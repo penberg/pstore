@@ -52,4 +52,4 @@ P-Store provides an API for the Java programming language. To build the JNI API
 of the P-Store you will need to set JAVA_HOME enviroment variable.
 For example on Mac OS X:
 
-  export JAVA_HOME=/Library/Java/Home
+  export JAVA_HOME=`/usr/libexec/java_home`
