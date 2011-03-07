@@ -3,7 +3,7 @@ package pstore;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Table {
+public class Table implements Releasable {
   final long ptr;
 
   public Table(String name, long id) {

@@ -9,7 +9,7 @@ import java.util.List;
  * <code>Tables</code> and associated <code>Columns</code> shall no longer be
  * accessed.
  */
-public class Header {
+public class Header implements Releasable {
   final long ptr;
 
   public static Header read(PStoreFile file) {

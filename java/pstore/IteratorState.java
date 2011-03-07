@@ -2,7 +2,7 @@ package pstore;
 
 import java.util.Iterator;
 
-public class IteratorState {
+public class IteratorState implements Releasable {
   private Iterator<Row> rowIterator;
   final long ptr;
 

@@ -1,6 +1,6 @@
 package pstore;
 
-public class Column {
+public class Column implements Releasable {
   final long ptr;
 
   public Column(String name, long id, ValueType type) {

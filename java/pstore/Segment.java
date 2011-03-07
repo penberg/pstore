@@ -1,6 +1,6 @@
 package pstore;
 
-public class Segment {
+public class Segment implements Releasable {
   final long ptr;
 
   public static Segment read(Column col, PStoreFile file) {

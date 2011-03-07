@@ -1,6 +1,6 @@
 package pstore;
 
-public class Row {
+public class Row implements Releasable {
   final long ptr;
 
   public Row(String... values) {
