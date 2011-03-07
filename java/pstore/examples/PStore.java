@@ -8,7 +8,7 @@ import static pstore.PStoreFileMode.READ_ONLY;
 import static pstore.PStoreFileMode.WRITE_ONLY;
 
 public class PStore {
-  static { System.loadLibrary("pstore-java-0.0.1"); }
+  static { System.loadLibrary("pstore-java-0.0.2"); }
 
   private static final String FILENAME = "/tmp/pstore-" + System.currentTimeMillis() + ".pstore";
 
