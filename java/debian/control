@@ -1,0 +1,14 @@
+Source: libpstore-java
+Section: libdevel
+Priority: extra
+Maintainer: Pekka Enberg <penberg@kernel.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: https://github.com/penberg/pstore
+
+Package: libpstore-java
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: P-Store JNI API
+ P-Store JNI API (libpstore-java) is a library written in Java for interacting
+ with P-Store database files.
