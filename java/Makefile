@@ -91,6 +91,12 @@ clean:
 dist: $(LIBRARY_JAR) $(SOURCE_JAR)
 .PHONY: dist
 
+install: $(LIBRARY) $(LIBRARY_BASE) $(LIBRARY_JAR)
+	install $(LIBRARY) $(DESTDIR)/usr/lib
+	ln -s $(LIBRARY) $(DESTDIR)/usr/lib/$(LIBRARY_BASE)
+	install $(LIBRARY_JAR) $(DESTDIR)/usr/share/java
+.PHONY: install
+
 $(LIBRARY_JAR): $(JAVA_CLASSES)
 	$(E) "  JAR       " $@
 	$(Q) $(JAR) cf $(LIBRARY_JAR) $(JAVA_CLASSES)
