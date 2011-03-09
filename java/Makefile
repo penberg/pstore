@@ -3,7 +3,7 @@ uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 JAVAC	?= javac
 JAVAH	?= javah
 JAVA	?= java
-JAR   ?= jar
+JAR	?= jar
 CC	?= gcc
 
 # Make the build silent by default
@@ -25,7 +25,8 @@ endif
 ifeq ($(uname_S),Linux)
   EXT := so
 endif
-LIBRARY := libpstore-java-$(VERSION).$(EXT)
+LIBRARY_BASE := libpstore-java.$(EXT)
+LIBRARY := $(LIBRARY_BASE).$(VERSION)
 
 LIBRARY_JAR := pstore-$(VERSION).jar
 SOURCE_JAR := pstore-$(VERSION)-sources.jar
@@ -71,7 +72,7 @@ all: test dist
 .DEFAULT: all
 .PHONY: all
 
-test: $(JAVA_CLASSES) $(LIBRARY)
+test: $(JAVA_CLASSES) $(LIBRARY_BASE)
 	$(E) "  TEST      "
 	$(Q) LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) java -classpath $(JAVA_CLASSPATH) pstore.examples.PStore
 .PHONY: test
@@ -84,7 +85,7 @@ check: $(JAVA_CLASSES) $(LIBRARY)
 clean:
 	$(E) "  CLEAN     "
 	$(Q) rm -rf $(JAVA_CLASSES) $(JAVA_HEADER_FILES) $(LIBRARY) $(OBJS) \
-		$(LIBRARY_JAR) $(SOURCE_JAR)
+		$(LIBRARY_BASE) $(LIBRARY_JAR) $(SOURCE_JAR)
 .PHONY: clean
 
 dist: $(LIBRARY_JAR) $(SOURCE_JAR)
@@ -102,6 +103,10 @@ $(LIBRARY): $(JAVA_HEADER_FILES) $(OBJS)
 	$(E) "  LINK      " $@
 	$(Q) $(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -shared -o $(LIBRARY) $(OBJS) \
 		$(LIBS)
+
+$(LIBRARY_BASE): $(LIBRARY)
+	$(E) "  SYMLINK   " $@
+	$(Q) ln -s $(LIBRARY) $(LIBRARY_BASE)
 
 $(JAVA_HEADER_FILES):
 	$(E) "  JAVAH     "
