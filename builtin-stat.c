@@ -25,6 +25,7 @@ static void pstore_column__stat(struct pstore_column *self, int fd)
 	printf("    name      : %s\n", self->name);
 	printf("    column_id : %" PRIu64 "\n", self->column_id);
 	printf("    type      : %d\n", self->type);
+	printf("    offset    : %" PRIu64 "\n", self->f_offset);
 
 	segment = pstore_segment__read(self, fd);
 
