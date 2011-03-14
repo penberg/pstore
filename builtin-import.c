@@ -195,7 +195,7 @@ static void parse_args(int argc, char *argv[])
 	details.max_extent_len	= MMAP_EXTENT_LEN;
 	details.comp		= PSTORE_COMP_NONE;
 
-	while ((ch = getopt_long(argc, argv, "ce:w:", options, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "c:e:w:", options, NULL)) != -1) {
 		switch (ch) {
 		case 'c':
 			details.comp		= parse_comp_arg(optarg);
