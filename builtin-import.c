@@ -218,35 +218,18 @@ static void parse_args(int argc, char *argv[])
 	output_file		= argv[1];
 }
 
-int cmd_import(int argc, char *argv[])
+static int import(struct csv_iterator_state *state)
 {
-	struct csv_iterator_state state;
 	struct pstore_header *header;
 	struct pstore_table *table;
-	int input, output;
-	struct stat st;
+	int output;
 	off_t f_size;
-
-	if (argc < 4)
-		usage();
-
-	parse_args(argc - 1, argv + 1);
-
-	if (!input_file || !output_file)
-		usage();
-
-	input = open(input_file, O_RDONLY);
-	if (input < 0)
-		die("Failed to open input file '%s': %s", input_file, strerror(errno));
-
-	if (fstat(input, &st) < 0)
-		die("fstat");
 
 	output = open(output_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
 	if (output < 0)
 		die("Failed to open output file '%s': %s", output_file, strerror(errno));
 
-	if (posix_fallocate(output, 0, st.st_size) != 0)
+	if (posix_fallocate(output, 0, state->file_size) != 0)
 		die("posix_fallocate");
 
 	header	= pstore_header__new();
@@ -256,12 +239,7 @@ int cmd_import(int argc, char *argv[])
 	pstore_table__import_columns(table, input_file);
 
 	pstore_header__write(header, output);
-
-	state = (struct csv_iterator_state) {
-		.fd		= input,
-		.file_size	= st.st_size,
-	};
-	pstore_table__import_values(table, output, &csv_iterator, &state, &details);
+	pstore_table__import_values(table, output, &csv_iterator, state, &details);
 
 	f_size = seek_or_die(output, 0, SEEK_CUR);
 
@@ -282,6 +260,38 @@ int cmd_import(int argc, char *argv[])
 
 	if (close(output) < 0)
 		die("close");
+
+	return 0;
+}
+
+int cmd_import(int argc, char *argv[])
+{
+	struct csv_iterator_state state;
+	int input;
+	struct stat st;
+
+	if (argc < 4)
+		usage();
+
+	parse_args(argc - 1, argv + 1);
+
+	if (!input_file || !output_file)
+		usage();
+
+	input = open(input_file, O_RDONLY);
+	if (input < 0)
+		die("Failed to open input file '%s': %s", input_file, strerror(errno));
+
+	if (fstat(input, &st) < 0)
+		die("fstat");
+
+	state = (struct csv_iterator_state) {
+		.fd		= input,
+		.file_size	= st.st_size,
+	};
+
+	if (import(&state) < 0)
+		die("import failed");
 
 	return 0;
 }
