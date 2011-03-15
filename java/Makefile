@@ -59,7 +59,7 @@ INCLUDE := \
   -Iinclude/ \
   -I../include
 ifeq ($(uname_S),Darwin)
-  INCLUDE += -I$(JAVA_HOME)/../Headers
+  INCLUDE += -I$(JAVA_HOME)/include
 endif
 ifeq ($(uname_S),Linux)
   INCLUDE += \
@@ -77,7 +77,7 @@ test: $(JAVA_CLASSES) $(LIBRARY_BASE)
 	$(Q) LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) java -classpath $(JAVA_CLASSPATH) pstore.examples.PStore
 .PHONY: test
 
-check: $(JAVA_CLASSES) $(LIBRARY)
+check: $(JAVA_CLASSES) $(LIBRARY_BASE)
 	$(E) "  CUCUMBER  "
 	$(Q) cucumber --format progress
 .PHONY: check
