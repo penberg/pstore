@@ -8,9 +8,6 @@ After do
   @output = ""
 end
 
-Given /^a Java example program$/ do
-end
-
 When /^I run "([^"]*)" command$/ do |command|
   @output = `#{command}`
 end
