@@ -8,7 +8,7 @@ After do
   @output = ""
 end
 
-When /^I run "([^"]*)" command$/ do |command|
+When /^I run "([^"]*)"$/ do |command|
   @output = `#{command}`
 end
 

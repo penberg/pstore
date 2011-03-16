@@ -4,7 +4,7 @@ Feature: JNI
   I want to examine the output of Java example program
 
   Scenario: Write and read database
-  When I run "java -Djava.library.path=. -cp . pstore.examples.PStore" command
+  When I run "java -Djava.library.path=. -cp . pstore.examples.PStore"
   Then P-Store should output
     """
     # Table: table

@@ -23,7 +23,7 @@ Given /^a ([^\ ]*) long database$/ do |size|
   `./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}`
 end
 
-When /^I run "([^\"]*)" command$/ do |command|
+When /^I run "([^\"]*)"$/ do |command|
   `./#{command} #{@csv_input_file.path} #{@pstore_output_file.path}`
 end
 
