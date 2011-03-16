@@ -15,7 +15,7 @@ struct pstore_column {
 	char			*name;		/* column name */
 	uint64_t		column_id;	/* unique ID */
 	uint8_t			type;		/* type of data (see enum value_type) */
-	uint64_t		f_offset;	/* offset of data in file */
+	uint64_t		first_extent;	/* offset to the first extent in file */
 	uint64_t		last_extent;	/* offset to the last extent in file */
 
 	struct pstore_extent	*prev_extent;

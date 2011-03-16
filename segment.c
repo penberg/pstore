@@ -31,7 +31,7 @@ struct pstore_segment *pstore_segment__read(struct pstore_column *column, int fd
 
 	self->fd		= fd;
 	self->parent		= column;
-	self->map_extent	= pstore_extent__read(column, column->f_offset, self->fd);
+	self->map_extent	= pstore_extent__read(column, column->first_extent, self->fd);
 
 	return self;
 }

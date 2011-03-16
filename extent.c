@@ -123,8 +123,8 @@ void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t m
 
 void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 {
-	if (self->parent->f_offset == 0)
-		self->parent->f_offset = seek_or_die(fd, 0, SEEK_CUR);
+	if (self->parent->first_extent == 0)
+		self->parent->first_extent = seek_or_die(fd, 0, SEEK_CUR);
 
 	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 

@@ -22,11 +22,11 @@ static void pstore_column__stat(struct pstore_column *self, int fd)
 	struct pstore_extent *extent;
 
 	printf("column:\n");
-	printf("    name        : %s\n", self->name);
-	printf("    column_id   : %" PRIu64 "\n", self->column_id);
-	printf("    type        : %d\n", self->type);
-	printf("    offset      : %" PRIu64 "\n", self->f_offset);
-	printf("    last_extent : %" PRIu64 "\n", self->last_extent);
+	printf("    name         : %s\n", self->name);
+	printf("    column_id    : %" PRIu64 "\n", self->column_id);
+	printf("    type         : %d\n", self->type);
+	printf("    first_extent : %" PRIu64 "\n", self->first_extent);
+	printf("    last_extent  : %" PRIu64 "\n", self->last_extent);
 
 	segment = pstore_segment__read(self, fd);
 
