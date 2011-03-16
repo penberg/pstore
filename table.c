@@ -125,6 +125,20 @@ void pstore_table__import_values(struct pstore_table *self,
 	unsigned long ndx;
 
 	/*
+	 * Prepare columns for appending
+	 */
+	if (details->append) {
+		for (ndx = 0; ndx < self->nr_columns; ndx++) {
+			struct pstore_column *column = self->columns[ndx];
+			struct pstore_extent *extent = pstore_extent__read(column, column->last_extent, fd);
+
+			column->prev_extent = extent;
+		}
+
+		seek_or_die(fd, 0, SEEK_END);
+	}
+
+	/*
 	 * Prepare extents
 	 */
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {

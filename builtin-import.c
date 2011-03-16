@@ -160,6 +160,19 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 	fclose(input);
 }
 
+static int csv_nr_columns(const char *filename)
+{
+	int nr_columns;
+	struct pstore_table *table;
+
+	table = pstore_table__new(filename, 0);
+	pstore_table__import_columns(table, filename);
+	nr_columns = table->nr_columns;
+	pstore_table__delete(table);
+
+	return nr_columns;
+}
+
 static unsigned long parse_int_arg(char *arg)
 {
 	return strtol(arg, NULL, 10);
@@ -172,6 +185,7 @@ static void usage(void)
 }
 
 static const struct option options[] = {
+	{ "append",		no_argument,		NULL, 'a' },
 	{ "compress",		required_argument,	NULL, 'c' },
 	{ "max-extent-len",	required_argument,	NULL, 'e' },
 	{ "window-len",		required_argument,	NULL, 'w' },
@@ -192,11 +206,15 @@ static void parse_args(int argc, char *argv[])
 {
 	int ch;
 
+	details.append		= false;
 	details.max_extent_len	= MMAP_EXTENT_LEN;
 	details.comp		= PSTORE_COMP_NONE;
 
-	while ((ch = getopt_long(argc, argv, "c:e:w:", options, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "ac:e:w:", options, NULL)) != -1) {
 		switch (ch) {
+		case 'a':
+			details.append		= true;
+			break;
 		case 'c':
 			details.comp		= parse_comp_arg(optarg);
 			break;
@@ -216,6 +234,43 @@ static void parse_args(int argc, char *argv[])
 
 	input_file		= argv[0];
 	output_file		= argv[1];
+}
+
+static int append(struct csv_iterator_state *state)
+{
+	struct pstore_header *header;
+	struct pstore_table *table;
+	int output;
+
+	output = open(output_file, O_RDWR);
+	if (output < 0)
+		die("Failed to open output file '%s': %s", output_file, strerror(errno));
+
+	header = pstore_header__read(output);
+	if (header->nr_tables != 1)
+		die("number of tables does not match");
+
+	table = header->tables[0];
+	if (table->nr_columns != csv_nr_columns(input_file))
+		die("number of columns does not match");
+
+	pstore_table__import_values(table, output, &csv_iterator, state, &details);
+
+	/*
+	 * Write out the header again because offsets to last extents changed.
+	 */
+	seek_or_die(output, 0, SEEK_SET);
+	pstore_header__write(header, output);
+
+	pstore_header__delete(header);
+
+	if (fsync(output) < 0)
+		die("fsync");
+
+	if (close(output) < 0)
+		die("close");
+
+	return 0;
 }
 
 static int import(struct csv_iterator_state *state)
@@ -290,8 +345,14 @@ int cmd_import(int argc, char *argv[])
 		.file_size	= st.st_size,
 	};
 
-	if (import(&state) < 0)
-		die("import failed");
+	if (details.append) {
+		if (append(&state) < 0)
+			die("append failed");
+	}
+	else {
+		if (import(&state) < 0)
+			die("import failed");
+	}
 
 	return 0;
 }

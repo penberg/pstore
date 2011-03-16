@@ -110,6 +110,9 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 
 	self->start		= self->ops->read(self, fd, offset);
 
+	self->start_off		= seek_or_die(fd, 0, SEEK_CUR);
+	self->end_off		= self->start_off + self->psize;
+
 	return self;
 }
 
@@ -138,11 +141,11 @@ void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent, int fd)
 {
 	struct pstore_file_extent f_extent;
-	off_t offset;
+	off_t f_extent_off, offset;
 
 	offset = seek_or_die(fd, 0, SEEK_CUR);
 
-	seek_or_die(fd, self->start_off - sizeof(f_extent), SEEK_SET);
+	f_extent_off = seek_or_die(fd, self->start_off - sizeof(f_extent), SEEK_SET);
 	f_extent = (struct pstore_file_extent) {
 		.psize		= self->psize,
 		.lsize		= self->lsize,
@@ -150,6 +153,9 @@ void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent
 		.next_extent	= next_extent,
 	};
 	write_or_die(fd, &f_extent, sizeof(f_extent));
+
+	if (next_extent == PSTORE_LAST_EXTENT)
+		self->parent->last_extent = f_extent_off;
 
 	seek_or_die(fd, offset, SEEK_SET);
 }

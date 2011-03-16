@@ -3,6 +3,7 @@
 
 #include "pstore/column.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 struct pstore_table {
@@ -16,6 +17,7 @@ struct pstore_table {
 struct pstore_import_details {
 	uint64_t		max_extent_len;
 	uint8_t			comp;
+	bool			append;
 };
 
 struct pstore_table *pstore_table__new(const char *name, uint64_t table_id);

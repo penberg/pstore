@@ -78,8 +78,9 @@ static struct pstore_iterator iterator = {
 JNIEXPORT void JNICALL Java_pstore_Table_importValues(JNIEnv *env, jclass clazz, jlong table_ptr, jint fd, jlong iter_state_ptr)
 {
 	struct pstore_import_details details = {
-		.max_extent_len = MAX_EXTENT_LEN,
-		.comp = PSTORE_COMP_NONE
+		.append		= false,
+		.max_extent_len	= MAX_EXTENT_LEN,
+		.comp		= PSTORE_COMP_NONE
 	};
 
 	struct iterator_state state = {

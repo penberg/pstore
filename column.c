@@ -56,7 +56,8 @@ struct pstore_column *pstore_column__read(int fd)
 
 	self = pstore_column__new(f_column.name, f_column.column_id, f_column.type);
 
-	self->f_offset = f_column.f_offset;
+	self->f_offset		= f_column.f_offset;
+	self->last_extent	= f_column.last_extent;
 
 	return self;
 }
@@ -69,6 +70,7 @@ void pstore_column__write(struct pstore_column *self, int fd)
 		.column_id	= self->column_id,
 		.type		= self->type,
 		.f_offset	= self->f_offset,
+		.last_extent	= self->last_extent,
 	};
 	strncpy(f_column.name, self->name, PSTORE_COLUMN_NAME_LEN);
 
