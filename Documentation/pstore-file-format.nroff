@@ -111,6 +111,6 @@ struct pstore_file_extent {
         uint64_t                psize;
         uint8_t                 comp;
         uint8_t                 padding[7];
-        uint64_t                extent_next;
+        uint64_t                next_extent;
 };
 .fi
