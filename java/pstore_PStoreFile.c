@@ -11,28 +11,37 @@
 
 enum PStoreFileMode {
 	READ_ONLY		= 1,
-	WRITE_ONLY		= 2
+	WRITE_ONLY		= 2,
+	READ_WRITE		= 3
 };
 
 JNIEXPORT jint JNICALL Java_pstore_PStoreFile_open(JNIEnv * env, jclass clazz, jstring filename, jint mode)
 {
-	const char *output_file;
+	const char *file;
 	int flags = 0;
 	int fd;
 
-	output_file = (*env)->GetStringUTFChars(env, filename, NULL);
-	if (!output_file)
+	file = (*env)->GetStringUTFChars(env, filename, NULL);
+	if (!file)
 		return 0;
 
-	if (mode == READ_ONLY)
+	switch (mode) {
+	case READ_ONLY:
 		flags = O_RDONLY;
-	else if (mode == WRITE_ONLY)
+		break;
+	case WRITE_ONLY:
 		flags = O_WRONLY | O_CREAT;
-	else
+		break;
+	case READ_WRITE:
+		flags = O_RDWR;
+		break;
+	default:
 		throw_io_exception(env, "Unknown file access mode: %d");
+		break;
+	}
 
-	fd = open(output_file, flags, S_IRUSR | S_IWUSR);
-	(*env)->ReleaseStringUTFChars(env, filename, output_file);
+	fd = open(file, flags, S_IRUSR | S_IWUSR);
+	(*env)->ReleaseStringUTFChars(env, filename, file);
 	if (fd < 0)
 		throw_io_exception(env, strerror(errno));
 
