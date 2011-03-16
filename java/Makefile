@@ -112,7 +112,7 @@ $(LIBRARY): $(JAVA_HEADER_FILES) $(OBJS)
 
 $(LIBRARY_BASE): $(LIBRARY)
 	$(E) "  SYMLINK   " $@
-	$(Q) ln -s $(LIBRARY) $(LIBRARY_BASE)
+	$(Q) ln -fs $(LIBRARY) $(LIBRARY_BASE)
 
 $(JAVA_HEADER_FILES):
 	$(E) "  JAVAH     "
