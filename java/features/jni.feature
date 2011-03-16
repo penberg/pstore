@@ -1,6 +1,6 @@
 Feature: JNI
   In order to access P-Store with Java
-  As an user
+  As a user
   I want to examine the output of Java example program
 
   Scenario: Write and read database

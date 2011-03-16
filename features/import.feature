@@ -1,6 +1,6 @@
 Feature: CSV import
   In order to optimize read-performance of a CSV file
-  As an user
+  As a user
   I want to import a CSV file into a P-Store database
 
   Scenario: Uncompressed import
