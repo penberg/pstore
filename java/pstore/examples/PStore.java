@@ -5,6 +5,7 @@ import java.util.List;
 import pstore.*;
 
 import static pstore.PStoreFileMode.READ_ONLY;
+import static pstore.PStoreFileMode.READ_WRITE;
 import static pstore.PStoreFileMode.WRITE_ONLY;
 
 public class PStore {
@@ -13,37 +14,57 @@ public class PStore {
   private static final String FILENAME = "/tmp/pstore-" + System.currentTimeMillis() + ".pstore";
 
   public static void main(String[] args) {
-    writeDatabase();
+    importDatabase();
+    appendDatabase();
     printDatabase();
   }
 
-  private static void writeDatabase() {
+  private static void importDatabase() {
     PStoreFile file = new PStoreFile(FILENAME, WRITE_ONLY);
     Table table = table();
+    Header header = createHeader(table);
     List<Row> rows = rows();
-    writeTable(table, rows, file);
+
+    header.write(file);
+    importValues(header, table, rows, file, false);
+    header.write(file);
+
     for (Row row : rows) {
       row.release();
     }
-    table.release();
+    header.release();
     file.close();
   }
 
-  private static void writeTable(Table table, List<Row> rows, PStoreFile output) {
-    Header header = createHeader(table);
-    header.write(output);
-    IteratorState state = new IteratorState(rows.iterator());
-    table.importValues(output, state, false);
-    header.write(output);
-    state.release();
+  private static void appendDatabase() {
+    PStoreFile file = new PStoreFile(FILENAME, READ_WRITE);
+    Header header = Header.read(file);
+    Table table = header.getTables().get(0);
+    List<Row> rows = rows();
+
+    importValues(header, table, rows, file, true);
+    header.write(file);
+
+    for (Row row : rows) {
+      row.release();
+    }
     header.release();
+    file.close();
+  }
+
+  private static void importValues(Header header, Table table, List<Row> rows, PStoreFile output, boolean append) {
+    IteratorState state = new IteratorState(rows.iterator());
+    table.importValues(output, state, append);
+    state.release();
   }
 
   private static void printDatabase() {
-    PStoreFile input = new PStoreFile(FILENAME, READ_ONLY);
-    Header header = Header.read(input);
+    PStoreFile file = new PStoreFile(FILENAME, READ_ONLY);
+    Header header = Header.read(file);
     for (Table table : header.getTables())
-      printTable(table, input);
+      printTable(table, file);
+    header.release();
+    file.close();
   }
 
   private static void printTable(Table table, PStoreFile input) {
