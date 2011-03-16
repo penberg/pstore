@@ -14,11 +14,11 @@ After do
   @pstore_output_file.delete
 end
 
-Given /^a "([^\"]*)" long CSV file$/ do |size|
+Given /^a ([^\ ]*) long CSV file$/ do |size|
   `./torture/gencsv #{@csv_input_file.path} #{size}`
 end
 
-Given /^a "([^\"]*)" long database$/ do |size|
+Given /^a ([^\ ]*) long database$/ do |size|
   `./torture/gencsv #{@csv_base_file.path} #{size}`
   `./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}`
 end
