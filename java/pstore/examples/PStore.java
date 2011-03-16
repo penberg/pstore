@@ -33,7 +33,7 @@ public class PStore {
     Header header = createHeader(table);
     header.write(output);
     IteratorState state = new IteratorState(rows.iterator());
-    table.importValues(output, state);
+    table.importValues(output, state, false);
     header.write(output);
     state.release();
     header.release();

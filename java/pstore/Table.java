@@ -20,8 +20,8 @@ public class Table implements Releasable {
     add(ptr, col.ptr);
   }
 
-  public void importValues(PStoreFile file, IteratorState state) {
-    importValues(ptr, file.fd, state.ptr);
+  public void importValues(PStoreFile file, IteratorState state, boolean append) {
+    importValues(ptr, file.fd, state.ptr, append);
   }
 
   public List<Column> getColumns() {
@@ -46,7 +46,7 @@ public class Table implements Releasable {
   private static native long create(String name, long id);
   private static native void destroy(long ptr);
   private static native void add(long tablePtr, long colPtr);
-  private static native void importValues(long tablePtr, int fd, long iterStatePtr);
+  private static native void importValues(long tablePtr, int fd, long iterStatePtr, boolean append);
   private static native int nrColumns(long ptr);
   private static native long columns(long ptr, int ndx);
   private static native String name(long ptr);
