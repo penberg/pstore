@@ -43,6 +43,8 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 		if (!pstore_extent__has_room(new_column->extent, &value)) {
 			pstore_column__flush_write(new_column, output);
 
+			new_column->prev_extent = new_column->extent;
+
 			new_column->extent = pstore_extent__new(new_column, PSTORE_COMP_FASTLZ);
 			pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_SIZE);
 		}
