@@ -17,7 +17,7 @@ else
 endif
 export E Q
 
-VERSION = 0.0.2
+VERSION = 0.0.3
 
 ifeq ($(uname_S),Darwin)
   EXT := jnilib

@@ -1,5 +1,5 @@
-libpstore-java (0.0.2-1) unstable; urgency=low
+libpstore-java (0.0.3-1) unstable; urgency=low
 
   * Provides basic functionality for reading and writing P-Store database files.
 
- -- Jussi Virtanen <jussi.virtanen@reaktor.fi>  Wed, 09 Mar 2011 10:22:43 +0200
+ -- Jussi Virtanen <jussi.virtanen@reaktor.fi>  Thu, 17 Mar 2011 09:56:45 +0200
