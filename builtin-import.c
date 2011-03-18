@@ -208,9 +208,9 @@ static void parse_args(int argc, char *argv[])
 {
 	int ch;
 
-	details.append		= false;
 	details.max_extent_len	= MAX_EXTENT_LEN;
 	details.comp		= PSTORE_COMP_NONE;
+	details.append		= false;
 
 	while ((ch = getopt_long(argc, argv, "ac:e:w:", options, NULL)) != -1) {
 		switch (ch) {

@@ -21,6 +21,7 @@
 #define MAX_EXTENT_LEN		MiB(128)
 
 static char *input_file;
+struct pstore_import_details	details;
 
 static int repack_extents(struct pstore_column *old_column, struct pstore_column *new_column, int input, int output)
 {
@@ -29,8 +30,8 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 
 	segment = pstore_segment__read(old_column, input);
 
-	new_column->extent = pstore_extent__new(new_column, PSTORE_COMP_FASTLZ);
-	pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_LEN);
+	new_column->extent = pstore_extent__new(new_column, details.comp);
+	pstore_extent__prepare_write(new_column->extent, output, details.max_extent_len);
 
 	while ((s = pstore_segment__next_value(segment)) != NULL) {
 		struct pstore_value value;
@@ -45,8 +46,8 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 
 			new_column->prev_extent = new_column->extent;
 
-			new_column->extent = pstore_extent__new(new_column, PSTORE_COMP_FASTLZ);
-			pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_LEN);
+			new_column->extent = pstore_extent__new(new_column, details.comp);
+			pstore_extent__prepare_write(new_column->extent, output, details.max_extent_len);
 		}
 		pstore_extent__write_value(new_column->extent, &value, output);
 	}
@@ -137,6 +138,10 @@ static int repack(int input, int output)
 
 static void parse_args(int argc, char *argv[])
 {
+	details.max_extent_len	= MAX_EXTENT_LEN;
+	details.comp		= PSTORE_COMP_FASTLZ;
+	details.append		= false;
+
 	input_file		= argv[2];
 }
 
