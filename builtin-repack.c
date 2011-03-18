@@ -164,7 +164,7 @@ static void parse_args(int argc, char *argv[])
 			details.comp		= parse_comp_arg(optarg);
 			break;
 		case 'e':
-			details.max_extent_len	= MiB(parse_int_arg(optarg));
+			details.max_extent_len	= parse_storage_arg(optarg);
 			break;
 		default:
 			usage();

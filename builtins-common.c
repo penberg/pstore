@@ -1,12 +1,21 @@
 #include "pstore/builtins-common.h"
+#include "pstore/core.h"
 #include "pstore/disk-format.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-unsigned long parse_int_arg(char *arg)
+unsigned long parse_storage_arg(char *arg)
 {
-        return strtol(arg, NULL, 10);
+	char *endptr;
+	unsigned long val;
+
+	val = strtol(arg, &endptr, 10);
+
+	if ((endptr[0] == 'k') || (endptr[0] == 'K'))
+		return KiB(val);
+
+	return MiB(val);
 }
 
 uint8_t parse_comp_arg(char *arg)
