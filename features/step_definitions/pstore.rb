@@ -23,8 +23,12 @@ Given /^a ([^\ ]*) long database$/ do |size|
   `./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}`
 end
 
-When /^I run "([^\"]*)"$/ do |command|
-  `./#{command} #{@csv_input_file.path} #{@pstore_output_file.path}`
+When /^I run "pstore import([^\"]*)"$/ do |options|
+  `./pstore import #{options} #{@csv_input_file.path} #{@pstore_output_file.path}`
+end
+
+When /^I run "pstore repack([^\"]*)"$/ do |options|
+  `./pstore repack #{options} #{@pstore_output_file.path}`
 end
 
 Then /^the database should contain the same data in column order$/ do
