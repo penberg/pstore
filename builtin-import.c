@@ -2,6 +2,7 @@
 #include "pstore/mmap-window.h"
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
+#include "pstore/builtins-common.h"
 #include "pstore/column.h"
 #include "pstore/compat.h"
 #include "pstore/header.h"
@@ -173,11 +174,6 @@ static int csv_nr_columns(const char *filename)
 	return nr_columns;
 }
 
-static unsigned long parse_int_arg(char *arg)
-{
-	return strtol(arg, NULL, 10);
-}
-
 static void usage(void)
 {
 	printf("\n usage: pstore import INPUT OUTPUT\n\n");
@@ -191,18 +187,6 @@ static const struct option options[] = {
 	{ "window-len",		required_argument,	NULL, 'w' },
 	{ }
 };
-
-static uint8_t parse_comp_arg(char *arg)
-{
-	if (strcmp(arg, "fastlz") == 0)
-		return PSTORE_COMP_FASTLZ;
-	else if (strcmp(arg, "none") == 0)
-		return PSTORE_COMP_NONE;
-
-	usage();
-
-	return -1;
-}
 
 static void parse_args(int argc, char *argv[])
 {
@@ -233,6 +217,9 @@ static void parse_args(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
+
+	if (details.comp >= NR_PSTORE_COMP)
+		usage();
 
 	input_file		= argv[0];
 	output_file		= argv[1];

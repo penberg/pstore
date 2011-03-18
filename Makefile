@@ -77,6 +77,7 @@ OBJS += builtin-cat.o
 OBJS += builtin-import.o
 OBJS += builtin-repack.o
 OBJS += builtin-stat.o
+OBJS += builtins-common.o
 OBJS += pstore.o
 
 OBJS += $(COMPAT_OBJS)
