@@ -18,7 +18,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#define MAX_EXTENT_SIZE		MiB(128)
+#define MAX_EXTENT_LEN		MiB(128)
 
 static char *input_file;
 
@@ -30,7 +30,7 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 	segment = pstore_segment__read(old_column, input);
 
 	new_column->extent = pstore_extent__new(new_column, PSTORE_COMP_FASTLZ);
-	pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_SIZE);
+	pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_LEN);
 
 	while ((s = pstore_segment__next_value(segment)) != NULL) {
 		struct pstore_value value;
@@ -46,7 +46,7 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 			new_column->prev_extent = new_column->extent;
 
 			new_column->extent = pstore_extent__new(new_column, PSTORE_COMP_FASTLZ);
-			pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_SIZE);
+			pstore_extent__prepare_write(new_column->extent, output, MAX_EXTENT_LEN);
 		}
 		pstore_extent__write_value(new_column->extent, &value, output);
 	}

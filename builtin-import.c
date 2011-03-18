@@ -30,12 +30,12 @@ struct csv_iterator_state {
 	char			*pos;
 };
 
-#define MMAP_WINDOW_LEN		MiB(128)
-#define MMAP_EXTENT_LEN		MiB(128)
+#define MAX_WINDOW_LEN		MiB(128)
+#define MAX_EXTENT_LEN		MiB(128)
 
 static char			*input_file;
 static char			*output_file;
-static uint64_t			max_window_len = MMAP_WINDOW_LEN;
+static uint64_t			max_window_len = MAX_WINDOW_LEN;
 struct pstore_import_details	details;
 
 static char *csv_iterator_next_line(struct csv_iterator_state *iter)
@@ -209,7 +209,7 @@ static void parse_args(int argc, char *argv[])
 	int ch;
 
 	details.append		= false;
-	details.max_extent_len	= MMAP_EXTENT_LEN;
+	details.max_extent_len	= MAX_EXTENT_LEN;
 	details.comp		= PSTORE_COMP_NONE;
 
 	while ((ch = getopt_long(argc, argv, "ac:e:w:", options, NULL)) != -1) {
