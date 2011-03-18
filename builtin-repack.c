@@ -1,5 +1,6 @@
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
+#include "pstore/builtins-common.h"
 #include "pstore/segment.h"
 #include "pstore/column.h"
 #include "pstore/extent.h"
@@ -11,6 +12,7 @@
 #include <sys/types.h>
 #include <inttypes.h>
 #include <sys/stat.h>
+#include <getopt.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -136,19 +138,46 @@ static int repack(int input, int output)
 	return 0;
 }
 
+static void usage(void)
+{
+	printf("\n usage: pstore repack [OPTIONS] INPUT\n\n");
+	exit(EXIT_FAILURE);
+}
+
+static const struct option options[] = {
+	{ "compress",		required_argument,	NULL, 'c' },
+	{ "max-extent-len",	required_argument,	NULL, 'e' },
+	{ }
+};
+
 static void parse_args(int argc, char *argv[])
 {
+	int ch;
+
 	details.max_extent_len	= MAX_EXTENT_LEN;
 	details.comp		= PSTORE_COMP_FASTLZ;
 	details.append		= false;
 
-	input_file		= argv[2];
-}
+	while ((ch = getopt_long(argc, argv, "c:e:", options, NULL)) != -1) {
+		switch (ch) {
+		case 'c':
+			details.comp		= parse_comp_arg(optarg);
+			break;
+		case 'e':
+			details.max_extent_len	= MiB(parse_int_arg(optarg));
+			break;
+		default:
+			usage();
+			break;
+		}
+	}
+	argc -= optind;
+	argv += optind;
 
-static void usage(void)
-{
-	printf("\n usage: pstore repack INPUT\n\n");
-	exit(EXIT_FAILURE);
+	if (details.comp >= NR_PSTORE_COMP)
+		usage();
+
+	input_file		= argv[0];
 }
 
 int cmd_repack(int argc, char *argv[])
@@ -161,7 +190,7 @@ int cmd_repack(int argc, char *argv[])
 	if (argc < 3)
 		usage();
 
-	parse_args(argc, argv);
+	parse_args(argc - 1, argv + 1);
 
 	input = open(input_file, O_RDONLY);
 	if (input < 0)
