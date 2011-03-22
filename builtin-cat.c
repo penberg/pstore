@@ -78,7 +78,10 @@ static void parse_args(int argc, char *argv[])
 
 static void usage(void)
 {
-	printf("\n usage: pstore cat INPUT\n\n");
+	printf("\n usage: pstore cat [OPTIONS] INPUT\n");
+	printf("\n The options are:\n");
+	printf("   -q, --quiet                  print only table and column headers\n");
+	printf("\n");
 	exit(EXIT_FAILURE);
 }
 
