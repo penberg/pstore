@@ -176,7 +176,14 @@ static int csv_nr_columns(const char *filename)
 
 static void usage(void)
 {
-	printf("\n usage: pstore import INPUT OUTPUT\n\n");
+	printf("\n usage: pstore import [OPTIONS] INPUT OUTPUT\n");
+	printf("\n The options are:\n");
+	printf("   -a, --append                 append data to existing database\n");
+	printf("   -c, --compress SCHEME        set compression scheme (default: none)\n");
+	printf("   -e, --max-extent-len LENGTH  set maximum extent length (default: 128M)\n");
+	printf("   -w, --window-len LENGTH      set mmap window length (default: 128M)\n");
+	comp_arg_usage();
+	printf("\n");
 	exit(EXIT_FAILURE);
 }
 

@@ -3,6 +3,7 @@
 #include "pstore/disk-format.h"
 
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -28,6 +29,13 @@ uint8_t parse_comp_arg(char *arg)
 		return PSTORE_COMP_NONE;
 
 	return NR_PSTORE_COMP;
+}
+
+void comp_arg_usage(void)
+{
+	printf("\n The supported compression schemes are:\n");
+	printf("   none\n");
+	printf("   fastlz\n");
 }
 
 unsigned long parse_int_arg(char *arg)

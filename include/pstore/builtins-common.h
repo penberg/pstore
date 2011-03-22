@@ -6,6 +6,7 @@
 
 unsigned long parse_storage_arg(char *arg);
 uint8_t parse_comp_arg(char *arg);
+void comp_arg_usage(void);
 unsigned long parse_int_arg(char *arg);
 bool is_int_arg(char *arg);
 
