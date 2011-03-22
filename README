@@ -45,6 +45,10 @@ database:
 
   $ pstore cat dataset.out
 
+With "pstore import --append" you can append more data into a P-Store database:
+
+  $ pstore import --append moredata.csv dataset.out
+
 Java Native Interface
 =====================
 
