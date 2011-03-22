@@ -27,3 +27,23 @@ uint8_t parse_comp_arg(char *arg)
 
 	return NR_PSTORE_COMP;
 }
+
+unsigned long parse_int_arg(char *arg)
+{
+	return strtol(arg, NULL, 10);
+}
+
+bool is_int_arg(char *arg)
+{
+	char *endptr;
+
+	if (arg[0] == '\0')
+		return false;
+
+	strtol(arg, &endptr, 10);
+
+	if (endptr[0] == '\0')
+		return true;
+
+	return false;
+}

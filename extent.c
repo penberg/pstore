@@ -10,6 +10,7 @@
 #include "pstore/core.h"
 #include "pstore/die.h"
 
+#include <inttypes.h>
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,8 +19,8 @@
 
 static void *pstore_extent__mmap(struct pstore_extent *self, int fd, off_t offset)
 {
-	self->mmap	= mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(struct pstore_file_extent), self->psize);
-	
+	self->mmap	= mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(struct pstore_file_extent), self->lsize);
+
 	return mmap_window__start(self->mmap);
 }
 
@@ -136,6 +137,26 @@ void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 
 	if (self->ops->finish_write)
 		self->ops->finish_write(self);
+}
+
+void pstore_extent__preallocate(struct pstore_extent *self, int fd, uint64_t extent_len)
+{
+	if (self->comp != PSTORE_COMP_NONE)
+		die("unsupported compression %d", self->comp);
+
+	if (extent_len == 0)
+		die("invalid extent length %" PRIu64, extent_len);
+
+	if (self->parent->first_extent == 0)
+		self->parent->first_extent = seek_or_die(fd, 0, SEEK_CUR);
+
+	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
+
+	seek_or_die(fd, extent_len - 1, SEEK_CUR);
+	write_or_die(fd, "\0", 1);
+
+	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
+	self->psize		= self->end_off - self->start_off;
 }
 
 void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent, int fd)

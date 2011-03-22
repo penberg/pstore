@@ -62,7 +62,20 @@ void *pstore_segment__next_value(struct pstore_segment *self)
 	if (pstore_extent__is_last(self->map_extent))
 		return NULL;
 
+	/*
+	 * The following kludge is needed temporarily. As 'pstore import --append'
+	 * currently just appends a new extent to the segment, empty preallocated
+	 * extents can exist in the middle of segments.
+	 */
+next_extent:
 	self->map_extent	= pstore_extent__read(self->parent, self->map_extent->next_extent, self->fd);
 
-	return pstore_extent__next_value(self->map_extent);
+	ret = pstore_extent__next_value(self->map_extent);
+	if (ret)
+		return ret;
+
+	if (pstore_extent__is_last(self->map_extent))
+		return NULL;
+
+	goto next_extent;
 }

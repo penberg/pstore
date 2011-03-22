@@ -89,3 +89,16 @@ void pstore_column__flush_write(struct pstore_column *self, int fd)
 	}
 	pstore_extent__flush_write(self->extent, fd);
 }
+
+void pstore_column__preallocate(struct pstore_column *self, int fd, uint64_t extent_len)
+{
+	if (self->prev_extent != NULL) {
+		off_t offset;
+
+		offset = seek_or_die(fd, 0, SEEK_CUR);
+
+		pstore_extent__write_metadata(self->prev_extent, offset, fd);
+		pstore_extent__delete(self->prev_extent);
+	}
+	pstore_extent__preallocate(self->extent, fd, extent_len);
+}

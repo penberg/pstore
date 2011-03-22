@@ -40,5 +40,6 @@ void pstore_column__delete(struct pstore_column *self);
 struct pstore_column *pstore_column__read(int fd);
 void pstore_column__write(struct pstore_column *self, int fd);
 void pstore_column__flush_write(struct pstore_column *self, int fd);
+void pstore_column__preallocate(struct pstore_column *self, int fd, uint64_t extent_len);
 
 #endif /* PSTORE_COLUMN_H */
