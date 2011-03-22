@@ -125,14 +125,19 @@ void pstore_table__import_values(struct pstore_table *self,
 	unsigned long ndx;
 
 	/*
-	 * Prepare columns for appending
+	 * Prepare extents for appending
 	 */
 	if (details->append) {
 		for (ndx = 0; ndx < self->nr_columns; ndx++) {
 			struct pstore_column *column = self->columns[ndx];
 			struct pstore_extent *extent = pstore_extent__read(column, column->last_extent, fd);
 
-			column->prev_extent = extent;
+			if (extent->comp == PSTORE_COMP_NONE) {
+				column->extent = extent;
+				pstore_extent__prepare_append(column->extent);
+			}
+			else
+				column->prev_extent = extent;
 		}
 
 		seek_or_die(fd, 0, SEEK_END);
@@ -144,8 +149,10 @@ void pstore_table__import_values(struct pstore_table *self,
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		column->extent = pstore_extent__new(column, details->comp);
-		pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
+		if (!column->extent) {
+			column->extent = pstore_extent__new(column, details->comp);
+			pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
+		}
 	}
 
 	iter->begin(private);

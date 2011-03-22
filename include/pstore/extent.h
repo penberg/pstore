@@ -19,7 +19,8 @@ struct pstore_extent_ops {
 	void *(*read)(struct pstore_extent *self, int fd, off_t offset);
 	void *(*next_value)(struct pstore_extent *self);
 	void (*flush)(struct pstore_extent *self, int fd);
-	void (*finish_write)(struct pstore_extent *self);
+	void (*prepare_write)(struct pstore_extent *self, int fd);
+	void (*finish_write)(struct pstore_extent *self, int fd);
 };
 
 struct pstore_extent {
@@ -46,6 +47,7 @@ struct pstore_extent *pstore_extent__new(struct pstore_column *parent, uint8_t c
 void pstore_extent__delete(struct pstore_extent *self);
 struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd);
 void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len);
+void pstore_extent__prepare_append(struct pstore_extent *self);
 void pstore_extent__flush_write(struct pstore_extent *self, int fd);
 void pstore_extent__preallocate(struct pstore_extent *self, int fd, uint64_t extent_len);
 void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent, int fd);

@@ -50,15 +50,24 @@ static void pstore_extent__mmap_flush(struct pstore_extent *self, int fd)
 	buffer__write(self->write_buffer, fd);
 }
 
-static void pstore_extent__mmap_finish_write(struct pstore_extent *self)
+static void pstore_extent__mmap_prepare_write(struct pstore_extent *self, int fd)
 {
-	self->lsize		= self->psize;
+	if (self->start_off != 0)
+		seek_or_die(fd, self->start_off + self->lsize, SEEK_SET);
+}
+
+static void pstore_extent__mmap_finish_write(struct pstore_extent *self, int fd)
+{
+	off_t end_off	= seek_or_die(fd, 0, SEEK_CUR);
+
+	self->lsize	= end_off - self->start_off;
 }
 
 static const struct pstore_extent_ops extent_uncomp_ops = {
 	.read		= pstore_extent__mmap,
 	.next_value	= pstore_extent__mmap_next_value,
 	.flush		= pstore_extent__mmap_flush,
+	.prepare_write	= pstore_extent__mmap_prepare_write,
 	.finish_write	= pstore_extent__mmap_finish_write,
 };
 
@@ -122,21 +131,35 @@ void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t m
 	self->write_buffer	= buffer__new(max_extent_len);
 }
 
+void pstore_extent__prepare_append(struct pstore_extent *self)
+{
+	if (self->comp != PSTORE_COMP_NONE)
+		die("unsupported compression %d", self->comp);
+
+	self->write_buffer	= buffer__new(self->psize - self->lsize);
+}
+
 void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 {
 	if (self->parent->first_extent == 0)
 		self->parent->first_extent = seek_or_die(fd, 0, SEEK_CUR);
 
-	self->start_off		= seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
+	if (self->ops->prepare_write)
+		self->ops->prepare_write(self, fd);
+
+	if (self->start_off == 0)
+		self->start_off = seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 
 	if (buffer__size(self->write_buffer) > 0)
 		self->ops->flush(self, fd);
 
-	self->end_off		= seek_or_die(fd, 0, SEEK_CUR);
+	if (self->end_off == 0)
+		self->end_off	= seek_or_die(fd, 0, SEEK_CUR);
+
 	self->psize		= self->end_off - self->start_off;
 
 	if (self->ops->finish_write)
-		self->ops->finish_write(self);
+		self->ops->finish_write(self, fd);
 }
 
 void pstore_extent__preallocate(struct pstore_extent *self, int fd, uint64_t extent_len)
