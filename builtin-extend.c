@@ -133,7 +133,12 @@ static const struct option options[] = {
 
 static void usage(void)
 {
-	printf("\n usage: pstore extend [OPTIONS] INPUT\n\n");
+	printf("\n usage: pstore extend [OPTIONS] INPUT\n");
+	printf("\n The options are:\n");
+	printf("   -c, --column REF             set column\n");
+	printf("   -e, --extent-len LENGTH      set extent length (default: 16M)\n");
+	printf("   -t, --table REF              set table\n");
+	printf("\n");
 	exit(EXIT_FAILURE);
 }
 
