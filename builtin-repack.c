@@ -140,7 +140,12 @@ static int repack(int input, int output)
 
 static void usage(void)
 {
-	printf("\n usage: pstore repack [OPTIONS] INPUT\n\n");
+	printf("\n usage: pstore repack [OPTIONS] INPUT\n");
+	printf("\n The options are:\n");
+	printf("   -c, --compress SCHEME        set compression scheme (default: fastlz)\n");
+	printf("   -e, --max-extent-len LENGTH  set maximum extent length (default: 128M)\n");
+	comp_arg_usage();
+	printf("\n");
 	exit(EXIT_FAILURE);
 }
 
