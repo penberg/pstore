@@ -230,10 +230,18 @@ static int append(struct csv_iterator_state *state)
 	struct pstore_header *header;
 	struct pstore_table *table;
 	int output;
+	off_t f_offset;
 
 	output = open(output_file, O_RDWR);
 	if (output < 0)
 		die("Failed to open output file '%s': %s", output_file, strerror(errno));
+
+	f_offset = seek_or_die(output, 0, SEEK_END);
+
+	if (posix_fallocate(output, f_offset, state->file_size) != 0)
+		die("posix_fallocate");
+
+	seek_or_die(output, 0, SEEK_SET);
 
 	header = pstore_header__read(output);
 	if (header->nr_tables != 1)
@@ -244,6 +252,11 @@ static int append(struct csv_iterator_state *state)
 		die("number of columns does not match");
 
 	pstore_table__import_values(table, output, &csv_iterator, state, &details);
+
+	f_offset = seek_or_die(output, 0, SEEK_CUR);
+
+	if (ftruncate(output, f_offset) != 0)
+		die("ftruncate");
 
 	/*
 	 * Write out the header again because offsets to last extents changed.
