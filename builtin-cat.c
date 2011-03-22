@@ -68,7 +68,7 @@ static void parse_args(int argc, char *argv[])
 {
 	int ndx = 2;
 
-	if (arg_matches(argv[ndx], "-q")) {
+	if (arg_matches(argv[ndx], "-q") || arg_matches(argv[ndx], "--quiet")) {
 		quiet_mode	= true;
 		ndx++;
 	}
