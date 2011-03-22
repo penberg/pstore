@@ -39,14 +39,14 @@ static struct builtin_cmd *parse_builtin_cmd(int argc, char *argv[])
 
 static void usage(void)
 {
-	printf("\n usage: pstore [--version] [--help] COMMAND [ARGS]\n");
-	printf("\n The most commonly used pstore commands are:\n");
-	printf("   cat        Print database data to standard output\n");
-	printf("   extend     Preallocate extents in the database on-disk layout\n");
-	printf("   repack     Optimize database on-disk layout\n");
-	printf("   import     Import data to a database\n");
-	printf("   stat       Examine database file structure\n");
-	printf("\n See 'pstore help COMMAND' for more information on a specific command.\n\n");
+	printf("\n usage: pstore COMMAND [ARGS]\n");
+	printf("\n The commands are:\n");
+	printf("   cat       Print database data to standard output\n");
+	printf("   extend    Preallocate extents in database on-disk layout\n");
+	printf("   import    Import data to database\n");
+	printf("   repack    Optimize database on-disk layout\n");
+	printf("   stat      Examine database file structure\n");
+	printf("\n");
 	exit(EXIT_FAILURE);
 }
 
