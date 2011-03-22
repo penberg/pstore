@@ -23,6 +23,10 @@ Given /^a ([^\ ]*) long database$/ do |size|
   `./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}`
 end
 
+When /^I run "pstore extend([^\"]*)"$/ do |options|
+  `./pstore extend #{options} #{@pstore_output_file.path}`
+end
+
 When /^I run "pstore import([^\"]*)"$/ do |options|
   `./pstore import #{options} #{@csv_input_file.path} #{@pstore_output_file.path}`
 end
