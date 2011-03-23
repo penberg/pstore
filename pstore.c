@@ -18,6 +18,7 @@ struct builtin_cmd {
 
 static struct builtin_cmd builtins[] = {
 	DEFINE_BUILTIN("cat",		cmd_cat),
+	DEFINE_BUILTIN("export",	cmd_export),
 	DEFINE_BUILTIN("extend",	cmd_extend),
 	DEFINE_BUILTIN("import",	cmd_import),
 	DEFINE_BUILTIN("repack",	cmd_repack),
@@ -42,6 +43,7 @@ static void usage(void)
 	printf("\n usage: pstore COMMAND [ARGS]\n");
 	printf("\n The commands are:\n");
 	printf("   cat       Print database data to standard output\n");
+	printf("   export    Export data from database\n");
 	printf("   extend    Preallocate extents in database on-disk layout\n");
 	printf("   import    Import data to database\n");
 	printf("   repack    Optimize database on-disk layout\n");

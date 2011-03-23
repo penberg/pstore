@@ -74,6 +74,7 @@ ifeq ($(uname_S),SunOS)
 endif
 
 OBJS += builtin-cat.o
+OBJS += builtin-export.o
 OBJS += builtin-extend.o
 OBJS += builtin-import.o
 OBJS += builtin-repack.o
