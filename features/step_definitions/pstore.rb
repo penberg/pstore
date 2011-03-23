@@ -5,12 +5,14 @@ require 'tempfile'
 Before do
   @csv_base_file      = Tempfile.open("csv-base")
   @csv_input_file     = Tempfile.open("csv-input")
+  @csv_output_file    = Tempfile.open("csv-output")
   @pstore_output_file = Tempfile.open("pstore-output")
 end
 
 After do
   @csv_base_file.delete
   @csv_input_file.delete
+  @csv_output_file.delete
   @pstore_output_file.delete
 end
 
@@ -21,6 +23,10 @@ end
 Given /^a ([^\ ]*) long database$/ do |size|
   `./torture/gencsv #{@csv_base_file.path} #{size}`
   `./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}`
+end
+
+When /^I run "pstore export([^\"]*)"$/ do |options|
+  `./pstore export #{options} #{@pstore_output_file.path} #{@csv_output_file.path}`
 end
 
 When /^I run "pstore extend([^\"]*)"$/ do |options|
@@ -38,6 +44,11 @@ end
 Then /^the database should contain the same data in column order$/ do
   output = `./pstore cat #{@pstore_output_file.path} | grep -v "^#"`
   output.should == parse_csv(@csv_base_file.path, @csv_input_file.path)
+end
+
+Then /^the CSV files should be identical$/ do
+  output = `diff #{@csv_input_file.path} #{@csv_output_file.path}`
+  output.length.should == 0
 end
 
 def parse_csv(*files)
