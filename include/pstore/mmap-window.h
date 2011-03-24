@@ -36,9 +36,7 @@ static inline uint64_t mmap_window__pos_in_window(struct mmap_window *self, void
 
 static inline uint64_t mmap_window__pos_in_region(struct mmap_window *self, void *p)
 {
-	uint64_t win_pos = mmap_window__pos_in_window(self, p);
-
-	return self->pos + self->mmap_pos + win_pos;
+	return self->pos + mmap_window__pos_in_window(self, p);
 }
 
 static inline bool mmap_window__in_window(struct mmap_window *self, void *p)
