@@ -47,6 +47,8 @@ static void pstore_table_iterator_begin(void *private)
 	}
 
 	iter->row = calloc(sizeof(void *), table->nr_columns);
+	if (!iter->row)
+		die("out of memory");
 }
 
 static bool pstore_table_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
