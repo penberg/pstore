@@ -53,6 +53,14 @@ JAVA_HEADER_FILES := $(patsubst %.o,include/%.h,$(OBJS))
 # pstore-jni.h is not part of $(JAVA_HEADER_FILES).
 OBJS += pstore-jni.o
 
+CONFIG_OPTS =
+EXTRA_LIBS =
+
+ifneq ($(SNAPPY_HOME),)
+	CONFIG_OPTS += -DCONFIG_HAVE_SNAPPY=1
+	EXTRA_LIBS += -lstdc++ $(SNAPPY_HOME)/lib/libsnappy.a
+endif
+
 CFLAGS := -Wall -g -O6 -std=gnu99
 DEFINES := -D_FILE_OFFSET_BITS=64
 INCLUDE := \
@@ -66,7 +74,11 @@ ifeq ($(uname_S),Linux)
     -I$(JAVA_HOME)/include/linux \
     -I$(JAVA_HOME)/include
 endif
+
 LIBS := -L../ -lpstore
+LIBS += $(EXTRA_LIBS)
+
+CFLAGS += $(CONFIG_OPTS)
 
 all: test dist
 .DEFAULT: all

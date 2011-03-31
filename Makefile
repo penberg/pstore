@@ -3,6 +3,7 @@ uname_R	:= $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
 # External programs
 CC	:= gcc
+CXX	:= g++
 AR	:= ar
 
 # Set up source directory for GNU Make
@@ -32,7 +33,8 @@ EXTRA_WARNINGS += -Wstrict-prototypes
 EXTRA_WARNINGS += -Wdeclaration-after-statement
 
 # Compile flags
-CFLAGS	:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -O3 -std=gnu99
+CFLAGS		:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -O3 -std=gnu99
+CXXFLAGS	:= -I$(srcdir)/snappy -Wall -g -O3 -std=c++98
 
 # Output to current directory by default
 O =
@@ -52,8 +54,10 @@ export E Q
 PROGRAM := pstore
 
 DEFINES =
+INCLUDES =
 CONFIG_OPTS =
 COMPAT_OBJS =
+EXTRA_LIBS =
 
 ifeq ($(uname_S),Darwin)
 	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
@@ -72,6 +76,12 @@ ifeq ($(uname_S),SunOS)
 	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
 	COMPAT_OBJS += compat/strndup.o
 endif
+ifneq ($(SNAPPY_HOME),)
+	INCLUDES += -I$(SNAPPY_HOME)/include
+
+	CONFIG_OPTS += -DCONFIG_HAVE_SNAPPY=1
+	EXTRA_LIBS += -lstdc++ $(SNAPPY_HOME)/lib/libsnappy.a
+endif
 
 OBJS += builtin-cat.o
 OBJS += builtin-export.o
@@ -85,9 +95,15 @@ OBJS += pstore.o
 OBJS += $(COMPAT_OBJS)
 
 LIBS := -L. -lpstore
+LIBS += $(EXTRA_LIBS)
 
 CFLAGS += $(DEFINES)
+CFLAGS += $(INCLUDES)
 CFLAGS += $(CONFIG_OPTS)
+
+CXXFLAGS += $(DEFINES)
+CXXFLAGS += $(INCLUDES)
+CXXFLAGS += $(CONFIG_OPTS)
 
 DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 
@@ -104,6 +120,9 @@ LIB_OBJS += header.o
 LIB_OBJS += mmap-window.o
 LIB_OBJS += read-write.o
 LIB_OBJS += segment.o
+ifneq ($(SNAPPY_HOME),)
+LIB_OBJS += snappy/snappy_compat.o
+endif
 LIB_OBJS += table.o
 
 LIB_DEPS	:= $(patsubst %.o,%.d,$(LIB_OBJS))
@@ -148,9 +167,16 @@ endif
 %.d: %.c
 	$(Q) $(CC) -M -MT $(patsubst %.d,%.o,$@) $(CFLAGS) $< -o $@
 
+%.d: %.cc
+	$(Q) $(CXX) -M -MT $(patsubst %.d,%.o,$@) $(CXXFLAGS) $< -o $@
+
 %.o: %.c
 	$(E) "  CC      " $@
 	$(Q) $(CC) -c $(CFLAGS) $< -o $@
+
+%.o: %.cc
+	$(E) "  CXX     " $@
+	$(Q) $(CXX) -c $(CXXFLAGS) $< -o $@
 
 $(PROGRAM): $(DEPS) $(LIB_FILE) $(OBJS)
 	$(E) "  LINK    " $@
@@ -187,7 +213,10 @@ clean:
 
 regress: $(PROGRAM)
 	$(E) "  CUCUMBER"
-	$(Q) cucumber --format progress
+	$(Q) cucumber --tags ~@snappy --format progress
+ifneq ($(SNAPPY_HOME),)
+	$(Q) cucumber --tags @snappy --format progress
+endif
 ifneq ($(JAVA_HOME),)
 	$(Q) $(MAKE) -C java check
 endif

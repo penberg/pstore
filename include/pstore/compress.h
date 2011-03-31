@@ -5,4 +5,8 @@
 
 extern struct pstore_extent_ops extent_fastlz_ops;
 
+#ifdef CONFIG_HAVE_SNAPPY
+extern struct pstore_extent_ops extent_snappy_ops;
+#endif
+
 #endif /* PSTORE_COMPRESS_H */

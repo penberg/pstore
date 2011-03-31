@@ -46,6 +46,9 @@ struct pstore_file_column {
 enum pstore_comp {
 	PSTORE_COMP_NONE	= 0,
 	PSTORE_COMP_FASTLZ	= 2,
+#ifdef CONFIG_HAVE_SNAPPY
+	PSTORE_COMP_SNAPPY	= 3,
+#endif
 
 	NR_PSTORE_COMP		/* keep this last */
 };

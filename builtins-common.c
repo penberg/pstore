@@ -23,10 +23,14 @@ unsigned long parse_storage_arg(char *arg)
 
 uint8_t parse_comp_arg(char *arg)
 {
-        if (strcmp(arg, "fastlz") == 0)
-		return PSTORE_COMP_FASTLZ;
-	else if (strcmp(arg, "none") == 0)
+	if (strcmp(arg, "none") == 0)
 		return PSTORE_COMP_NONE;
+	else if (strcmp(arg, "fastlz") == 0)
+		return PSTORE_COMP_FASTLZ;
+#ifdef CONFIG_HAVE_SNAPPY
+	else if (strcmp(arg, "snappy") == 0)
+		return PSTORE_COMP_SNAPPY;
+#endif
 
 	return NR_PSTORE_COMP;
 }
@@ -36,6 +40,9 @@ void comp_arg_usage(void)
 	printf("\n The supported compression schemes are:\n");
 	printf("   none\n");
 	printf("   fastlz\n");
+#ifdef CONFIG_HAVE_SNAPPY
+	printf("   snappy\n");
+#endif
 }
 
 unsigned long parse_int_arg(char *arg)
