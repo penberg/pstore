@@ -28,16 +28,6 @@ static char *table_ref;
 static char *column_ref;
 static uint64_t	extent_len;
 
-static bool id_or_name_matches(uint64_t id, const char *name, char *ref)
-{
-	if (is_int_arg(ref)) {
-		if (parse_int_arg(ref) == id)
-			return true;
-	}
-
-	return strncmp(ref, name, strlen(ref)) == 0;
-}
-
 static bool pstore_column__matches(struct pstore_column *self, char *ref)
 {
 	if (ref)
