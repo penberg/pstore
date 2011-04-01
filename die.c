@@ -9,10 +9,10 @@ void do_die(const char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-	vprintf(format, ap);
+	vfprintf(stderr, format, ap);
 	va_end(ap);
 
-	printf("\n");
+	fprintf(stderr, "\n");
 
 	exit(EXIT_FAILURE);
 }
