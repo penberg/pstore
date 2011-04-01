@@ -36,6 +36,7 @@ struct csv_iterator_state {
 
 static char			*input_file;
 static char			*output_file;
+static char			*table_ref;
 static uint64_t			max_window_len = MAX_WINDOW_LEN;
 struct pstore_import_details	details;
 
@@ -126,6 +127,31 @@ static struct pstore_iterator csv_iterator = {
 	.end		= csv_iterator_end,
 };
 
+static struct pstore_table *pstore_header__select_table(struct pstore_header *self)
+{
+	struct pstore_table *selected_table = NULL;
+	unsigned long ndx;
+
+	if (table_ref) {
+		for (ndx = 0; ndx < self->nr_tables; ndx++) {
+			struct pstore_table *table = self->tables[ndx];
+
+			if (id_or_name_matches(table->table_id, table->name, table_ref))
+				selected_table = table;
+		}
+		if (!selected_table)
+			die("No such table: %s", table_ref);
+	}
+	else {
+		if (self->nr_tables == 1)
+			selected_table = self->tables[0];
+		else
+			die("Use '--table' to set table");
+	}
+
+	return selected_table;
+}
+
 static void pstore_table__import_columns(struct pstore_table *self, const char *filename)
 {
 	char line[BUF_LEN];
@@ -181,6 +207,7 @@ static void usage(void)
 	printf("   -a, --append                 append data to existing database\n");
 	printf("   -c, --compress SCHEME        set compression scheme (default: none)\n");
 	printf("   -e, --max-extent-len LENGTH  set maximum extent length (default: 128M)\n");
+	printf("   -t, --table REF              set table (--append)\n");
 	printf("   -w, --window-len LENGTH      set mmap window length (default: 128M)\n");
 	comp_arg_usage();
 	printf("\n");
@@ -191,6 +218,7 @@ static const struct option options[] = {
 	{ "append",		no_argument,		NULL, 'a' },
 	{ "compress",		required_argument,	NULL, 'c' },
 	{ "max-extent-len",	required_argument,	NULL, 'e' },
+	{ "table",		required_argument,	NULL, 't' },
 	{ "window-len",		required_argument,	NULL, 'w' },
 	{ }
 };
@@ -199,11 +227,12 @@ static void parse_args(int argc, char *argv[])
 {
 	int ch;
 
+	table_ref		= NULL;
 	details.max_extent_len	= MAX_EXTENT_LEN;
 	details.comp		= PSTORE_COMP_NONE;
 	details.append		= false;
 
-	while ((ch = getopt_long(argc, argv, "ac:e:w:", options, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "ac:e:t:w:", options, NULL)) != -1) {
 		switch (ch) {
 		case 'a':
 			details.append		= true;
@@ -213,6 +242,9 @@ static void parse_args(int argc, char *argv[])
 			break;
 		case 'e':
 			details.max_extent_len	= parse_storage_arg(optarg);
+			break;
+		case 't':
+			table_ref		= optarg;
 			break;
 		case 'w':
 			max_window_len		= parse_storage_arg(optarg);
@@ -251,10 +283,9 @@ static int append(struct csv_iterator_state *state)
 	seek_or_die(output, 0, SEEK_SET);
 
 	header = pstore_header__read(output);
-	if (header->nr_tables != 1)
-		die("number of tables does not match");
 
-	table = header->tables[0];
+	table = pstore_header__select_table(header);
+
 	if (table->nr_columns != csv_nr_columns(input_file))
 		die("number of columns does not match");
 

@@ -25,6 +25,18 @@ Feature: CSV import
   When I run "pstore import --append"
   Then the database should contain the same data in column order
 
+  Scenario: Append to existing table
+  Given a 1K long CSV file
+  And a 1K long database
+  When I run "pstore import --append --table=0"
+  Then the database should contain the same data in column order
+
+  Scenario: Append to non-existing table
+  Given a 1K long CSV file
+  And a 1K long database
+  When I run "pstore import --append --table=foo"
+  Then the error should be "pstore_header__select_table: No such table: foo"
+
   Scenario: Significantly smaller window length than file size
   Given a 32K long CSV file
   When I run "pstore import --window-len=1K"

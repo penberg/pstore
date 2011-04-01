@@ -17,38 +17,42 @@ After do
 end
 
 Given /^a ([^\ ]*) long CSV file$/ do |size|
-  `./torture/gencsv #{@csv_input_file.path} #{size}`
+  run "./torture/gencsv #{@csv_input_file.path} #{size}"
 end
 
 Given /^a ([^\ ]*) long database$/ do |size|
-  `./torture/gencsv #{@csv_base_file.path} #{size}`
-  `./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}`
+  run "./torture/gencsv #{@csv_base_file.path} #{size}"
+  run "./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}"
 end
 
 When /^I run "pstore export([^\"]*)"$/ do |options|
-  `./pstore export #{options} #{@pstore_output_file.path} #{@csv_output_file.path}`
+  run "./pstore export #{options} #{@pstore_output_file.path} #{@csv_output_file.path}"
 end
 
 When /^I run "pstore extend([^\"]*)"$/ do |options|
-  `./pstore extend #{options} #{@pstore_output_file.path}`
+  run "./pstore extend #{options} #{@pstore_output_file.path}"
 end
 
 When /^I run "pstore import([^\"]*)"$/ do |options|
-  `./pstore import #{options} #{@csv_input_file.path} #{@pstore_output_file.path}`
+  run "./pstore import #{options} #{@csv_input_file.path} #{@pstore_output_file.path}"
 end
 
 When /^I run "pstore repack([^\"]*)"$/ do |options|
-  `./pstore repack #{options} #{@pstore_output_file.path}`
+  run "./pstore repack #{options} #{@pstore_output_file.path}"
 end
 
 Then /^the database should contain the same data in column order$/ do
-  output = `./pstore cat #{@pstore_output_file.path} | grep -v "^#"`
-  output.should == parse_csv(@csv_base_file.path, @csv_input_file.path)
+  run "./pstore cat #{@pstore_output_file.path} | grep -v \"^#\""
+  @stdout.should == parse_csv(@csv_base_file.path, @csv_input_file.path)
 end
 
 Then /^the CSV files should be identical$/ do
-  output = `diff #{@csv_input_file.path} #{@csv_output_file.path}`
-  output.length.should == 0
+  run "diff #{@csv_input_file.path} #{@csv_output_file.path}"
+  @stdout.length.should == 0
+end
+
+Then /^the error should be "([^"]*)"$/ do |text|
+  @stderr.chomp.should == text
 end
 
 def parse_csv(*files)
