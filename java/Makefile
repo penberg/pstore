@@ -61,7 +61,7 @@ ifneq ($(SNAPPY_HOME),)
 	EXTRA_LIBS += -lstdc++ $(SNAPPY_HOME)/lib/libsnappy.a
 endif
 
-CFLAGS := -Wall -g -O6 -std=gnu99
+CFLAGS := -Wall -g -O6 -std=gnu99 -fPIC
 DEFINES := -D_FILE_OFFSET_BITS=64
 INCLUDE := \
   -Iinclude/ \

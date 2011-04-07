@@ -33,7 +33,7 @@ EXTRA_WARNINGS += -Wstrict-prototypes
 EXTRA_WARNINGS += -Wdeclaration-after-statement
 
 # Compile flags
-CFLAGS		:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -O3 -std=gnu99
+CFLAGS		:= -I$(srcdir)/include -Wall $(EXTRA_WARNINGS) -g -O3 -std=gnu99 -fPIC
 CXXFLAGS	:= -I$(srcdir)/snappy -Wall -g -O3 -std=c++98
 
 # Output to current directory by default
