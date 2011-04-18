@@ -26,5 +26,6 @@ void pstore_table__add(struct pstore_table *self, struct pstore_column *column);
 struct pstore_table *pstore_table__read(int fd);
 void pstore_table__write(struct pstore_table *self, int fd);
 void pstore_table__import_values(struct pstore_table *self, int fd, struct pstore_iterator *iter, void *private, struct pstore_import_details *details);
+void pstore_table__export_values(struct pstore_table *self, struct pstore_iterator *iter, void *private, int output);
 
 #endif /* PSTORE_TABLE_H */

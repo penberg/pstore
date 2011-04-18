@@ -2,10 +2,12 @@
 
 #include "pstore/disk-format.h"
 #include "pstore/read-write.h"
+#include "pstore/buffer.h"
 #include "pstore/column.h"
 #include "pstore/extent.h"
 #include "pstore/header.h"
 #include "pstore/value.h"
+#include "pstore/core.h"
 #include "pstore/die.h"
 #include "pstore/row.h"
 
@@ -189,4 +191,44 @@ void pstore_table__import_values(struct pstore_table *self,
 
 		pstore_extent__write_metadata(column->extent, PSTORE_LAST_EXTENT, fd);
 	}
+}
+
+#define BUFFER_SIZE		MiB(128)
+
+void pstore_table__export_values(struct pstore_table *self, struct pstore_iterator *iter, void *private, int output)
+{
+	struct pstore_row row;
+	struct buffer *buffer;
+	unsigned long ndx;
+
+	buffer = buffer__new(BUFFER_SIZE);
+
+	iter->begin(private);
+
+	while (iter->next(private, &row)) {
+		for (ndx = 0; ndx < self->nr_columns; ndx++) {
+			struct pstore_column *column = self->columns[ndx];
+			struct pstore_value value;
+
+			if (!pstore_row__value(&row, column, &value))
+				die("premature end of file");
+
+			if (!buffer__has_room(buffer, value.len + 1)) {
+				buffer__write(buffer, output);
+				buffer__clear(buffer);
+			}
+
+			buffer__append(buffer, value.s, value.len);
+			if (ndx == self->nr_columns - 1)
+				buffer__append_char(buffer, '\n');
+			else
+				buffer__append_char(buffer, ',');
+		}
+	}
+
+	iter->end(private);
+
+	buffer__write(buffer, output);
+
+	buffer__delete(buffer);
 }
