@@ -24,6 +24,10 @@ public class Table implements Releasable {
     importValues(ptr, file.fd, state.ptr, append);
   }
 
+  public void exportValues(PStoreFile input, PStoreFile output) {
+    exportValues(ptr, input.fd, output.fd);
+  }
+
   public List<Column> getColumns() {
     List<Column> columns = new ArrayList<Column>();
     for (int ndx = 0; ndx < nrColumns(ptr); ndx++)
@@ -47,6 +51,7 @@ public class Table implements Releasable {
   private static native void destroy(long ptr);
   private static native void add(long tablePtr, long colPtr);
   private static native void importValues(long tablePtr, int fd, long iterStatePtr, boolean append);
+  private static native void exportValues(long tablePtr, int input, int output);
   private static native int nrColumns(long ptr);
   private static native long columns(long ptr, int ndx);
   private static native String name(long ptr);

@@ -11,16 +11,18 @@ import static pstore.PStoreFileMode.WRITE_ONLY;
 public class PStore {
   static { System.loadLibrary("pstore-java"); }
 
-  private static final String FILENAME = "/tmp/pstore-" + System.currentTimeMillis() + ".pstore";
+  private static final String PSTORE_FILENAME = "/tmp/pstore-" + System.currentTimeMillis() + ".pstore";
+  private static final String CSV_FILENAME = "/tmp/pstore-" + System.currentTimeMillis() + ".csv";
 
   public static void main(String[] args) {
     importDatabase();
     appendDatabase();
-    printDatabase();
+    printDatabaseByColumns();
+    printDatabaseByRows();
   }
 
   private static void importDatabase() {
-    PStoreFile file = new PStoreFile(FILENAME, WRITE_ONLY);
+    PStoreFile file = new PStoreFile(PSTORE_FILENAME, WRITE_ONLY);
     Table table = table();
     Header header = createHeader(table);
     List<Row> rows = rows();
@@ -37,7 +39,7 @@ public class PStore {
   }
 
   private static void appendDatabase() {
-    PStoreFile file = new PStoreFile(FILENAME, READ_WRITE);
+    PStoreFile file = new PStoreFile(PSTORE_FILENAME, READ_WRITE);
     Header header = Header.read(file);
     Table table = header.getTables().get(0);
     List<Row> rows = rows();
@@ -58,16 +60,16 @@ public class PStore {
     state.release();
   }
 
-  private static void printDatabase() {
-    PStoreFile file = new PStoreFile(FILENAME, READ_ONLY);
+  private static void printDatabaseByColumns() {
+    PStoreFile file = new PStoreFile(PSTORE_FILENAME, READ_ONLY);
     Header header = Header.read(file);
     for (Table table : header.getTables())
-      printTable(table, file);
+      printTableByColumns(table, file);
     header.release();
     file.close();
   }
 
-  private static void printTable(Table table, PStoreFile input) {
+  private static void printTableByColumns(Table table, PStoreFile input) {
     printTableMetadata(table);
     for (Column col : table.getColumns())
       printColumn(col, input);
@@ -87,6 +89,22 @@ public class PStore {
       System.out.println(value);
     }
     segment.release();
+  }
+
+  private static void printDatabaseByRows() {
+    PStoreFile input = new PStoreFile(PSTORE_FILENAME, READ_ONLY);
+    PStoreFile output = new PStoreFile(CSV_FILENAME, WRITE_ONLY);
+    Header header = Header.read(input);
+    for (Table table : header.getTables())
+      printTableByRows(table, input, output);
+    header.release();
+    output.close();
+    input.close();
+  }
+
+  private static void printTableByRows(Table table, PStoreFile input, PStoreFile output) {
+    printTableMetadata(table);
+    table.exportValues(input, output);
   }
 
   private static void printColumnMetadata(Column col) {

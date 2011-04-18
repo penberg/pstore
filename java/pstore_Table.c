@@ -5,7 +5,10 @@
 #include "pstore/disk-format.h"
 #include "pstore/row.h"
 #include "pstore/table.h"
+#include "pstore/segment.h"
 
+#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -39,11 +42,20 @@ struct iterator_state {
 	jobject obj;
 };
 
+struct export_iterator_state {
+	int			fd;
+	struct pstore_table	*table;
+
+	struct pstore_segment	**segments;
+	void			**row;
+	JNIEnv			*env;
+};
+
 static void iterator_nop(void *private)
 {
 }
 
-static bool iterator_next(void *private, struct pstore_row *row)
+static bool import_iterator_next(void *private, struct pstore_row *row)
 {
 	struct iterator_state *state;
 	jmethodID method_id;
@@ -69,9 +81,9 @@ static bool iterator_next(void *private, struct pstore_row *row)
 	return true;
 }
 
-static struct pstore_iterator iterator = {
+static struct pstore_iterator import_iterator = {
 	.begin = iterator_nop,
-	.next = iterator_next,
+	.next = import_iterator_next,
 	.end = iterator_nop,
 };
 
@@ -88,9 +100,114 @@ JNIEXPORT void JNICALL Java_pstore_Table_importValues(JNIEnv *env, jclass clazz,
 		.obj = LONG_TO_PTR(iter_state_ptr)
 	};
 
-	pstore_table__import_values(LONG_TO_PTR(table_ptr), fd, &iterator,
+	pstore_table__import_values(LONG_TO_PTR(table_ptr), fd, &import_iterator,
 				    &state, &details);
 	lseek(fd, 0, SEEK_SET);
+}
+
+static void export_iterator_begin(void *private)
+{
+	struct export_iterator_state *state = private;
+	struct pstore_table *table = state->table;
+	unsigned long ndx;
+
+	state->segments = calloc(sizeof(struct pstore_segment *), table->nr_columns);
+	if (!state->segments)
+		goto throw_out_of_memory_error;
+
+	for (ndx = 0; ndx < table->nr_columns; ndx++) {
+		struct pstore_column *column = table->columns[ndx];
+		state->segments[ndx] = pstore_segment__read(column, state->fd);
+	}
+
+	state->row = calloc(sizeof(void *), table->nr_columns);
+	if (!state->row)
+		goto error_free_segments;
+
+	return;
+
+error_free_segments:
+	free(state->segments);
+
+throw_out_of_memory_error:
+	throw_out_of_memory_error(state->env, strerror(errno));
+}
+
+static bool pstore_table_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
+{
+	struct export_iterator_state *state = self->private;
+	struct pstore_table *table = state->table;
+	char *str = NULL;
+	unsigned long ndx;
+
+	for (ndx = 0; ndx < table->nr_columns; ndx++) {
+		if (table->columns[ndx]->column_id == column->column_id)
+			str = state->row[ndx];
+	}
+
+	if (!str)
+		return false;
+
+	value->s	= str;
+	value->len	= strlen(str);
+
+	return true;
+}
+
+static struct pstore_row_operations row_ops = {
+	.row_value	= pstore_table_row_value,
+};
+
+static bool export_iterator_next(void *private, struct pstore_row *row)
+{
+	struct export_iterator_state *state = private;
+	struct pstore_table *table = state->table;
+	unsigned long ndx;
+
+	for (ndx = 0; ndx < table->nr_columns; ndx++)
+		state->row[ndx] = pstore_segment__next_value(state->segments[ndx]);
+
+	if (!state->row[0])
+		return false;
+
+	*row	= (struct pstore_row) {
+		.private	= private,
+		.ops		= &row_ops,
+	};
+
+	return true;
+}
+
+static void export_iterator_end(void *private)
+{
+	struct export_iterator_state *iter = private;
+	struct pstore_table *table = iter->table;
+	unsigned long ndx;
+
+	for (ndx = 0; ndx < table->nr_columns; ndx++)
+		pstore_segment__delete(iter->segments[ndx]);
+
+	free(iter->segments);
+	free(iter->row);
+}
+
+static struct pstore_iterator export_iterator = {
+	.begin		= export_iterator_begin,
+	.next		= export_iterator_next,
+	.end		= export_iterator_end,
+};
+
+JNIEXPORT void JNICALL Java_pstore_Table_exportValues(JNIEnv *env, jclass clazz, jlong table_ptr, jint input, jint output)
+{
+	struct export_iterator_state state;
+
+	state = (struct export_iterator_state) {
+		.fd		= input,
+		.table		= LONG_TO_PTR(table_ptr),
+		.env		= env,
+	};
+
+	pstore_table__export_values(LONG_TO_PTR(table_ptr), &export_iterator, &state, output);
 }
 
 JNIEXPORT jint JNICALL Java_pstore_Table_nrColumns(JNIEnv *env, jclass clazz, jlong ptr)
