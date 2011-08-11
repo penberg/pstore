@@ -5,6 +5,7 @@
 #include "pstore/buffer.h"
 #include "pstore/column.h"
 #include "pstore/extent.h"
+#include "pstore/bits.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
 
@@ -18,15 +19,29 @@
 
 static void *extent__next_value(struct pstore_extent *self)
 {
-	char *start, *end;
+	void *start, *end;
 
 	start = end = self->start;
-	do {
-		if (buffer__in_region(self->parent->buffer, end))
+	for (;;) {
+		if (buffer__in_region(self->parent->buffer, end + sizeof(unsigned int))) {
+			unsigned int *v = end;
+
+			if (!has_zero_byte(*v)) {
+				end += sizeof(unsigned int);
+				continue;
+			}
+		}
+
+		if (buffer__in_region(self->parent->buffer, end)) {
+			char *c = end++;
+			if (!*c)
+				break;
+
 			continue;
+		}
 
 		return NULL;
-	} while (*end++);
+	}
 	self->start = end;
 
 	return start;
