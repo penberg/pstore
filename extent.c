@@ -7,6 +7,7 @@
 #include "pstore/buffer.h"
 #include "pstore/column.h"
 #include "pstore/value.h"
+#include "pstore/bits.h"
 #include "pstore/core.h"
 #include "pstore/die.h"
 
@@ -26,23 +27,39 @@ static void *pstore_extent__mmap(struct pstore_extent *self, int fd, off_t offse
 
 static void *pstore_extent__mmap_next_value(struct pstore_extent *self)
 {
-	char *start, *end;
+	void *start, *end;
 
 restart:
 	start = end = self->start;
-	do {
-		if (mmap_window__in_window(self->mmap, end))
-			continue;
+	for (;;) {
+		unsigned char *c;
 
-		if (!mmap_window__in_region(self->mmap, end))
-			return NULL;
+		if (mmap_window__in_window(self->mmap, end + sizeof(unsigned int))) {
+			unsigned int *v = end;
 
-		self->start = mmap_window__slide(self->mmap, start);
-		goto restart;
-	} while (*end++);
+			if (!has_zero_byte(*v)) {
+				end += sizeof(unsigned int);
+				continue;
+			}
+		}
+
+		if (!mmap_window__in_window(self->mmap, end))
+			goto mmap_slide;
+
+		c = end++;
+		if (!*c)
+			break;
+	}
 	self->start = end;
 
 	return start;
+
+mmap_slide:
+	if (!mmap_window__in_region(self->mmap, end))
+		return NULL;
+
+	self->start = mmap_window__slide(self->mmap, start);
+	goto restart;
 }
 
 static void pstore_extent__mmap_flush(struct pstore_extent *self, int fd)
