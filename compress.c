@@ -31,20 +31,17 @@ static void *extent__next_value(struct pstore_extent *self)
 				continue;
 			}
 		}
-
-		if (buffer__in_region(self->parent->buffer, end)) {
-			char *c = end++;
-			if (!*c)
-				break;
-
-			continue;
-		}
-
-		return NULL;
+		break;
 	}
-	self->start = end;
 
-	return start;
+	while (buffer__in_region(self->parent->buffer, end)) {
+		char *c = end++;
+		if (!*c) {
+			self->start = end;
+			return start;
+		}
+	}
+	return NULL;
 }
 
 /*
