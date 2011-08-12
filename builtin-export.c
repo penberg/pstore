@@ -146,7 +146,7 @@ static void parse_args(int argc, char *argv[])
 
 static void usage(void)
 {
-	printf("\n usage: pstore export INPUT OUTPUT\n\n");
+	printf("\n usage: pstore export INPUT [OUTPUT]\n\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -155,21 +155,25 @@ int cmd_export(int argc, char *argv[])
 	struct pstore_header *header;
 	int input, output;
 
-	if (argc < 4)
+	if (argc < 3)
 		usage();
 
 	parse_args(argc, argv);
 
-	if (!input_file || !output_file)
+	if (!input_file)
 		usage();
 
 	input = open(input_file, O_RDONLY);
 	if (input < 0)
 		die("Failed to open input file '%s': %s", input_file, strerror(errno));
 
-	output = open(output_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
-	if (output < 0)
-		die("Failed to open output file '%s': %s", output_file, strerror(errno));
+	if (output_file) {
+		output = open(output_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+		if (output < 0)
+			die("Failed to open output file '%s': %s", output_file, strerror(errno));
+	} else {
+		output = STDOUT_FILENO;
+	}
 
 	header = pstore_header__read(input);
 	if (header->nr_tables != 1)
