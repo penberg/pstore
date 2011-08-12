@@ -32,8 +32,6 @@ static void *pstore_extent__mmap_next_value(struct pstore_extent *self)
 restart:
 	start = end = self->start;
 	for (;;) {
-		unsigned char *c;
-
 		if (mmap_window__in_window(self->mmap, end + sizeof(unsigned int))) {
 			unsigned int *v = end;
 
@@ -42,6 +40,11 @@ restart:
 				continue;
 			}
 		}
+		break;
+	}
+
+	for (;;) {
+		unsigned char *c;
 
 		if (!mmap_window__in_window(self->mmap, end))
 			goto mmap_slide;
