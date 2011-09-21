@@ -1,5 +1,7 @@
 *.d
+*.dylib
 *.o
+*.so
 tags
 /pstore
 test-pstore
