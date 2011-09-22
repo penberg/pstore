@@ -15,6 +15,24 @@ P-Store is in very early stages so don't expect a whole lot from it.
   [1]: http://db.csail.mit.edu/projects/cstore/
 
 
+How can I try it out?
+=====================
+
+The first step is to create a database file. You can import a CSV file into a
+P-Store database with the following command:
+
+    $ pstore import dataset.csv dataset.out
+
+After that, you can use the `pstore cat` command to look into the imported
+database:
+
+    $ pstore cat dataset.out
+
+With `pstore import --append` you can append more data into a P-Store database:
+
+    $ pstore import --append moredata.csv dataset.out
+
+
 Running the Cucumber tests
 ==========================
 
@@ -32,22 +50,6 @@ installing Ruby with MacPorts or Homebrew:
 
     http://rvm.beginrescueend.com/
 
-How can I try it out?
-=====================
-
-The first step is to create a database file. You can import a CSV file into a
-P-Store database with the following command:
-
-    $ pstore import dataset.csv dataset.out
-
-After that, you can use the `pstore cat` command to look into the imported
-database:
-
-    $ pstore cat dataset.out
-
-With `pstore import --append` you can append more data into a P-Store database:
-
-    $ pstore import --append moredata.csv dataset.out
 
 Java Native Interface
 =====================
