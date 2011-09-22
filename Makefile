@@ -107,7 +107,14 @@ CXXFLAGS += $(CONFIG_OPTS)
 
 DEPS		:= $(patsubst %.o,%.d,$(OBJS))
 
-LIB_FILE := libpstore.a
+ifeq ($(uname_S),Darwin)
+	SHARED_LIB_EXT := dylib
+else
+	SHARED_LIB_EXT := so
+endif
+
+SHARED_LIB_FILE := libpstore.$(SHARED_LIB_EXT)
+STATIC_LIB_FILE := libpstore.a
 
 LIB_OBJS += buffer.o
 LIB_OBJS += column.o
@@ -155,7 +162,7 @@ else
 sub-make: _all
 endif
 
-_all: $(PROGRAM) $(LIB_FILE)
+_all: $(PROGRAM) $(SHARED_LIB_FILE) $(STATIC_LIB_FILE)
 .PHONY: _all
 
 $(O):
@@ -178,11 +185,15 @@ endif
 	$(E) "  CXX     " $@
 	$(Q) $(CXX) -c $(CXXFLAGS) $< -o $@
 
-$(PROGRAM): $(DEPS) $(LIB_FILE) $(OBJS)
+$(PROGRAM): $(DEPS) $(STATIC_LIB_FILE) $(OBJS)
 	$(E) "  LINK    " $@
 	$(Q) $(CC) $(OBJS) $(LIBS) -o $(PROGRAM)
 
-$(LIB_FILE): $(LIB_DEPS) $(LIB_OBJS)
+$(SHARED_LIB_FILE): $(LIB_DEPS) $(LIB_OBJS)
+	$(E) "  CC      " $@
+	$(Q) $(CC) $(CFLAGS) -shared -o $@ $(LIB_OBJS)
+
+$(STATIC_LIB_FILE): $(LIB_DEPS) $(LIB_OBJS)
 	$(E) "  AR      " $@
 	$(Q) rm -f $@ && $(AR) rcs $@ $(LIB_OBJS)
 
@@ -207,7 +218,7 @@ $(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(
 clean:
 	$(E) "  CLEAN"
 	$(Q) $(MAKE) -C java clean
-	$(Q) rm -f $(LIB_FILE) $(LIB_OBJS) $(LIB_DEPS)
+	$(Q) rm -f $(SHARED_LIB_FILE) $(STATIC_LIB_FILE) $(LIB_OBJS) $(LIB_DEPS)
 	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS) $(TEST_RUNNER_C) $(TEST_RUNNER_OBJ)
 .PHONY: clean
 
