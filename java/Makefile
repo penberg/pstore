@@ -75,7 +75,7 @@ ifeq ($(uname_S),Linux)
     -I$(JAVA_HOME)/include
 endif
 
-LIBS := -L../ -lpstore
+LIBS := ../libpstore.a
 LIBS += $(EXTRA_LIBS)
 
 CFLAGS += $(CONFIG_OPTS)
