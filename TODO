@@ -1,26 +1,28 @@
 ToDo:
 
-	- CSV column type detection
+- Checksums for data integrity checks
 
-	- Floating point compression [2]
+- CSV column type definitions
 
-	- Document data format in detail
+- Variable-length integer encoding
 
-	- CSV fields with embedded commas (must be surrounded by double quotes)
-	  [1]
+- Bit packing [3]
 
-	- CSV fields with double quote characters (must also be surrounded by
-	  double quotes) [1]
+- Dictionary [3]
 
-	- Bit packing [3]
+- Frame of reference (FOR) delta [3]
 
-	- Dictionary [3]
+- CSV column type auto-detection
 
-	- Frame of reference (FOR) delta [3]
+- Floating point compression [2]
 
-	- Checksumming
+- Document data format in detail
 
-	- Variable length table and column names
+- CSV fields with embedded commas (must be surrounded by double quotes) [1]
+
+- CSV fields with double quote characters (must also be surrounded by double quotes) [1]
+
+- Variable length table and column names
 
 References:
 
