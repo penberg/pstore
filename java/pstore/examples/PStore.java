@@ -103,7 +103,6 @@ public class PStore {
   }
 
   private static void printTableByRows(Table table, PStoreFile input, PStoreFile output) {
-    printTableMetadata(table);
     table.exportValues(input, output);
   }
 
