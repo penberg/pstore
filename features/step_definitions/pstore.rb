@@ -17,11 +17,11 @@ After do
 end
 
 Given /^a ([^\ ]*) long CSV file$/ do |size|
-  run "./torture/gencsv #{@csv_input_file.path} #{size}"
+  run "./tools/gencsv/gencsv #{@csv_input_file.path} #{size}"
 end
 
 Given /^a ([^\ ]*) long database$/ do |size|
-  run "./torture/gencsv #{@csv_base_file.path} #{size}"
+  run "./tools/gencsv/gencsv #{@csv_base_file.path} #{size}"
   run "./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}"
 end
 
