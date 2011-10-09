@@ -2,9 +2,9 @@ uname_S	:= $(shell sh -c 'uname -s 2>/dev/null || echo not')
 uname_R	:= $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
 # External programs
-CC	:= gcc
-CXX	:= g++
-AR	:= ar
+CC	?= gcc
+CXX	?= g++
+AR	?= ar
 
 # Set up source directory for GNU Make
 srcdir		:= $(CURDIR)
