@@ -11,6 +11,7 @@ srcdir		:= $(CURDIR)
 VPATH		:= $(srcdir)
 
 EXTRA_WARNINGS := -Wcast-align
+EXTRA_WARNINGS += -Wformat-nonliteral
 EXTRA_WARNINGS += -Wformat-security
 EXTRA_WARNINGS += -Wformat-y2k
 EXTRA_WARNINGS += -Wshadow
