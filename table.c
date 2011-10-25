@@ -16,7 +16,7 @@
 #include <string.h>
 #include <stdio.h>
 
-struct pstore_table *pstore_table__new(const char *name, uint64_t table_id)
+struct pstore_table *pstore_table_new(const char *name, uint64_t table_id)
 {
 	struct pstore_table *self = calloc(sizeof *self, 1);
 
@@ -33,14 +33,14 @@ struct pstore_table *pstore_table__new(const char *name, uint64_t table_id)
 	return self;
 }
 
-void pstore_table__delete(struct pstore_table *self)
+void pstore_table_delete(struct pstore_table *self)
 {
 	unsigned long ndx;
 
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_column__delete(column);
+		pstore_column_delete(column);
 	}
 
 	free(self->columns);
@@ -48,7 +48,7 @@ void pstore_table__delete(struct pstore_table *self)
 	free(self);
 }
 
-void pstore_table__add(struct pstore_table *self, struct pstore_column *column)
+void pstore_table_add(struct pstore_table *self, struct pstore_column *column)
 {
 	void *p;
 
@@ -63,7 +63,7 @@ void pstore_table__add(struct pstore_table *self, struct pstore_column *column)
 	self->columns[self->nr_columns - 1] = column;
 }
 
-struct pstore_table *pstore_table__read(int fd)
+struct pstore_table *pstore_table_read(int fd)
 {
 	struct pstore_file_table f_table;
 	struct pstore_table *self;
@@ -71,18 +71,18 @@ struct pstore_table *pstore_table__read(int fd)
 
 	read_or_die(fd, &f_table, sizeof(f_table));
 
-	self = pstore_table__new(f_table.name, f_table.table_id);
+	self = pstore_table_new(f_table.name, f_table.table_id);
 
 	for (nr = 0; nr < f_table.c_index.nr_columns; nr++) {
-		struct pstore_column *column = pstore_column__read(fd);
+		struct pstore_column *column = pstore_column_read(fd);
 
-		pstore_table__add(self, column);
+		pstore_table_add(self, column);
 	}
 
 	return self;
 }
 
-void pstore_table__write(struct pstore_table *self, int fd)
+void pstore_table_write(struct pstore_table *self, int fd)
 {
 	struct pstore_file_table f_table;
 	uint64_t start_off, end_off;
@@ -94,7 +94,7 @@ void pstore_table__write(struct pstore_table *self, int fd)
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_column__write(column, fd);
+		pstore_column_write(column, fd);
 	}
 
 	end_off = seek_or_die(fd, 0, SEEK_CUR);
@@ -118,7 +118,7 @@ void pstore_table__write(struct pstore_table *self, int fd)
 	seek_or_die(fd, size, SEEK_CUR);
 }
 
-void pstore_table__import_values(struct pstore_table *self,
+void pstore_table_import_values(struct pstore_table *self,
 				 int fd, struct pstore_iterator *iter,
 				 void *private,
 				 struct pstore_import_details *details)
@@ -132,11 +132,11 @@ void pstore_table__import_values(struct pstore_table *self,
 	if (details->append) {
 		for (ndx = 0; ndx < self->nr_columns; ndx++) {
 			struct pstore_column *column = self->columns[ndx];
-			struct pstore_extent *extent = pstore_extent__read(column, column->last_extent, fd);
+			struct pstore_extent *extent = pstore_extent_read(column, column->last_extent, fd);
 
 			if (extent->comp == PSTORE_COMP_NONE) {
 				column->extent = extent;
-				pstore_extent__prepare_append(column->extent);
+				pstore_extent_prepare_append(column->extent);
 			}
 			else
 				column->prev_extent = extent;
@@ -152,8 +152,8 @@ void pstore_table__import_values(struct pstore_table *self,
 		struct pstore_column *column = self->columns[ndx];
 
 		if (!column->extent) {
-			column->extent = pstore_extent__new(column, details->comp);
-			pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
+			column->extent = pstore_extent_new(column, details->comp);
+			pstore_extent_prepare_write(column->extent, fd, details->max_extent_len);
 		}
 	}
 
@@ -164,18 +164,18 @@ void pstore_table__import_values(struct pstore_table *self,
 			struct pstore_column *column = self->columns[ndx];
 			struct pstore_value value;
 
-			if (!pstore_row__value(&row, column, &value))
+			if (!pstore_row_value(&row, column, &value))
 				die("premature end of file");
 
-			if (!pstore_extent__has_room(column->extent, &value)) {
-				pstore_column__flush_write(column, fd);
+			if (!pstore_extent_has_room(column->extent, &value)) {
+				pstore_column_flush_write(column, fd);
 
 				column->prev_extent = column->extent;
 
-				column->extent = pstore_extent__new(column, details->comp);
-				pstore_extent__prepare_write(column->extent, fd, details->max_extent_len);
+				column->extent = pstore_extent_new(column, details->comp);
+				pstore_extent_prepare_write(column->extent, fd, details->max_extent_len);
 			}
-			pstore_extent__write_value(column->extent, &value, fd);
+			pstore_extent_write_value(column->extent, &value, fd);
 		}
 	}
 
@@ -187,21 +187,21 @@ void pstore_table__import_values(struct pstore_table *self,
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_column__flush_write(column, fd);
+		pstore_column_flush_write(column, fd);
 
-		pstore_extent__write_metadata(column->extent, PSTORE_LAST_EXTENT, fd);
+		pstore_extent_write_metadata(column->extent, PSTORE_LAST_EXTENT, fd);
 	}
 }
 
 #define BUFFER_SIZE		MiB(128)
 
-void pstore_table__export_values(struct pstore_table *self, struct pstore_iterator *iter, void *private, int output)
+void pstore_table_export_values(struct pstore_table *self, struct pstore_iterator *iter, void *private, int output)
 {
 	struct pstore_row row;
 	struct buffer *buffer;
 	unsigned long ndx;
 
-	buffer = buffer__new(BUFFER_SIZE);
+	buffer = buffer_new(BUFFER_SIZE);
 
 	iter->begin(private);
 
@@ -210,25 +210,25 @@ void pstore_table__export_values(struct pstore_table *self, struct pstore_iterat
 			struct pstore_column *column = self->columns[ndx];
 			struct pstore_value value;
 
-			if (!pstore_row__value(&row, column, &value))
+			if (!pstore_row_value(&row, column, &value))
 				die("premature end of file");
 
-			if (!buffer__has_room(buffer, value.len + 1)) {
-				buffer__write(buffer, output);
-				buffer__clear(buffer);
+			if (!buffer_has_room(buffer, value.len + 1)) {
+				buffer_write(buffer, output);
+				buffer_clear(buffer);
 			}
 
-			buffer__append(buffer, value.s, value.len);
+			buffer_append(buffer, value.s, value.len);
 			if (ndx == self->nr_columns - 1)
-				buffer__append_char(buffer, '\n');
+				buffer_append_char(buffer, '\n');
 			else
-				buffer__append_char(buffer, ',');
+				buffer_append_char(buffer, ',');
 		}
 	}
 
 	iter->end(private);
 
-	buffer__write(buffer, output);
+	buffer_write(buffer, output);
 
-	buffer__delete(buffer);
+	buffer_delete(buffer);
 }

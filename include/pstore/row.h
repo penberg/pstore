@@ -16,7 +16,7 @@ struct pstore_row {
 	struct pstore_row_operations		*ops;
 };
 
-static inline bool pstore_row__value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
+static inline bool pstore_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
 {
 	return self->ops->row_value(self, column, value);
 }

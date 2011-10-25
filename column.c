@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, uint8_t type)
+struct pstore_column *pstore_column_new(const char *name, uint64_t column_id, uint8_t type)
 {
 	struct pstore_column *self = calloc(sizeof *self, 1);
 
@@ -28,7 +28,7 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 	if (!self->name)
 		die("out of memory");
 
-	self->buffer	= buffer__new(0);
+	self->buffer	= buffer_new(0);
 
 	self->column_id	= column_id;
 	self->type	= type;
@@ -36,25 +36,25 @@ struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, u
 	return self;
 }
 
-void pstore_column__delete(struct pstore_column *self)
+void pstore_column_delete(struct pstore_column *self)
 {
-	buffer__delete(self->buffer);
+	buffer_delete(self->buffer);
 
 	if (self->extent)
-		pstore_extent__delete(self->extent);
+		pstore_extent_delete(self->extent);
 
 	free(self->name);
 	free(self);
 }
 
-struct pstore_column *pstore_column__read(int fd)
+struct pstore_column *pstore_column_read(int fd)
 {
 	struct pstore_file_column f_column;
 	struct pstore_column *self;
 
 	read_or_die(fd, &f_column, sizeof(f_column));
 
-	self = pstore_column__new(f_column.name, f_column.column_id, f_column.type);
+	self = pstore_column_new(f_column.name, f_column.column_id, f_column.type);
 
 	self->first_extent	= f_column.first_extent;
 	self->last_extent	= f_column.last_extent;
@@ -62,7 +62,7 @@ struct pstore_column *pstore_column__read(int fd)
 	return self;
 }
 
-void pstore_column__write(struct pstore_column *self, int fd)
+void pstore_column_write(struct pstore_column *self, int fd)
 {
 	struct pstore_file_column f_column;
 
@@ -77,28 +77,28 @@ void pstore_column__write(struct pstore_column *self, int fd)
 	write_or_die(fd, &f_column, sizeof(f_column));
 }
 
-void pstore_column__flush_write(struct pstore_column *self, int fd)
+void pstore_column_flush_write(struct pstore_column *self, int fd)
 {
 	if (self->prev_extent != NULL) {
 		off_t offset;
 
 		offset = seek_or_die(fd, 0, SEEK_CUR);
 
-		pstore_extent__write_metadata(self->prev_extent, offset, fd);
-		pstore_extent__delete(self->prev_extent);
+		pstore_extent_write_metadata(self->prev_extent, offset, fd);
+		pstore_extent_delete(self->prev_extent);
 	}
-	pstore_extent__flush_write(self->extent, fd);
+	pstore_extent_flush_write(self->extent, fd);
 }
 
-void pstore_column__preallocate(struct pstore_column *self, int fd, uint64_t extent_len)
+void pstore_column_preallocate(struct pstore_column *self, int fd, uint64_t extent_len)
 {
 	if (self->prev_extent != NULL) {
 		off_t offset;
 
 		offset = seek_or_die(fd, 0, SEEK_CUR);
 
-		pstore_extent__write_metadata(self->prev_extent, offset, fd);
-		pstore_extent__delete(self->prev_extent);
+		pstore_extent_write_metadata(self->prev_extent, offset, fd);
+		pstore_extent_delete(self->prev_extent);
 	}
-	pstore_extent__preallocate(self->extent, fd, extent_len);
+	pstore_extent_preallocate(self->extent, fd, extent_len);
 }

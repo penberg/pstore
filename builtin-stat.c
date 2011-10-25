@@ -16,7 +16,7 @@
 
 static char *input_file;
 
-static void pstore_column__stat(struct pstore_column *self, int fd)
+static void pstore_column_stat(struct pstore_column *self, int fd)
 {
 	struct pstore_segment *segment;
 	struct pstore_extent *extent;
@@ -28,11 +28,11 @@ static void pstore_column__stat(struct pstore_column *self, int fd)
 	printf("    first_extent : %" PRIu64 "\n", self->first_extent);
 	printf("    last_extent  : %" PRIu64 "\n", self->last_extent);
 
-	segment = pstore_segment__read(self, fd);
+	segment = pstore_segment_read(self, fd);
 
 	printf("    extents:\n");
 
-	while ((extent = pstore_segment__next_extent(segment)) != NULL) {
+	while ((extent = pstore_segment_next_extent(segment)) != NULL) {
 		printf("       - lsize       : %" PRIu64 "\n", extent->lsize);
 		printf("         psize       : %" PRIu64 "\n", extent->psize);
 		printf("         comp        : %" PRIu8  "\n", extent->comp);
@@ -40,10 +40,10 @@ static void pstore_column__stat(struct pstore_column *self, int fd)
 		printf("\n");
 	}
 
-	pstore_segment__delete(segment);
+	pstore_segment_delete(segment);
 }
 
-static void pstore_table__stat(struct pstore_table *self, int fd)
+static void pstore_table_stat(struct pstore_table *self, int fd)
 {
 	unsigned long ndx;
 
@@ -52,18 +52,18 @@ static void pstore_table__stat(struct pstore_table *self, int fd)
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_column__stat(column, fd);
+		pstore_column_stat(column, fd);
 	}
 }
 
-static void pstore_header__stat(struct pstore_header *self, int fd)
+static void pstore_header_stat(struct pstore_header *self, int fd)
 {
 	unsigned long ndx;
 
 	for (ndx = 0; ndx < self->nr_tables; ndx++) {
 		struct pstore_table *table = self->tables[ndx];
 
-		pstore_table__stat(table, fd);
+		pstore_table_stat(table, fd);
 	}
 }
 
@@ -99,11 +99,11 @@ int cmd_stat(int argc, char *argv[])
 	if (posix_fadvise(input, 0, st.st_size, POSIX_FADV_SEQUENTIAL) != 0)
 		die("posix_fadvise");
 
-	header = pstore_header__read(input);
+	header = pstore_header_read(input);
 
-	pstore_header__stat(header, input);
+	pstore_header_stat(header, input);
 
-	pstore_header__delete(header);
+	pstore_header_delete(header);
 
 	if (close(input) < 0)
 		die("close");

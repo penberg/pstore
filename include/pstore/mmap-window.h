@@ -24,29 +24,29 @@ struct mmap_window {
 	int		fd;
 };
 
-struct mmap_window *mmap_window__map(uint64_t window_len, int fd, off_t offset, off_t length);
-void mmap_window__unmap(struct mmap_window *self);
-void *mmap_window__start(struct mmap_window *self);
-void *mmap_window__slide(struct mmap_window *self, void *p);
+struct mmap_window *mmap_window_map(uint64_t window_len, int fd, off_t offset, off_t length);
+void mmap_window_unmap(struct mmap_window *self);
+void *mmap_window_start(struct mmap_window *self);
+void *mmap_window_slide(struct mmap_window *self, void *p);
 
-static inline uint64_t mmap_window__pos_in_window(struct mmap_window *self, void *p)
+static inline uint64_t mmap_window_pos_in_window(struct mmap_window *self, void *p)
 {
 	return p - (self->mmap + self->mmap_pos);
 }
 
-static inline uint64_t mmap_window__pos_in_region(struct mmap_window *self, void *p)
+static inline uint64_t mmap_window_pos_in_region(struct mmap_window *self, void *p)
 {
-	return self->pos + mmap_window__pos_in_window(self, p);
+	return self->pos + mmap_window_pos_in_window(self, p);
 }
 
-static inline bool mmap_window__in_window(struct mmap_window *self, void *p)
+static inline bool mmap_window_in_window(struct mmap_window *self, void *p)
 {
 	return (ssize_t)(p - self->mmap_end) < 0;
 }
 
-static inline bool mmap_window__in_region(struct mmap_window *self, void *p)
+static inline bool mmap_window_in_region(struct mmap_window *self, void *p)
 {
-	uint64_t pos = mmap_window__pos_in_region(self, p);
+	uint64_t pos = mmap_window_pos_in_region(self, p);
 
 	return (int64_t)(pos - self->length) < 0;
 }

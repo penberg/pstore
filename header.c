@@ -12,7 +12,7 @@ static const char *pstore_magic = "PSTORE02";
 
 #define PSTORE_MAGIC		(*(uint64_t *)pstore_magic)
 
-struct pstore_header *pstore_header__new(void)
+struct pstore_header *pstore_header_new(void)
 {
 	struct pstore_header *self = calloc(sizeof *self, 1);
 
@@ -22,21 +22,21 @@ struct pstore_header *pstore_header__new(void)
 	return self;
 }
 
-void pstore_header__delete(struct pstore_header *self)
+void pstore_header_delete(struct pstore_header *self)
 {
 	unsigned long ndx;
 
 	for (ndx = 0; ndx < self->nr_tables; ndx++) {
 		struct pstore_table *table = self->tables[ndx];
 
-		pstore_table__delete(table);
+		pstore_table_delete(table);
 	}
 
 	free(self->tables);
 	free(self);
 }
 
-void pstore_header__insert_table(struct pstore_header *self, struct pstore_table *table)
+void pstore_header_insert_table(struct pstore_header *self, struct pstore_table *table)
 {
 	void *p;
 
@@ -51,7 +51,7 @@ void pstore_header__insert_table(struct pstore_header *self, struct pstore_table
 	self->tables[self->nr_tables - 1] = table;
 }
 
-struct pstore_header *pstore_header__read(int fd)
+struct pstore_header *pstore_header_read(int fd)
 {
 	struct pstore_file_table_idx f_index;
 	struct pstore_file_header f_header;
@@ -63,21 +63,21 @@ struct pstore_header *pstore_header__read(int fd)
 	if (f_header.magic != PSTORE_MAGIC)
 		die("bad magic: %" PRIX64, f_header.magic);
 
-	self = pstore_header__new();
+	self = pstore_header_new();
 
 	seek_or_die(fd, f_header.t_index_offset, SEEK_SET);
 	read_or_die(fd, &f_index, sizeof(f_index));
 
 	for (nr = 0; nr < f_index.nr_tables; nr++) {
-		struct pstore_table *table = pstore_table__read(fd);
+		struct pstore_table *table = pstore_table_read(fd);
 
-		pstore_header__insert_table(self, table);
+		pstore_header_insert_table(self, table);
 	}
 
 	return self;
 }
 
-void pstore_header__write(struct pstore_header *self, int fd)
+void pstore_header_write(struct pstore_header *self, int fd)
 {
 	struct pstore_file_table_idx f_index;
 	struct pstore_file_header f_header;
@@ -92,7 +92,7 @@ void pstore_header__write(struct pstore_header *self, int fd)
 	for (ndx = 0; ndx < self->nr_tables; ndx++) {
 		struct pstore_table *table = self->tables[ndx];
 
-		pstore_table__write(table, fd);
+		pstore_table_write(table, fd);
 	}
 	end_off = seek_or_die(fd, sizeof(f_header), SEEK_CUR);
 

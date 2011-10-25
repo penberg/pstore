@@ -43,23 +43,23 @@ struct pstore_extent {
 	uint64_t			end_off;
 };
 
-struct pstore_extent *pstore_extent__new(struct pstore_column *parent, uint8_t comp);
-void pstore_extent__delete(struct pstore_extent *self);
-struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd);
-void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len);
-void pstore_extent__prepare_append(struct pstore_extent *self);
-void pstore_extent__flush_write(struct pstore_extent *self, int fd);
-void pstore_extent__preallocate(struct pstore_extent *self, int fd, uint64_t extent_len);
-void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent, int fd);
-void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value *value, int fd);
-bool pstore_extent__has_room(struct pstore_extent *self, struct pstore_value *value);
+struct pstore_extent *pstore_extent_new(struct pstore_column *parent, uint8_t comp);
+void pstore_extent_delete(struct pstore_extent *self);
+struct pstore_extent *pstore_extent_read(struct pstore_column *column, off_t offset, int fd);
+void pstore_extent_prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len);
+void pstore_extent_prepare_append(struct pstore_extent *self);
+void pstore_extent_flush_write(struct pstore_extent *self, int fd);
+void pstore_extent_preallocate(struct pstore_extent *self, int fd, uint64_t extent_len);
+void pstore_extent_write_metadata(struct pstore_extent *self, off_t next_extent, int fd);
+void pstore_extent_write_value(struct pstore_extent *self, struct pstore_value *value, int fd);
+bool pstore_extent_has_room(struct pstore_extent *self, struct pstore_value *value);
 
-static inline bool pstore_extent__is_last(struct pstore_extent *self)
+static inline bool pstore_extent_is_last(struct pstore_extent *self)
 {
 	return self->next_extent == PSTORE_LAST_EXTENT;
 }
 
-static inline void *pstore_extent__next_value(struct pstore_extent *self)
+static inline void *pstore_extent_next_value(struct pstore_extent *self)
 {
 	return self->ops->next_value(self);
 }

@@ -28,7 +28,7 @@ static char *table_ref;
 static char *column_ref;
 static uint64_t	extent_len;
 
-static bool pstore_column__matches(struct pstore_column *self, char *ref)
+static bool pstore_column_matches(struct pstore_column *self, char *ref)
 {
 	if (ref)
 		return id_or_name_matches(self->column_id, self->name, ref);
@@ -36,7 +36,7 @@ static bool pstore_column__matches(struct pstore_column *self, char *ref)
 	return true;
 }
 
-static bool pstore_table__matches(struct pstore_table *self, char *ref)
+static bool pstore_table_matches(struct pstore_table *self, char *ref)
 {
 	if (ref)
 		return id_or_name_matches(self->table_id, self->name, ref);
@@ -51,15 +51,15 @@ static int extend_column(struct pstore_column *column, int input)
 
 	offset = seek_or_die(input, 0, SEEK_CUR);
 
-	extent = pstore_extent__read(column, column->last_extent, input);
+	extent = pstore_extent_read(column, column->last_extent, input);
 
 	column->prev_extent = extent;
-	column->extent = pstore_extent__new(column, PSTORE_COMP_NONE);
+	column->extent = pstore_extent_new(column, PSTORE_COMP_NONE);
 
 	seek_or_die(input, offset, SEEK_SET);
 
-	pstore_column__preallocate(column, input, extent_len);
-	pstore_extent__write_metadata(column->extent, PSTORE_LAST_EXTENT, input);
+	pstore_column_preallocate(column, input, extent_len);
+	pstore_extent_write_metadata(column->extent, PSTORE_LAST_EXTENT, input);
 
 	return 0;
 }
@@ -71,7 +71,7 @@ static int extend_table(struct pstore_table *table, int input)
 	for (ndx = 0; ndx < table->nr_columns; ndx++) {
 		struct pstore_column *column = table->columns[ndx];
 
-		if (pstore_column__matches(column, column_ref)) {
+		if (pstore_column_matches(column, column_ref)) {
 			if (extend_column(column, input) < 0)
 				return -1;
 		}
@@ -86,14 +86,14 @@ static int extend(int input)
 	unsigned long ndx;
 	off_t f_end;
 
-	header = pstore_header__read(input);
+	header = pstore_header_read(input);
 
 	seek_or_die(input, 0, SEEK_END);
 
 	for (ndx = 0; ndx < header->nr_tables; ndx++) {
 		struct pstore_table *table = header->tables[ndx];
 
-		if (pstore_table__matches(table, table_ref)) {
+		if (pstore_table_matches(table, table_ref)) {
 			if (extend_table(table, input) < 0)
 				return -1;
 		}
@@ -105,9 +105,9 @@ static int extend(int input)
 	 * Write out the header again because offsets to last extents changed.
 	 */
 	seek_or_die(input, 0, SEEK_SET);
-	pstore_header__write(header, input);
+	pstore_header_write(header, input);
 
-	pstore_header__delete(header);
+	pstore_header_delete(header);
 
 	seek_or_die(input, f_end, SEEK_SET);
 

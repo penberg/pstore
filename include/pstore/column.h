@@ -35,11 +35,11 @@ struct pstore_iterator {
 	void (*end)(void *private);
 };
 
-struct pstore_column *pstore_column__new(const char *name, uint64_t column_id, uint8_t type);
-void pstore_column__delete(struct pstore_column *self);
-struct pstore_column *pstore_column__read(int fd);
-void pstore_column__write(struct pstore_column *self, int fd);
-void pstore_column__flush_write(struct pstore_column *self, int fd);
-void pstore_column__preallocate(struct pstore_column *self, int fd, uint64_t extent_len);
+struct pstore_column *pstore_column_new(const char *name, uint64_t column_id, uint8_t type);
+void pstore_column_delete(struct pstore_column *self);
+struct pstore_column *pstore_column_read(int fd);
+void pstore_column_write(struct pstore_column *self, int fd);
+void pstore_column_flush_write(struct pstore_column *self, int fd);
+void pstore_column_preallocate(struct pstore_column *self, int fd, uint64_t extent_len);
 
 #endif /* PSTORE_COLUMN_H */

@@ -13,10 +13,10 @@ struct pstore_header {
 	struct pstore_table	**tables;
 };
 
-struct pstore_header *pstore_header__new(void);
-void pstore_header__delete(struct pstore_header *self);
-void pstore_header__insert_table(struct pstore_header *self, struct pstore_table *table);
-struct pstore_header *pstore_header__read(int fd);
-void pstore_header__write(struct pstore_header *self, int fd);
+struct pstore_header *pstore_header_new(void);
+void pstore_header_delete(struct pstore_header *self);
+void pstore_header_insert_table(struct pstore_header *self, struct pstore_table *table);
+struct pstore_header *pstore_header_read(int fd);
+void pstore_header_write(struct pstore_header *self, int fd);
 
 #endif /* PSTORE_HEADER_H */

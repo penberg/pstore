@@ -35,7 +35,7 @@ Feature: CSV import
   Given a 1K long CSV file
   And a 1K long database
   When I run "pstore import --append --table=foo"
-  Then the error should be "pstore_header__select_table: No such table: foo"
+  Then the error should be "pstore_header_select_table: No such table: foo"
 
   Scenario: Significantly smaller window length than file size
   Given a 32K long CSV file

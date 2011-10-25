@@ -43,7 +43,7 @@ static void pstore_table_iterator_begin(void *private)
 	for (ndx = 0; ndx < table->nr_columns; ndx++) {
 		struct pstore_column *column = table->columns[ndx];
 
-		iter->segments[ndx] = pstore_segment__read(column, iter->fd);
+		iter->segments[ndx] = pstore_segment_read(column, iter->fd);
 	}
 
 	iter->row = calloc(sizeof(void *), table->nr_columns);
@@ -83,7 +83,7 @@ static bool pstore_table_iterator_next(void *private, struct pstore_row *row)
 	unsigned long ndx;
 
 	for (ndx = 0; ndx < table->nr_columns; ndx++)
-		iter->row[ndx] = pstore_segment__next_value(iter->segments[ndx]);
+		iter->row[ndx] = pstore_segment_next_value(iter->segments[ndx]);
 
 	if (!iter->row[0])
 		return false;
@@ -103,7 +103,7 @@ static void pstore_table_iterator_end(void *private)
 	unsigned long ndx;
 
 	for (ndx = 0; ndx < table->nr_columns; ndx++)
-		pstore_segment__delete(iter->segments[ndx]);
+		pstore_segment_delete(iter->segments[ndx]);
 
 	free(iter->segments);
 	free(iter->row);
@@ -135,7 +135,7 @@ static void export(struct pstore_table *table, int input, int output)
 		.table		= table,
 	};
 
-	pstore_table__export_values(table, &pstore_table_iterator, &state, output);
+	pstore_table_export_values(table, &pstore_table_iterator, &state, output);
 }
 
 static void parse_args(int argc, char *argv[])
@@ -175,13 +175,13 @@ int cmd_export(int argc, char *argv[])
 		output = STDOUT_FILENO;
 	}
 
-	header = pstore_header__read(input);
+	header = pstore_header_read(input);
 	if (header->nr_tables != 1)
 		die("number of tables does not match");
 
 	export(header->tables[0], input, output);
 
-	pstore_header__delete(header);
+	pstore_header_delete(header);
 
 	if (fsync(output) < 0)
 		die("fsync");

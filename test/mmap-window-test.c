@@ -22,12 +22,12 @@ static void setup(void)
 {
 	fd	= open("/dev/zero", O_RDONLY);
 
-	mmap	= mmap_window__map(WINDOW_SIZE, fd, FD_OFFSET, MMAP_LENGTH);
+	mmap	= mmap_window_map(WINDOW_SIZE, fd, FD_OFFSET, MMAP_LENGTH);
 }
 
 static void teardown(void)
 {
-	mmap_window__unmap(mmap);
+	mmap_window_unmap(mmap);
 	close(fd);
 }
 
@@ -37,11 +37,11 @@ void test_mmap_window_in_window(void)
 
 	setup();
 
-	start = mmap_window__start(mmap);
+	start = mmap_window_start(mmap);
 
-	assert_true(mmap_window__in_window(mmap, start));
-	assert_true(mmap_window__in_window(mmap, start + WINDOW_SIZE - 1));
-	assert_false(mmap_window__in_window(mmap, start + WINDOW_SIZE));
+	assert_true(mmap_window_in_window(mmap, start));
+	assert_true(mmap_window_in_window(mmap, start + WINDOW_SIZE - 1));
+	assert_false(mmap_window_in_window(mmap, start + WINDOW_SIZE));
 
 	teardown();
 }
@@ -52,12 +52,12 @@ void test_mmap_window_in_region(void)
 
 	setup();
 
-	start = mmap_window__start(mmap);
+	start = mmap_window_start(mmap);
 
-	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE - 1));
-	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE));
-	assert_true(mmap_window__in_region(mmap, start + MMAP_LENGTH - 1));
-	assert_false(mmap_window__in_region(mmap, start + MMAP_LENGTH));
+	assert_true(mmap_window_in_region(mmap, start + WINDOW_SIZE - 1));
+	assert_true(mmap_window_in_region(mmap, start + WINDOW_SIZE));
+	assert_true(mmap_window_in_region(mmap, start + MMAP_LENGTH - 1));
+	assert_false(mmap_window_in_region(mmap, start + MMAP_LENGTH));
 
 	teardown();
 }
@@ -68,12 +68,12 @@ void test_mmap_window_slide(void)
 
 	setup();
 
-	start = mmap_window__start(mmap);
-	assert_true(mmap_window__in_region(mmap, start + WINDOW_SIZE));
+	start = mmap_window_start(mmap);
+	assert_true(mmap_window_in_region(mmap, start + WINDOW_SIZE));
 
-	start = mmap_window__slide(mmap, start + WINDOW_SIZE);
+	start = mmap_window_slide(mmap, start + WINDOW_SIZE);
 
-	assert_true(mmap_window__in_region(mmap, start + MMAP_LENGTH - WINDOW_SIZE - 1));
+	assert_true(mmap_window_in_region(mmap, start + MMAP_LENGTH - WINDOW_SIZE - 1));
 
 	teardown();
 }

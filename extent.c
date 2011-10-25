@@ -18,21 +18,21 @@
 
 #define MMAP_WINDOW_LEN		MiB(128)
 
-static void *pstore_extent__mmap(struct pstore_extent *self, int fd, off_t offset)
+static void *pstore_extent_mmap(struct pstore_extent *self, int fd, off_t offset)
 {
-	self->mmap	= mmap_window__map(MMAP_WINDOW_LEN, fd, offset + sizeof(struct pstore_file_extent), self->lsize);
+	self->mmap	= mmap_window_map(MMAP_WINDOW_LEN, fd, offset + sizeof(struct pstore_file_extent), self->lsize);
 
-	return mmap_window__start(self->mmap);
+	return mmap_window_start(self->mmap);
 }
 
-static void *pstore_extent__mmap_next_value(struct pstore_extent *self)
+static void *pstore_extent_mmap_next_value(struct pstore_extent *self)
 {
 	void *start, *end;
 
 restart:
 	start = end = self->start;
 	for (;;) {
-		if (mmap_window__in_window(self->mmap, end + sizeof(unsigned int))) {
+		if (mmap_window_in_window(self->mmap, end + sizeof(unsigned int))) {
 			unsigned int *v = end;
 
 			if (!has_zero_byte(*v)) {
@@ -46,7 +46,7 @@ restart:
 	for (;;) {
 		unsigned char *c;
 
-		if (!mmap_window__in_window(self->mmap, end))
+		if (!mmap_window_in_window(self->mmap, end))
 			goto mmap_slide;
 
 		c = end++;
@@ -58,25 +58,25 @@ restart:
 	return start;
 
 mmap_slide:
-	if (!mmap_window__in_region(self->mmap, end))
+	if (!mmap_window_in_region(self->mmap, end))
 		return NULL;
 
-	self->start = mmap_window__slide(self->mmap, start);
+	self->start = mmap_window_slide(self->mmap, start);
 	goto restart;
 }
 
-static void pstore_extent__mmap_flush(struct pstore_extent *self, int fd)
+static void pstore_extent_mmap_flush(struct pstore_extent *self, int fd)
 {
-	buffer__write(self->write_buffer, fd);
+	buffer_write(self->write_buffer, fd);
 }
 
-static void pstore_extent__mmap_prepare_write(struct pstore_extent *self, int fd)
+static void pstore_extent_mmap_prepare_write(struct pstore_extent *self, int fd)
 {
 	if (self->start_off != 0)
 		seek_or_die(fd, self->start_off + self->lsize, SEEK_SET);
 }
 
-static void pstore_extent__mmap_finish_write(struct pstore_extent *self, int fd)
+static void pstore_extent_mmap_finish_write(struct pstore_extent *self, int fd)
 {
 	off_t end_off	= seek_or_die(fd, 0, SEEK_CUR);
 
@@ -84,11 +84,11 @@ static void pstore_extent__mmap_finish_write(struct pstore_extent *self, int fd)
 }
 
 static const struct pstore_extent_ops extent_uncomp_ops = {
-	.read		= pstore_extent__mmap,
-	.next_value	= pstore_extent__mmap_next_value,
-	.flush		= pstore_extent__mmap_flush,
-	.prepare_write	= pstore_extent__mmap_prepare_write,
-	.finish_write	= pstore_extent__mmap_finish_write,
+	.read		= pstore_extent_mmap,
+	.next_value	= pstore_extent_mmap_next_value,
+	.flush		= pstore_extent_mmap_flush,
+	.prepare_write	= pstore_extent_mmap_prepare_write,
+	.finish_write	= pstore_extent_mmap_finish_write,
 };
 
 static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
@@ -99,7 +99,7 @@ static const struct pstore_extent_ops *extent_ops_table[NR_PSTORE_COMP] = {
 #endif
 };
 
-struct pstore_extent *pstore_extent__new(struct pstore_column *parent, uint8_t comp)
+struct pstore_extent *pstore_extent_new(struct pstore_column *parent, uint8_t comp)
 {
 	struct pstore_extent *self = calloc(sizeof *self, 1);
 
@@ -113,18 +113,18 @@ struct pstore_extent *pstore_extent__new(struct pstore_column *parent, uint8_t c
 	return self;
 }
 
-void pstore_extent__delete(struct pstore_extent *self)
+void pstore_extent_delete(struct pstore_extent *self)
 {
 	if (self->mmap)
-		mmap_window__unmap(self->mmap);
+		mmap_window_unmap(self->mmap);
 
 	if (self->write_buffer)
-		buffer__delete(self->write_buffer);
+		buffer_delete(self->write_buffer);
 
 	free(self);
 }
 
-struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t offset, int fd)
+struct pstore_extent *pstore_extent_read(struct pstore_column *column, off_t offset, int fd)
 {
 	struct pstore_file_extent f_extent;
 	struct pstore_extent *self;
@@ -132,7 +132,7 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 	seek_or_die(fd, offset, SEEK_SET);
 	read_or_die(fd, &f_extent, sizeof(f_extent));
 
-	self = pstore_extent__new(column, f_extent.comp);
+	self = pstore_extent_new(column, f_extent.comp);
 
 	self->lsize		= f_extent.lsize;
 	self->psize		= f_extent.psize;
@@ -149,20 +149,20 @@ struct pstore_extent *pstore_extent__read(struct pstore_column *column, off_t of
 	return self;
 }
 
-void pstore_extent__prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len)
+void pstore_extent_prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len)
 {
-	self->write_buffer	= buffer__new(max_extent_len);
+	self->write_buffer	= buffer_new(max_extent_len);
 }
 
-void pstore_extent__prepare_append(struct pstore_extent *self)
+void pstore_extent_prepare_append(struct pstore_extent *self)
 {
 	if (self->comp != PSTORE_COMP_NONE)
 		die("unsupported compression %d", self->comp);
 
-	self->write_buffer	= buffer__new(self->psize - self->lsize);
+	self->write_buffer	= buffer_new(self->psize - self->lsize);
 }
 
-void pstore_extent__flush_write(struct pstore_extent *self, int fd)
+void pstore_extent_flush_write(struct pstore_extent *self, int fd)
 {
 	if (self->parent->first_extent == 0)
 		self->parent->first_extent = seek_or_die(fd, 0, SEEK_CUR);
@@ -173,7 +173,7 @@ void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 	if (self->start_off == 0)
 		self->start_off = seek_or_die(fd, sizeof(struct pstore_file_extent), SEEK_CUR);
 
-	if (buffer__size(self->write_buffer) > 0)
+	if (buffer_size(self->write_buffer) > 0)
 		self->ops->flush(self, fd);
 
 	if (self->end_off == 0)
@@ -185,7 +185,7 @@ void pstore_extent__flush_write(struct pstore_extent *self, int fd)
 		self->ops->finish_write(self, fd);
 }
 
-void pstore_extent__preallocate(struct pstore_extent *self, int fd, uint64_t extent_len)
+void pstore_extent_preallocate(struct pstore_extent *self, int fd, uint64_t extent_len)
 {
 	if (self->comp != PSTORE_COMP_NONE)
 		die("unsupported compression %d", self->comp);
@@ -205,7 +205,7 @@ void pstore_extent__preallocate(struct pstore_extent *self, int fd, uint64_t ext
 	self->psize		= self->end_off - self->start_off;
 }
 
-void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent, int fd)
+void pstore_extent_write_metadata(struct pstore_extent *self, off_t next_extent, int fd)
 {
 	struct pstore_file_extent f_extent;
 	off_t f_extent_off, offset;
@@ -227,19 +227,19 @@ void pstore_extent__write_metadata(struct pstore_extent *self, off_t next_extent
 	seek_or_die(fd, offset, SEEK_SET);
 }
 
-void pstore_extent__write_value(struct pstore_extent *self, struct pstore_value *value, int fd)
+void pstore_extent_write_value(struct pstore_extent *self, struct pstore_value *value, int fd)
 {
 	if (self->parent->type != VALUE_TYPE_STRING)
 		die("unknown type");
 
-	if (!pstore_extent__has_room(self, value))
+	if (!pstore_extent_has_room(self, value))
 		die("no room in extent buffer");
 
-	buffer__append(self->write_buffer, value->s, value->len);
-	buffer__append_char(self->write_buffer, '\0');
+	buffer_append(self->write_buffer, value->s, value->len);
+	buffer_append_char(self->write_buffer, '\0');
 }
 
-bool pstore_extent__has_room(struct pstore_extent *self, struct pstore_value *value)
+bool pstore_extent_has_room(struct pstore_extent *self, struct pstore_value *value)
 {
-	return buffer__has_room(self->write_buffer, value->len + 1);
+	return buffer_has_room(self->write_buffer, value->len + 1);
 }

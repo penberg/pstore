@@ -47,13 +47,13 @@ static char *csv_iterator_next_line(struct csv_iterator_state *iter)
 restart:
 	start = iter->pos;
 
-	if (!mmap_window__in_window(iter->mmap, iter->pos))
+	if (!mmap_window_in_window(iter->mmap, iter->pos))
 		goto slide_mmap;
 
 	while (*iter->pos != '\n') {
 		iter->pos++;
 
-		if (!mmap_window__in_window(iter->mmap, iter->pos))
+		if (!mmap_window_in_window(iter->mmap, iter->pos))
 			goto slide_mmap;
 	}
 	iter->pos++;
@@ -61,10 +61,10 @@ out:
 	return start;
 
 slide_mmap:
-	if (!mmap_window__in_region(iter->mmap, iter->pos))
+	if (!mmap_window_in_region(iter->mmap, iter->pos))
 		return iter->pos = NULL;
 
-	iter->pos = mmap_window__slide(iter->mmap, start);
+	iter->pos = mmap_window_slide(iter->mmap, start);
 	if (iter->pos == NULL)
 		goto out;
 
@@ -77,9 +77,9 @@ static void csv_iterator_begin(void *private)
 {
 	struct csv_iterator_state *iter = private;
 
-	iter->mmap = mmap_window__map(max_window_len, iter->fd, 0, iter->file_size);
+	iter->mmap = mmap_window_map(max_window_len, iter->fd, 0, iter->file_size);
 
-	iter->pos = mmap_window__start(iter->mmap);
+	iter->pos = mmap_window_start(iter->mmap);
 
 	/* Skip header row. */
 	if (!csv_iterator_next_line(iter))
@@ -118,7 +118,7 @@ static void csv_iterator_end(void *private)
 {
 	struct csv_iterator_state *iter = private;
 
-	mmap_window__unmap(iter->mmap);	
+	mmap_window_unmap(iter->mmap);	
 }
 
 static struct pstore_iterator csv_iterator = {
@@ -127,7 +127,7 @@ static struct pstore_iterator csv_iterator = {
 	.end		= csv_iterator_end,
 };
 
-static struct pstore_table *pstore_header__select_table(struct pstore_header *self)
+static struct pstore_table *pstore_header_select_table(struct pstore_header *self)
 {
 	struct pstore_table *selected_table = NULL;
 	unsigned long ndx;
@@ -152,7 +152,7 @@ static struct pstore_table *pstore_header__select_table(struct pstore_header *se
 	return selected_table;
 }
 
-static void pstore_table__import_columns(struct pstore_table *self, const char *filename)
+static void pstore_table_import_columns(struct pstore_table *self, const char *filename)
 {
 	char line[BUF_LEN];
 	int field = 0;
@@ -177,9 +177,9 @@ static void pstore_table__import_columns(struct pstore_table *self, const char *
 		if (!s)
 			die("out of memory");
 
-		column = pstore_column__new(s, field, VALUE_TYPE_STRING);
+		column = pstore_column_new(s, field, VALUE_TYPE_STRING);
 
-		pstore_table__add(self, column);
+		pstore_table_add(self, column);
 
 		free(s);
 		field++;
@@ -192,10 +192,10 @@ static int csv_nr_columns(const char *filename)
 	int nr_columns;
 	struct pstore_table *table;
 
-	table = pstore_table__new(filename, 0);
-	pstore_table__import_columns(table, filename);
+	table = pstore_table_new(filename, 0);
+	pstore_table_import_columns(table, filename);
 	nr_columns = table->nr_columns;
-	pstore_table__delete(table);
+	pstore_table_delete(table);
 
 	return nr_columns;
 }
@@ -282,14 +282,14 @@ static int append(struct csv_iterator_state *state)
 
 	seek_or_die(output, 0, SEEK_SET);
 
-	header = pstore_header__read(output);
+	header = pstore_header_read(output);
 
-	table = pstore_header__select_table(header);
+	table = pstore_header_select_table(header);
 
 	if (table->nr_columns != csv_nr_columns(input_file))
 		die("number of columns does not match");
 
-	pstore_table__import_values(table, output, &csv_iterator, state, &details);
+	pstore_table_import_values(table, output, &csv_iterator, state, &details);
 
 	f_offset = seek_or_die(output, 0, SEEK_CUR);
 
@@ -300,9 +300,9 @@ static int append(struct csv_iterator_state *state)
 	 * Write out the header again because offsets to last extents changed.
 	 */
 	seek_or_die(output, 0, SEEK_SET);
-	pstore_header__write(header, output);
+	pstore_header_write(header, output);
 
-	pstore_header__delete(header);
+	pstore_header_delete(header);
 
 	if (fsync(output) < 0)
 		die("fsync");
@@ -327,14 +327,14 @@ static int import(struct csv_iterator_state *state)
 	if (posix_fallocate(output, 0, state->file_size) != 0)
 		die("posix_fallocate");
 
-	header	= pstore_header__new();
-	table	= pstore_table__new(output_file, 0);
+	header	= pstore_header_new();
+	table	= pstore_table_new(output_file, 0);
 
-	pstore_header__insert_table(header, table);
-	pstore_table__import_columns(table, input_file);
+	pstore_header_insert_table(header, table);
+	pstore_table_import_columns(table, input_file);
 
-	pstore_header__write(header, output);
-	pstore_table__import_values(table, output, &csv_iterator, state, &details);
+	pstore_header_write(header, output);
+	pstore_table_import_values(table, output, &csv_iterator, state, &details);
 
 	f_size = seek_or_die(output, 0, SEEK_CUR);
 
@@ -346,9 +346,9 @@ static int import(struct csv_iterator_state *state)
 	 * until now.
 	 */
 	seek_or_die(output, 0, SEEK_SET);
-	pstore_header__write(header, output);
+	pstore_header_write(header, output);
 
-	pstore_header__delete(header);
+	pstore_header_delete(header);
 
 	if (fsync(output) < 0)
 		die("fsync");

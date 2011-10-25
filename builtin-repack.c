@@ -30,12 +30,12 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 	struct pstore_segment *segment;
 	char *s;
 
-	segment = pstore_segment__read(old_column, input);
+	segment = pstore_segment_read(old_column, input);
 
-	new_column->extent = pstore_extent__new(new_column, details.comp);
-	pstore_extent__prepare_write(new_column->extent, output, details.max_extent_len);
+	new_column->extent = pstore_extent_new(new_column, details.comp);
+	pstore_extent_prepare_write(new_column->extent, output, details.max_extent_len);
 
-	while ((s = pstore_segment__next_value(segment)) != NULL) {
+	while ((s = pstore_segment_next_value(segment)) != NULL) {
 		struct pstore_value value;
 
 		value		= (struct pstore_value) {
@@ -43,21 +43,21 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 			.len		= strlen(s),
 		};
 
-		if (!pstore_extent__has_room(new_column->extent, &value)) {
-			pstore_column__flush_write(new_column, output);
+		if (!pstore_extent_has_room(new_column->extent, &value)) {
+			pstore_column_flush_write(new_column, output);
 
 			new_column->prev_extent = new_column->extent;
 
-			new_column->extent = pstore_extent__new(new_column, details.comp);
-			pstore_extent__prepare_write(new_column->extent, output, details.max_extent_len);
+			new_column->extent = pstore_extent_new(new_column, details.comp);
+			pstore_extent_prepare_write(new_column->extent, output, details.max_extent_len);
 		}
-		pstore_extent__write_value(new_column->extent, &value, output);
+		pstore_extent_write_value(new_column->extent, &value, output);
 	}
 
-	pstore_column__flush_write(new_column, output);
-	pstore_extent__write_metadata(new_column->extent, PSTORE_LAST_EXTENT, output);
+	pstore_column_flush_write(new_column, output);
+	pstore_extent_write_metadata(new_column->extent, PSTORE_LAST_EXTENT, output);
 
-	pstore_segment__delete(segment);
+	pstore_segment_delete(segment);
 
 	return 0;
 }
@@ -82,17 +82,17 @@ static int repack_table(struct pstore_header *old_header, struct pstore_header *
 	struct pstore_table *new_table;
 	unsigned long ndx;
 
-	new_table	= pstore_table__new(old_table->name, old_table->table_id);
+	new_table	= pstore_table_new(old_table->name, old_table->table_id);
 
-	pstore_header__insert_table(new_header, new_table);
+	pstore_header_insert_table(new_header, new_table);
 
 	for (ndx = 0; ndx < old_table->nr_columns; ndx++) {
 		struct pstore_column *old_column = old_table->columns[ndx];
 		struct pstore_column *new_column;
 
-		new_column = pstore_column__new(old_column->name, old_column->column_id, old_column->type);
+		new_column = pstore_column_new(old_column->name, old_column->column_id, old_column->type);
 
-		pstore_table__add(new_table, new_column);
+		pstore_table_add(new_table, new_column);
 	}
 
 	return 0;
@@ -104,9 +104,9 @@ static int repack(int input, int output)
 	struct pstore_header *old_header;
 	unsigned long ndx;
 
-	old_header	= pstore_header__read(input);
+	old_header	= pstore_header_read(input);
 
-	new_header	= pstore_header__new();
+	new_header	= pstore_header_new();
 
 	for (ndx = 0; ndx < old_header->nr_tables; ndx++) {
 		struct pstore_table *table = old_header->tables[ndx];
@@ -115,7 +115,7 @@ static int repack(int input, int output)
 			return -1;
 	}
 
-	pstore_header__write(new_header, output);
+	pstore_header_write(new_header, output);
 
 	for (ndx = 0; ndx < new_header->nr_tables; ndx++) {
 		struct pstore_table *new_table = new_header->tables[ndx];
@@ -130,10 +130,10 @@ static int repack(int input, int output)
 	 * until know.
 	 */
 	seek_or_die(output, 0, SEEK_SET);
-	pstore_header__write(new_header, output);
+	pstore_header_write(new_header, output);
 
-	pstore_header__delete(new_header);
-	pstore_header__delete(old_header);
+	pstore_header_delete(new_header);
+	pstore_header_delete(old_header);
 
 	return 0;
 }
