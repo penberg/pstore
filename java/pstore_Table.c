@@ -22,7 +22,7 @@ JNIEXPORT jlong JNICALL Java_pstore_Table_create(JNIEnv *env, jclass clazz, jstr
 	name0 = (*env)->GetStringUTFChars(env, name, NULL);
 	if (!name0)
 		return PTR_TO_LONG(NULL);
-	ptr = pstore_table__new(name0, id);
+	ptr = pstore_table_new(name0, id);
 	(*env)->ReleaseStringUTFChars(env, name, name0);
 
 	return PTR_TO_LONG(ptr);
@@ -34,7 +34,7 @@ JNIEXPORT void JNICALL Java_pstore_Table_destroy(JNIEnv *env, jclass clazz, jlon
 
 JNIEXPORT void JNICALL Java_pstore_Table_add(JNIEnv *env, jclass clazz, jlong table_ptr, jlong col_ptr)
 {
-	pstore_table__add(LONG_TO_PTR(table_ptr), LONG_TO_PTR(col_ptr));
+	pstore_table_add(LONG_TO_PTR(table_ptr), LONG_TO_PTR(col_ptr));
 }
 
 struct iterator_state {
@@ -100,7 +100,7 @@ JNIEXPORT void JNICALL Java_pstore_Table_importValues(JNIEnv *env, jclass clazz,
 		.obj = LONG_TO_PTR(iter_state_ptr)
 	};
 
-	pstore_table__import_values(LONG_TO_PTR(table_ptr), fd, &import_iterator,
+	pstore_table_import_values(LONG_TO_PTR(table_ptr), fd, &import_iterator,
 				    &state, &details);
 	lseek(fd, 0, SEEK_SET);
 }
@@ -117,7 +117,7 @@ static void export_iterator_begin(void *private)
 
 	for (ndx = 0; ndx < table->nr_columns; ndx++) {
 		struct pstore_column *column = table->columns[ndx];
-		state->segments[ndx] = pstore_segment__read(column, state->fd);
+		state->segments[ndx] = pstore_segment_read(column, state->fd);
 	}
 
 	state->row = calloc(sizeof(void *), table->nr_columns);
@@ -165,7 +165,7 @@ static bool export_iterator_next(void *private, struct pstore_row *row)
 	unsigned long ndx;
 
 	for (ndx = 0; ndx < table->nr_columns; ndx++)
-		state->row[ndx] = pstore_segment__next_value(state->segments[ndx]);
+		state->row[ndx] = pstore_segment_next_value(state->segments[ndx]);
 
 	if (!state->row[0])
 		return false;
@@ -185,7 +185,7 @@ static void export_iterator_end(void *private)
 	unsigned long ndx;
 
 	for (ndx = 0; ndx < table->nr_columns; ndx++)
-		pstore_segment__delete(iter->segments[ndx]);
+		pstore_segment_delete(iter->segments[ndx]);
 
 	free(iter->segments);
 	free(iter->row);
@@ -207,7 +207,7 @@ JNIEXPORT void JNICALL Java_pstore_Table_exportValues(JNIEnv *env, jclass clazz,
 		.env		= env,
 	};
 
-	pstore_table__export_values(LONG_TO_PTR(table_ptr), &export_iterator, &state, output);
+	pstore_table_export_values(LONG_TO_PTR(table_ptr), &export_iterator, &state, output);
 }
 
 JNIEXPORT jint JNICALL Java_pstore_Table_nrColumns(JNIEnv *env, jclass clazz, jlong ptr)
