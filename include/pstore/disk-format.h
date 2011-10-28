@@ -1,6 +1,8 @@
 #ifndef PSTORE_DISK_FORMAT_H
 #define PSTORE_DISK_FORMAT_H
 
+#include "pstore/types.h"
+
 #include <stdint.h>
 
 /*
@@ -12,25 +14,25 @@
 
 struct pstore_file_header {
 	char			magic[PSTORE_MAGIC_LEN];
-	uint64_t		n_index_offset;
-	uint64_t		t_index_offset;
+	le64			n_index_offset;
+	le64			t_index_offset;
 };
 
 struct pstore_file_table_idx {
-	uint64_t		nr_tables;
-	uint64_t		t_index_next;
+	le64			nr_tables;
+	le64			t_index_next;
 };
 
 struct pstore_file_column_idx {
-	uint64_t		nr_columns;
-	uint64_t		c_index_next;
+	le64			nr_columns;
+	le64			c_index_next;
 };
 
 #define PSTORE_TABLE_NAME_LEN		32
 
 struct pstore_file_table {
 	char				name[PSTORE_TABLE_NAME_LEN];
-	uint64_t			table_id;
+	le64				table_id;
 	struct pstore_file_column_idx	c_index;
 };
 
@@ -38,10 +40,10 @@ struct pstore_file_table {
 
 struct pstore_file_column {
 	char			name[PSTORE_COLUMN_NAME_LEN];
-	uint64_t		column_id;
-	uint64_t		type;
-	uint64_t		first_extent;
-	uint64_t		last_extent;
+	le64			column_id;
+	le64			type;
+	le64			first_extent;
+	le64			last_extent;
 };
 
 #define PSTORE_LAST_EXTENT		0ULL
@@ -57,11 +59,11 @@ enum pstore_comp {
 };
 
 struct pstore_file_extent {
-	uint64_t		lsize;		/* logical size before compression */
-	uint64_t		psize;		/* physical size after compression */
-	uint8_t			comp;		/* compression algorithm */
-	uint8_t			padding[7];
-	uint64_t		next_extent;
+	le64			lsize;		/* logical size before compression */
+	le64			psize;		/* physical size after compression */
+	u8			comp;		/* compression algorithm */
+	u8			padding[7];
+	le64			next_extent;
 };
 
 #endif /* PSTORE_DISK_FORMAT_H */
