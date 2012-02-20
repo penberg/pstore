@@ -60,8 +60,12 @@ COMPAT_OBJS =
 EXTRA_LIBS =
 
 ifeq ($(uname_S),Darwin)
+	darwin_R := $(shell echo $(uname_R) | cut -d. -f1)
+
+ifneq ($(darwin_R),11)
 	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
 	COMPAT_OBJS += compat/strndup.o
+endif
 
 	CONFIG_OPTS += -DCONFIG_NEED_POSIX_FALLOCATE=1
 	CONFIG_OPTS += -DCONFIG_NEED_POSIX_FADVISE=1
