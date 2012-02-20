@@ -6,13 +6,13 @@ P-Store is a simple read-optimized database system. The command line tool
 convert a CSV file into a P-Store database and the latter can be used to
 examine contents of the database.
 
-The design of this system is loosely based on [C-Store][1] which is another
+The design of this system is loosely based on [C-Store][] which is another
 Open Source read-optimized database. The main idea is to store tabular data in
 column-order to improve read performance for special purpose workloads.
 
 P-Store is in very early stages so don't expect a whole lot from it.
 
-  [1]: http://db.csail.mit.edu/projects/cstore/
+[C-Store]: http://db.csail.mit.edu/projects/cstore/
 
 
 How can I try it out?
@@ -33,22 +33,24 @@ With `pstore import --append` you can append more data into a P-Store database:
     $ pstore import --append moredata.csv dataset.out
 
 
-Running the Cucumber tests
-==========================
+Running the integration tests
+=============================
 
-You can use the following command to install Cucumber on your machine:
+P-Store's integration tests require [Ruby][] 1.9 and [Bundler][]. If your
+operating system does not have Ruby 1.9, take a look at [rbenv][] or [RVM][].
 
-    $ sudo gem install cucumber rspec fastercsv
+When you have both Ruby 1.9 and Bundler, install P-Store's dependencies:
 
-Please note that the RubyGems version in Mac OS X 10.5, for example, is too
-old to install Cucumber successfully, so you need to upgrade it first. Also,
-Ruby version 1.8.7 must be used as at least `fastercsv` shall no longer be
-used in 1.9.x versions.
+    $ bundle install
 
-On Mac OS X, it is recommended to use Ruby Version Manager (RVM) instead of
-installing Ruby with MacPorts or Homebrew:
+Then run the integration tests:
 
-    http://rvm.beginrescueend.com/
+    $ make check
+
+[Bundler]: http://gembundler.com/
+[Ruby]:    http://www.ruby-lang.org/en/
+[RVM]:     http://beginrescueend.com/
+[rbenv]:   https://github.com/sstephenson/rbenv
 
 
 Java Native Interface

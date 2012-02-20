@@ -91,7 +91,7 @@ test: $(JAVA_CLASSES) $(LIBRARY_BASE)
 
 check: $(JAVA_CLASSES) $(LIBRARY_BASE)
 	$(E) "  CUCUMBER  "
-	$(Q) cucumber --format progress
+	$(Q) bundle exec cucumber --format progress
 .PHONY: check
 
 clean:
