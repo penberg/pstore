@@ -224,9 +224,9 @@ clean:
 
 regress: $(PROGRAM)
 	$(E) "  CUCUMBER"
-	$(Q) cucumber --tags ~@snappy --format progress
+	$(Q) bundle exec cucumber --tags ~@snappy --format progress
 ifneq ($(SNAPPY_HOME),)
-	$(Q) cucumber --tags @snappy --format progress
+	$(Q) bundle exec cucumber --tags @snappy --format progress
 endif
 ifneq ($(JAVA_HOME),)
 	$(Q) $(MAKE) -C java check

@@ -1,5 +1,5 @@
+require 'csv'
 require 'rspec/expectations'
-require 'fastercsv'
 require 'tempfile'
 
 Before do
@@ -59,7 +59,7 @@ def parse_csv(*files)
   values = Hash.new
   values.default = ""
   files.each do |file|
-    FasterCSV.foreach(file, :headers => true) do |row|
+    CSV.foreach(file, :headers => true) do |row|
       (0..row.length-1).each do |column|
         values[column] = values[column] + row[column] + "\n"
       end
