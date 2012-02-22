@@ -7,10 +7,7 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
-
-static const char *pstore_magic = "PSTORE02";
-
-#define PSTORE_MAGIC		(*(uint64_t *)pstore_magic)
+#include <string.h>
 
 struct pstore_header *pstore_header_new(void)
 {
@@ -60,8 +57,8 @@ struct pstore_header *pstore_header_read(int fd)
 
 	read_or_die(fd, &f_header, sizeof(f_header));
 
-	if (f_header.magic != PSTORE_MAGIC)
-		die("bad magic: %" PRIX64, f_header.magic);
+	if (memcmp(f_header.magic, PSTORE_MAGIC, PSTORE_MAGIC_LEN) != 0)
+		die("bad magic");
 
 	self = pstore_header_new();
 
@@ -100,10 +97,11 @@ void pstore_header_write(struct pstore_header *self, int fd)
 	seek_or_die(fd, -(sizeof(f_header) + sizeof(f_index) + size), SEEK_CUR);
 
 	f_header = (struct pstore_file_header) {
-		.magic		= PSTORE_MAGIC,
 		.n_index_offset	= PSTORE_END_OF_CHAIN,
 		.t_index_offset	= t_index_off,
 	};
+	strncpy(f_header.magic, PSTORE_MAGIC, PSTORE_MAGIC_LEN);
+
 	write_or_die(fd, &f_header, sizeof(f_header));
 
 	f_index = (struct pstore_file_table_idx) {
