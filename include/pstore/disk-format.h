@@ -7,8 +7,11 @@
  * This header file contains on-disk data structures of pstore files.
  */
 
+#define PSTORE_MAGIC			"PSTORE02"
+#define PSTORE_MAGIC_LEN		8
+
 struct pstore_file_header {
-	uint64_t		magic;
+	char			magic[PSTORE_MAGIC_LEN];
 	uint64_t		n_index_offset;
 	uint64_t		t_index_offset;
 };

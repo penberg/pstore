@@ -2,23 +2,22 @@ uname_S	:= $(shell sh -c 'uname -s 2>/dev/null || echo not')
 uname_R	:= $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
 # External programs
-CC	:= gcc
-CXX	:= g++
-AR	:= ar
+CC	?= gcc
+CXX	?= g++
+AR	?= ar
 
 # Set up source directory for GNU Make
 srcdir		:= $(CURDIR)
 VPATH		:= $(srcdir)
 
 EXTRA_WARNINGS := -Wcast-align
-EXTRA_WARNINGS += -Wformat
+EXTRA_WARNINGS += -Wformat-nonliteral
 EXTRA_WARNINGS += -Wformat-security
 EXTRA_WARNINGS += -Wformat-y2k
 EXTRA_WARNINGS += -Wshadow
 EXTRA_WARNINGS += -Winit-self
 EXTRA_WARNINGS += -Wpacked
 EXTRA_WARNINGS += -Wredundant-decls
-EXTRA_WARNINGS += -Wstrict-aliasing=3
 EXTRA_WARNINGS += -Wswitch-default
 EXTRA_WARNINGS += -Wswitch-enum
 EXTRA_WARNINGS += -Wno-system-headers
@@ -60,8 +59,12 @@ COMPAT_OBJS =
 EXTRA_LIBS =
 
 ifeq ($(uname_S),Darwin)
+	darwin_R := $(shell echo $(uname_R) | cut -d. -f1)
+
+ifneq ($(darwin_R),11)
 	CONFIG_OPTS += -DCONFIG_NEED_STRNDUP=1
 	COMPAT_OBJS += compat/strndup.o
+endif
 
 	CONFIG_OPTS += -DCONFIG_NEED_POSIX_FALLOCATE=1
 	CONFIG_OPTS += -DCONFIG_NEED_POSIX_FADVISE=1
