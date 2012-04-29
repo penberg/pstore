@@ -122,7 +122,6 @@ STATIC_LIB_FILE := libpstore.a
 LIB_OBJS += buffer.o
 LIB_OBJS += column.o
 LIB_OBJS += compress.o
-LIB_OBJS += csv.o
 LIB_OBJS += die.o
 LIB_OBJS += extent.o
 LIB_OBJS += fastlz/fastlz.o
@@ -145,7 +144,6 @@ TEST_RUNNER_C	:= test/test-runner.c
 TEST_RUNNER_OBJ := test/test-runner.o
 
 TEST_OBJS += harness.o
-TEST_OBJS += test/csv-test.o
 ifneq ($(uname_S),Darwin)
 TEST_OBJS += test/mmap-window-test.o
 endif

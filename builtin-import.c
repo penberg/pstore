@@ -9,7 +9,6 @@
 #include "pstore/string.h"
 #include "pstore/table.h"
 #include "pstore/core.h"
-#include "pstore/csv.h"
 #include "pstore/die.h"
 #include "pstore/row.h"
 #include "sheets/sheets.h"
