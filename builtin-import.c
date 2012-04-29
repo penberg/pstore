@@ -12,6 +12,7 @@
 #include "pstore/csv.h"
 #include "pstore/die.h"
 #include "pstore/row.h"
+#include "sheets/sheets.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -154,36 +155,44 @@ static struct pstore_table *pstore_header_select_table(struct pstore_header *sel
 
 static void pstore_table_import_columns(struct pstore_table *self, const char *filename)
 {
-	char line[BUF_LEN];
-	int field = 0;
 	FILE *input;
-	char *s;
+	struct sheets_reader *reader;
+	struct sheets_record *record;
+	unsigned long ndx;
 
 	input = fopen(filename, "r");
 	if (input == NULL)
 		die("fopen: %s", strerror(errno));
 
-	if (fgets(line, BUF_LEN, input) == NULL)
-		die("fgets");
+	reader = sheets_read_file(input, &sheets_csv);
+	if (reader == NULL)
+		die("sheets_read_file");
 
-	for (;;) {
-		struct pstore_column *column;
-		struct pstore_value value;
+	record = sheets_record_alloc(&sheets_csv);
+	if (record == NULL)
+		die("sheets_record_alloc");
 
-		if (!csv_field_value(line, field, &value))
-			break;
+	if (sheets_reader_read(reader, record) != 0)
+		die("sheets_reader_read");
 
-		s = strndup(value.s, value.len);
-		if (!s)
-			die("out of memory");
+	for (ndx = 0; ndx < sheets_record_size(record); ndx++) {
+		struct sheets_field	field;
+		struct pstore_column	*column;
 
-		column = pstore_column_new(s, field, VALUE_TYPE_STRING);
+		if (sheets_record_field(record, ndx, &field) != 0)
+			die("sheets_record_field");
+
+		column = pstore_column_new(field.value, ndx, VALUE_TYPE_STRING);
+		if (column == NULL)
+			die("pstore_column_new");
 
 		pstore_table_add(self, column);
-
-		free(s);
-		field++;
 	}
+
+	sheets_record_free(record);
+
+	sheets_reader_free(reader);
+
 	fclose(input);
 }
 

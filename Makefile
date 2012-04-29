@@ -130,6 +130,7 @@ LIB_OBJS += header.o
 LIB_OBJS += mmap-window.o
 LIB_OBJS += read-write.o
 LIB_OBJS += segment.o
+LIB_OBJS += sheets/sheets.o
 ifneq ($(SNAPPY_HOME),)
 LIB_OBJS += snappy/snappy_compat.o
 endif
