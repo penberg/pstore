@@ -43,11 +43,11 @@ last      = 100.0
 timestamp = 34200000
 length    = 0
 
-file = open(filename, 'w')
+outfile = open(filename, 'w')
 
 line = "Symbol,Timestamp,Last\n"
 length += len(line)
-file.write(line)
+outfile.write(line)
 
 while length < file_size:
     last      += random.uniform(-1.0, 1.0)
@@ -55,4 +55,4 @@ while length < file_size:
 
     line = "%s,%d,%.2f\n" % (symbol, timestamp, last)
     length += len(line)
-    file.write(line)
+    outfile.write(line)
