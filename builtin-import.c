@@ -209,8 +209,10 @@ static void usage(void)
 	printf("\n The options are:\n");
 	printf("   -a, --append                 append data to existing database\n");
 	printf("   -c, --compress SCHEME        set compression scheme (default: none)\n");
+	printf("   -d, --delimiter              set delimiter character (default: ',')\n");
 	printf("   -e, --max-extent-len LENGTH  set maximum extent length (default: 128M)\n");
 	printf("   -t, --table REF              set table (--append)\n");
+	printf("   -u, --quote                  set quote character (default: none)\n");
 	printf("   -w, --window-len LENGTH      set mmap window length (default: 128M)\n");
 	comp_arg_usage();
 	printf("\n");
@@ -220,8 +222,10 @@ static void usage(void)
 static const struct option options[] = {
 	{ "append",		no_argument,		NULL, 'a' },
 	{ "compress",		required_argument,	NULL, 'c' },
+	{ "delimiter",		required_argument,	NULL, 'd' },
 	{ "max-extent-len",	required_argument,	NULL, 'e' },
 	{ "table",		required_argument,	NULL, 't' },
+	{ "quote",		required_argument,	NULL, 'u' },
 	{ "window-len",		required_argument,	NULL, 'w' },
 	{ }
 };
@@ -235,22 +239,28 @@ static void parse_args(int argc, char *argv[])
 	details.comp		= PSTORE_COMP_NONE;
 	details.append		= false;
 
-	while ((ch = getopt_long(argc, argv, "ac:e:t:w:", options, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "ac:d:e:t:u:w:", options, NULL)) != -1) {
 		switch (ch) {
 		case 'a':
-			details.append		= true;
+			details.append			= true;
 			break;
 		case 'c':
-			details.comp		= parse_comp_arg(optarg);
+			details.comp			= parse_comp_arg(optarg);
+			break;
+		case 'd':
+			csv_iterator_settings.delimiter	= optarg[0];
 			break;
 		case 'e':
-			details.max_extent_len	= parse_storage_arg(optarg);
+			details.max_extent_len		= parse_storage_arg(optarg);
 			break;
 		case 't':
-			table_ref		= optarg;
+			table_ref			= optarg;
+			break;
+		case 'u':
+			csv_iterator_settings.quote	= optarg[0];
 			break;
 		case 'w':
-			max_window_len		= parse_storage_arg(optarg);
+			max_window_len			= parse_storage_arg(optarg);
 			break;
 		default:
 			usage();
