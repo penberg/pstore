@@ -20,6 +20,10 @@ Given /^a ([^\ ]*) long CSV file$/ do |size|
   run "./tools/gencsv/gencsv -s #{size} #{@csv_input_file.path}"
 end
 
+Given /^a ([^\ ]*) long TSV file$/ do |size|
+  run "./tools/gencsv/gencsv -t -s #{size} #{@csv_input_file.path}"
+end
+
 Given /^a ([^\ ]*) long database$/ do |size|
   run "./tools/gencsv/gencsv -s #{size} #{@csv_base_file.path}"
   run "./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}"
