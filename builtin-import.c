@@ -1,5 +1,5 @@
 #include "pstore/disk-format.h"
-#include "pstore/mmap-window.h"
+#include "pstore/mmap-source.h"
 #include "pstore/read-write.h"
 #include "pstore/builtins.h"
 #include "pstore/builtins-common.h"
@@ -9,9 +9,9 @@
 #include "pstore/string.h"
 #include "pstore/table.h"
 #include "pstore/core.h"
-#include "pstore/csv.h"
 #include "pstore/die.h"
 #include "pstore/row.h"
+#include "sheets/sheets.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -27,8 +27,8 @@ struct csv_iterator_state {
 	int			fd;
 	off_t			file_size;
 
-	struct mmap_window	*mmap;
-	char			*pos;
+	struct sheets_reader	*reader;
+	struct sheets_record	*record;
 };
 
 #define MAX_WINDOW_LEN		MiB(128)
@@ -40,57 +40,53 @@ static char			*table_ref;
 static uint64_t			max_window_len = MAX_WINDOW_LEN;
 struct pstore_import_details	details;
 
-static char *csv_iterator_next_line(struct csv_iterator_state *iter)
-{
-	char *start = NULL;
-
-restart:
-	start = iter->pos;
-
-	if (!mmap_window_in_window(iter->mmap, iter->pos))
-		goto slide_mmap;
-
-	while (*iter->pos != '\n') {
-		iter->pos++;
-
-		if (!mmap_window_in_window(iter->mmap, iter->pos))
-			goto slide_mmap;
-	}
-	iter->pos++;
-out:
-	return start;
-
-slide_mmap:
-	if (!mmap_window_in_region(iter->mmap, iter->pos))
-		return iter->pos = NULL;
-
-	iter->pos = mmap_window_slide(iter->mmap, start);
-	if (iter->pos == NULL)
-		goto out;
-
-	goto restart;
-}
-
 #define BUF_LEN	1024
+
+struct sheets_settings csv_iterator_settings = {
+	.delimiter	= ',',
+	.escape		= '\0',
+	.quote		= '\0',
+	.file_buffer_size	= SHEETS_DEFAULT_FILE_BUFFER_SIZE,
+	.record_buffer_size	= SHEETS_DEFAULT_RECORD_BUFFER_SIZE,
+	.record_max_fields	= SHEETS_DEFAULT_RECORD_MAX_FIELDS
+};
 
 static void csv_iterator_begin(void *private)
 {
 	struct csv_iterator_state *iter = private;
 
-	iter->mmap = mmap_window_map(max_window_len, iter->fd, 0, iter->file_size);
+	struct mmap_source *source;
 
-	iter->pos = mmap_window_start(iter->mmap);
+	source = mmap_source_alloc(iter->fd, iter->file_size, max_window_len);
+	if (source == NULL)
+		die("mmap_source_alloc");
+
+	iter->reader = sheets_reader_alloc(source, &mmap_source_read, &mmap_source_free,
+		&csv_iterator_settings);
+	if (iter->reader == NULL)
+		die("sheets_reader_alloc");
+
+	iter->record = sheets_record_alloc(&csv_iterator_settings);
+	if (iter->record == NULL)
+		die("sheets_record_alloc");
 
 	/* Skip header row. */
-	if (!csv_iterator_next_line(iter))
+	if (sheets_reader_read(iter->reader, iter->record) != 0)
 		die("premature end of file");
 }
 
 static bool csv_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
 {
-	char *start = self->private;
+	struct sheets_record *record = self->private;
+	struct sheets_field field;
 
-	return csv_field_value(start, column->column_id, value);
+	if (sheets_record_field(record, column->column_id, &field) != 0)
+		return false;
+
+	value->s = field.value;
+	value->len = field.length;
+
+	return true;
 }
 
 static struct pstore_row_operations row_ops = {
@@ -100,15 +96,13 @@ static struct pstore_row_operations row_ops = {
 static bool csv_iterator_next(void *private, struct pstore_row *row)
 {
 	struct csv_iterator_state *iter = private;
-	char *start;
 
-	start = csv_iterator_next_line(iter);
-	if (!start)
+	if (sheets_reader_read(iter->reader, iter->record) != 0)
 		return false;
 
 	*row		= (struct pstore_row) {
-		.private	= start,
-		.ops		= &row_ops,
+		.private	= iter->record,
+		.ops		= &row_ops
 	};
 
 	return true;
@@ -118,7 +112,8 @@ static void csv_iterator_end(void *private)
 {
 	struct csv_iterator_state *iter = private;
 
-	mmap_window_unmap(iter->mmap);	
+	sheets_reader_free(iter->reader);
+	sheets_record_free(iter->record);
 }
 
 static struct pstore_iterator csv_iterator = {
@@ -154,36 +149,44 @@ static struct pstore_table *pstore_header_select_table(struct pstore_header *sel
 
 static void pstore_table_import_columns(struct pstore_table *self, const char *filename)
 {
-	char line[BUF_LEN];
-	int field = 0;
 	FILE *input;
-	char *s;
+	struct sheets_reader *reader;
+	struct sheets_record *record;
+	unsigned long ndx;
 
 	input = fopen(filename, "r");
 	if (input == NULL)
 		die("fopen: %s", strerror(errno));
 
-	if (fgets(line, BUF_LEN, input) == NULL)
-		die("fgets");
+	reader = sheets_read_file(input, &sheets_csv);
+	if (reader == NULL)
+		die("sheets_read_file");
 
-	for (;;) {
-		struct pstore_column *column;
-		struct pstore_value value;
+	record = sheets_record_alloc(&sheets_csv);
+	if (record == NULL)
+		die("sheets_record_alloc");
 
-		if (!csv_field_value(line, field, &value))
-			break;
+	if (sheets_reader_read(reader, record) != 0)
+		die("sheets_reader_read");
 
-		s = strndup(value.s, value.len);
-		if (!s)
-			die("out of memory");
+	for (ndx = 0; ndx < sheets_record_size(record); ndx++) {
+		struct sheets_field	field;
+		struct pstore_column	*column;
 
-		column = pstore_column_new(s, field, VALUE_TYPE_STRING);
+		if (sheets_record_field(record, ndx, &field) != 0)
+			die("sheets_record_field");
+
+		column = pstore_column_new(field.value, ndx, VALUE_TYPE_STRING);
+		if (column == NULL)
+			die("pstore_column_new");
 
 		pstore_table_add(self, column);
-
-		free(s);
-		field++;
 	}
+
+	sheets_record_free(record);
+
+	sheets_reader_free(reader);
+
 	fclose(input);
 }
 
@@ -206,8 +209,10 @@ static void usage(void)
 	printf("\n The options are:\n");
 	printf("   -a, --append                 append data to existing database\n");
 	printf("   -c, --compress SCHEME        set compression scheme (default: none)\n");
+	printf("   -d, --delimiter              set delimiter character (default: ',')\n");
 	printf("   -e, --max-extent-len LENGTH  set maximum extent length (default: 128M)\n");
 	printf("   -t, --table REF              set table (--append)\n");
+	printf("   -u, --quote                  set quote character (default: none)\n");
 	printf("   -w, --window-len LENGTH      set mmap window length (default: 128M)\n");
 	comp_arg_usage();
 	printf("\n");
@@ -217,8 +222,10 @@ static void usage(void)
 static const struct option options[] = {
 	{ "append",		no_argument,		NULL, 'a' },
 	{ "compress",		required_argument,	NULL, 'c' },
+	{ "delimiter",		required_argument,	NULL, 'd' },
 	{ "max-extent-len",	required_argument,	NULL, 'e' },
 	{ "table",		required_argument,	NULL, 't' },
+	{ "quote",		required_argument,	NULL, 'u' },
 	{ "window-len",		required_argument,	NULL, 'w' },
 	{ }
 };
@@ -232,22 +239,28 @@ static void parse_args(int argc, char *argv[])
 	details.comp		= PSTORE_COMP_NONE;
 	details.append		= false;
 
-	while ((ch = getopt_long(argc, argv, "ac:e:t:w:", options, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "ac:d:e:t:u:w:", options, NULL)) != -1) {
 		switch (ch) {
 		case 'a':
-			details.append		= true;
+			details.append			= true;
 			break;
 		case 'c':
-			details.comp		= parse_comp_arg(optarg);
+			details.comp			= parse_comp_arg(optarg);
+			break;
+		case 'd':
+			csv_iterator_settings.delimiter	= optarg[0];
 			break;
 		case 'e':
-			details.max_extent_len	= parse_storage_arg(optarg);
+			details.max_extent_len		= parse_storage_arg(optarg);
 			break;
 		case 't':
-			table_ref		= optarg;
+			table_ref			= optarg;
+			break;
+		case 'u':
+			csv_iterator_settings.quote	= optarg[0];
 			break;
 		case 'w':
-			max_window_len		= parse_storage_arg(optarg);
+			max_window_len			= parse_storage_arg(optarg);
 			break;
 		default:
 			usage();

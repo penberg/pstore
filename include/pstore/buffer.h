@@ -41,7 +41,7 @@ static inline void buffer_clear(struct buffer *self)
 	self->offset = 0;
 }
 
-static inline void buffer_append(struct buffer *self, void *src, size_t len)
+static inline void buffer_append(struct buffer *self, const void *src, size_t len)
 {
 	memcpy(self->data + self->offset, src, len);
 	self->offset	+= len;

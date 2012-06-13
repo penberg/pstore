@@ -8,7 +8,7 @@ enum value_type {
 };
 
 struct pstore_value {
-	char			*s;
+	const char		*s;
 	size_t			len;
 };
 

@@ -8,6 +8,11 @@ Feature: CSV import
   When I run "pstore import"
   Then the database should contain the same data in column order
 
+  Scenario: Uncompressed import from tab separated values
+  Given a 32K long TSV file
+  When I run "pstore import --delimiter=\t"
+  Then the database should contain the same data in column order
+
   Scenario: FastLZ compressed import
   Given a 32K long CSV file
   When I run "pstore import --compress=fastlz"

@@ -122,14 +122,15 @@ STATIC_LIB_FILE := libpstore.a
 LIB_OBJS += buffer.o
 LIB_OBJS += column.o
 LIB_OBJS += compress.o
-LIB_OBJS += csv.o
 LIB_OBJS += die.o
 LIB_OBJS += extent.o
 LIB_OBJS += fastlz/fastlz.o
 LIB_OBJS += header.o
+LIB_OBJS += mmap-source.o
 LIB_OBJS += mmap-window.o
 LIB_OBJS += read-write.o
 LIB_OBJS += segment.o
+LIB_OBJS += sheets/sheets.o
 ifneq ($(SNAPPY_HOME),)
 LIB_OBJS += snappy/snappy_compat.o
 endif
@@ -143,7 +144,6 @@ TEST_RUNNER_C	:= test/test-runner.c
 TEST_RUNNER_OBJ := test/test-runner.o
 
 TEST_OBJS += harness.o
-TEST_OBJS += test/csv-test.o
 ifneq ($(uname_S),Darwin)
 TEST_OBJS += test/mmap-window-test.o
 endif
