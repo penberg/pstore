@@ -16,31 +16,31 @@ struct buffer;
 struct pstore_extent;
 
 struct pstore_extent_ops {
-	void *(*read)(struct pstore_extent *self, int fd, off_t offset);
-	void *(*next_value)(struct pstore_extent *self);
-	void (*flush)(struct pstore_extent *self, int fd);
-	void (*prepare_write)(struct pstore_extent *self, int fd);
-	void (*finish_write)(struct pstore_extent *self, int fd);
+    void *(*read)(struct pstore_extent *self, int fd, off_t offset);
+    void *(*next_value)(struct pstore_extent *self);
+    void (*flush)(struct pstore_extent *self, int fd);
+    void (*prepare_write)(struct pstore_extent *self, int fd);
+    void (*finish_write)(struct pstore_extent *self, int fd);
 };
 
 struct pstore_extent {
-	const struct pstore_extent_ops	*ops;
-	struct pstore_column		*parent;
-	off_t				next_extent;
-	uint64_t			lsize;
-	uint64_t			psize;
-	uint8_t				comp;
+    const struct pstore_extent_ops    *ops;
+    struct pstore_column        *parent;
+    off_t                next_extent;
+    uint64_t            lsize;
+    uint64_t            psize;
+    uint8_t                comp;
 
-	/* read */
-	struct mmap_window		*mmap;
-	char				*start;
+    /* read */
+    struct mmap_window        *mmap;
+    char                *start;
 
-	/* write */
-	struct buffer			*write_buffer;
+    /* write */
+    struct buffer            *write_buffer;
 
-	/* read and write */
-	uint64_t			start_off;
-	uint64_t			end_off;
+    /* read and write */
+    uint64_t            start_off;
+    uint64_t            end_off;
 };
 
 struct pstore_extent *pstore_extent_new(struct pstore_column *parent, uint8_t comp);
@@ -56,12 +56,12 @@ bool pstore_extent_has_room(struct pstore_extent *self, struct pstore_value *val
 
 static inline bool pstore_extent_is_last(struct pstore_extent *self)
 {
-	return self->next_extent == PSTORE_LAST_EXTENT;
+    return self->next_extent == PSTORE_LAST_EXTENT;
 }
 
 static inline void *pstore_extent_next_value(struct pstore_extent *self)
 {
-	return self->ops->next_value(self);
+    return self->ops->next_value(self);
 }
 
 #endif /* PSTORE_EXTENT_H */

@@ -6,14 +6,14 @@
 
 void do_die(const char *format, ...)
 {
-	va_list ap;
+    va_list ap;
 
-	va_start(ap, format);
-	vfprintf(stderr, format, ap);
-	va_end(ap);
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
 
-	fprintf(stderr, "\n");
+    fprintf(stderr, "\n");
 
-	exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 }
 
