@@ -3,7 +3,7 @@
 
 static inline bool has_zero_byte(unsigned int v)
 {
-	return ((v - 0x01010101UL) & ~v & 0x80808080UL);
+    return ((v - 0x01010101UL) & ~v & 0x80808080UL);
 }
 
 #endif /* PSTORE_BITS_H */

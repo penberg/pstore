@@ -7,17 +7,17 @@
 #include <stdint.h>
 
 struct pstore_table {
-	char			*name;
-	uint64_t		table_id;
+    char            *name;
+    uint64_t        table_id;
 
-	unsigned long		nr_columns;
-	struct pstore_column	**columns;
+    unsigned long        nr_columns;
+    struct pstore_column    **columns;
 };
 
 struct pstore_import_details {
-	uint64_t		max_extent_len;
-	uint8_t			comp;
-	bool			append;
+    uint64_t        max_extent_len;
+    uint8_t            comp;
+    bool            append;
 };
 
 struct pstore_table *pstore_table_new(const char *name, uint64_t table_id);

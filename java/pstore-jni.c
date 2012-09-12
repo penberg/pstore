@@ -11,10 +11,10 @@ void throw_exception(JNIEnv *env, const char *exception_class_name, const char *
 
 void throw_io_exception(JNIEnv * env, const char *message)
 {
-	throw_exception(env, "java/io/IOException", message);
+    throw_exception(env, "java/io/IOException", message);
 }
 
 void throw_out_of_memory_error(JNIEnv * env, const char *message)
 {
-	throw_exception(env, "java/lang/OutOfMemoryError", message);
+    throw_exception(env, "java/lang/OutOfMemoryError", message);
 }

@@ -472,7 +472,7 @@ int benchmark_speed(int compress_level, const char* input_file)
 
       mbs = ((double)i*(double)y)/((double)(GetTickCount() - mbs)/1000.)/1000000.;
       /*printf(" %.1f Mbyte/s  ", mbs);*/
-      if (fastest	< mbs)
+      if (fastest    < mbs)
         fastest = mbs;
     }
 
@@ -495,7 +495,7 @@ int benchmark_speed(int compress_level, const char* input_file)
 
       mbs = ((double)i*(double)y)/((double)(GetTickCount() - mbs)/1000.)/1000000.;
       /*printf(" %.1f Mbyte/s  ", mbs);*/
-      if (fastest	< mbs)
+      if (fastest    < mbs)
         fastest = mbs;
     }
 

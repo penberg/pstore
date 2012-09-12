@@ -5,18 +5,18 @@
 
 JNIEXPORT jlong JNICALL Java_pstore_Column_create(JNIEnv *env, jobject obj, jstring name, jlong id, jint type)
 {
-	const char *name0;
-	void *ptr;
+    const char *name0;
+    void *ptr;
 
-	name0 = (*env)->GetStringUTFChars(env, name, NULL);
-	if (!name0)
-		return PTR_TO_LONG(NULL);
+    name0 = (*env)->GetStringUTFChars(env, name, NULL);
+    if (!name0)
+        return PTR_TO_LONG(NULL);
 
-	ptr = pstore_column_new(name0, id, type);
+    ptr = pstore_column_new(name0, id, type);
 
-	(*env)->ReleaseStringUTFChars(env, name, name0);
+    (*env)->ReleaseStringUTFChars(env, name, name0);
 
-	return PTR_TO_LONG(ptr);
+    return PTR_TO_LONG(ptr);
 }
 
 JNIEXPORT void JNICALL Java_pstore_Column_destroy(JNIEnv *env, jclass clazz, jlong ptr)

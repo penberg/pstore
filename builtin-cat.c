@@ -20,100 +20,100 @@ static char *input_file;
 
 static void pstore_column_cat(struct pstore_column *self, int fd)
 {
-	struct pstore_segment *segment;
-	char *s;
+    struct pstore_segment *segment;
+    char *s;
 
-	printf("# Column: %s (ID = %" PRIu64 ", type = %d)\n", self->name, self->column_id, self->type);
+    printf("# Column: %s (ID = %" PRIu64 ", type = %d)\n", self->name, self->column_id, self->type);
 
-	segment = pstore_segment_read(self, fd);
+    segment = pstore_segment_read(self, fd);
 
-	while ((s = pstore_segment_next_value(segment)) != NULL) {
-		if (!quiet_mode)
-			 puts(s);
-	}
+    while ((s = pstore_segment_next_value(segment)) != NULL) {
+        if (!quiet_mode)
+             puts(s);
+    }
 
-	pstore_segment_delete(segment);
+    pstore_segment_delete(segment);
 }
 
 static void pstore_table_cat(struct pstore_table *self, int fd)
 {
-	unsigned long ndx;
+    unsigned long ndx;
 
-	printf("# Table: %s\n", self->name);
+    printf("# Table: %s\n", self->name);
 
-	for (ndx = 0; ndx < self->nr_columns; ndx++) {
-		struct pstore_column *column = self->columns[ndx];
+    for (ndx = 0; ndx < self->nr_columns; ndx++) {
+        struct pstore_column *column = self->columns[ndx];
 
-		pstore_column_cat(column, fd);
-	}
+        pstore_column_cat(column, fd);
+    }
 }
 
 static void pstore_header_cat(struct pstore_header *self, int fd)
 {
-	unsigned long ndx;
+    unsigned long ndx;
 
-	for (ndx = 0; ndx < self->nr_tables; ndx++) {
-		struct pstore_table *table = self->tables[ndx];
+    for (ndx = 0; ndx < self->nr_tables; ndx++) {
+        struct pstore_table *table = self->tables[ndx];
 
-		pstore_table_cat(table, fd);
-	}
+        pstore_table_cat(table, fd);
+    }
 }
 
 static bool arg_matches(char *arg, const char *prefix)
 {
-	return strncmp(arg, prefix, strlen(prefix)) == 0;
+    return strncmp(arg, prefix, strlen(prefix)) == 0;
 }
 
 static void parse_args(int argc, char *argv[])
 {
-	int ndx = 2;
+    int ndx = 2;
 
-	if (arg_matches(argv[ndx], "-q") || arg_matches(argv[ndx], "--quiet")) {
-		quiet_mode	= true;
-		ndx++;
-	}
+    if (arg_matches(argv[ndx], "-q") || arg_matches(argv[ndx], "--quiet")) {
+        quiet_mode    = true;
+        ndx++;
+    }
 
-	input_file		= argv[ndx];
+    input_file        = argv[ndx];
 }
 
 static void usage(void)
 {
-	printf("\n usage: pstore cat [OPTIONS] INPUT\n");
-	printf("\n The options are:\n");
-	printf("   -q, --quiet                  print only table and column headers\n");
-	printf("\n");
-	exit(EXIT_FAILURE);
+    printf("\n usage: pstore cat [OPTIONS] INPUT\n");
+    printf("\n The options are:\n");
+    printf("   -q, --quiet                  print only table and column headers\n");
+    printf("\n");
+    exit(EXIT_FAILURE);
 }
 
 int cmd_cat(int argc, char *argv[])
 {
-	struct pstore_header *header;
-	struct stat st;
-	int input;
+    struct pstore_header *header;
+    struct stat st;
+    int input;
 
-	if (argc < 3)
-		usage();
+    if (argc < 3)
+        usage();
 
-	parse_args(argc, argv);
+    parse_args(argc, argv);
 
-	input = open(input_file, O_RDONLY);
-	if (input < 0)
-		die("open");
+    input = open(input_file, O_RDONLY);
+    if (input < 0)
+        die("open");
 
-	if (fstat(input, &st) < 0)
-		die("fstat");
+    if (fstat(input, &st) < 0)
+        die("fstat");
 
-	if (posix_fadvise(input, 0, st.st_size, POSIX_FADV_SEQUENTIAL) != 0)
-		die("posix_fadvise");
+    if (posix_fadvise(input, 0, st.st_size, POSIX_FADV_SEQUENTIAL) != 0)
+        die("posix_fadvise");
 
-	header = pstore_header_read(input);
+    header = pstore_header_read(input);
 
-	pstore_header_cat(header, input);
+    pstore_header_cat(header, input);
 
-	pstore_header_delete(header);
+    pstore_header_delete(header);
 
-	if (close(input) < 0)
-		die("close");
+    if (close(input) < 0)
+        die("close");
 
-	return 0;
+    return 0;
 }

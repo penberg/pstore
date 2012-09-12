@@ -6,14 +6,14 @@
 #include <unistd.h>
 
 struct mmap_source {
-	int		fd;
-	off_t		file_pos;
-	off_t		file_size;
+    int        fd;
+    off_t        file_pos;
+    off_t        file_size;
 
-	size_t		max_window_len;
+    size_t        max_window_len;
 
-	void		*mmap;
-	size_t		mmap_len;
+    void        *mmap;
+    size_t        mmap_len;
 };
 
 struct mmap_source *mmap_source_alloc(int fd, off_t file_size, uint64_t max_window_len);

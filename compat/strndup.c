@@ -5,20 +5,20 @@
 
 char *strndup(const char *s, size_t n)
 {
-	size_t size;
-	char *p;
+    size_t size;
+    char *p;
 
-	if (!s)
-		return NULL;
+    if (!s)
+        return NULL;
 
-	size = strlen(s);
-	if (size > n)
-		size = n;
-	size++;
+    size = strlen(s);
+    if (size > n)
+        size = n;
+    size++;
 
-	p = malloc(size);
-	memcpy(p, s, size);
-	p[size - 1] = '\0';
+    p = malloc(size);
+    memcpy(p, s, size);
+    p[size - 1] = '\0';
 
-	return p;
+    return p;
 }

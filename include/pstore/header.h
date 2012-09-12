@@ -6,11 +6,11 @@
 #include <stdint.h>
 
 /* End of chain marker */
-#define PSTORE_END_OF_CHAIN		(~0ULL)
+#define PSTORE_END_OF_CHAIN        (~0ULL)
 
 struct pstore_header {
-	unsigned long		nr_tables;
-	struct pstore_table	**tables;
+    unsigned long        nr_tables;
+    struct pstore_table    **tables;
 };
 
 struct pstore_header *pstore_header_new(void);
