@@ -35,11 +35,13 @@ backing filesystem.
 
 The P-Store file header has the following format:
 
-    struct pstore_file_header {
-            uint64_t                magic;
-            uint64_t                n_index_offset;
-            uint64_t                t_index_offset;
-    };
+```c
+struct pstore_file_header {
+        uint64_t                magic;
+        uint64_t                n_index_offset;
+        uint64_t                t_index_offset;
+};
+```
 
 Magic: `0x53 0x50 0x4f 0x54 0x45 0x52 0x30 0x32`
 
@@ -47,54 +49,64 @@ Magic: `0x53 0x50 0x4f 0x54 0x45 0x52 0x30 0x32`
 
 The table index has the following format:
 
-    struct pstore_file_table_idx {
-            uint64_t                nr_tables;
-            uint64_t                t_index_next;
-    };
+```c
+struct pstore_file_table_idx {
+        uint64_t                nr_tables;
+        uint64_t                t_index_next;
+};
+```
 
 ### 1.3 Table
 
 A table has the following format:
 
-    #define TABLE_NAME_LEN          32
+```c
+#define TABLE_NAME_LEN          32
 
-    struct pstore_file_table {
-            char                            name[TABLE_NAME_LEN];
-            uint64_t                        table_id;
-            struct pstore_file_column_idx   c_index;
-    };
+struct pstore_file_table {
+        char                            name[TABLE_NAME_LEN];
+        uint64_t                        table_id;
+        struct pstore_file_column_idx   c_index;
+};
+```
 
 ### 1.4 Column Index
 
 A column index has the following format:
 
-    struct pstore_file_column_idx {
-            uint64_t                nr_columns;
-            uint64_t                c_index_next;
-    };
+```
+struct pstore_file_column_idx {
+        uint64_t                nr_columns;
+        uint64_t                c_index_next;
+};
+```
 
 ### 1.5 Column
 
 A column has the following format:
 
-    #define COLUMN_NAME_LEN         32
+```c
+#define COLUMN_NAME_LEN         32
 
-    struct pstore_file_column {
-            char                    name[COLUMN_NAME_LEN];
-            uint64_t                column_id;
-            uint64_t                type;
-            uint64_t                first_extent;
-            uint64_t                last_extent;
-    };
+struct pstore_file_column {
+        char                    name[COLUMN_NAME_LEN];
+        uint64_t                column_id;
+        uint64_t                type;
+        uint64_t                first_extent;
+        uint64_t                last_extent;
+};
+```
 
 ### 1.6 Extent
 
 An extent has the following format:
 
-    struct pstore_file_extent {
-            uint64_t                lsize;
-            uint64_t                psize;
-            uint8_t                 comp;
-            uint8_t                 padding[7];
-            uint64_t                next_extent;
-    };
+```c
+struct pstore_file_extent {
+        uint64_t                lsize;
+        uint64_t                psize;
+        uint8_t                 comp;
+        uint8_t                 padding[7];
+        uint64_t                next_extent;
+};
+```
