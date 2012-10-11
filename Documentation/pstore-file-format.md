@@ -24,12 +24,16 @@ the stored columns.
 
 ## 1. File Structure
 
-A P-Store file consists of a header, a table index, a column index (one for
-each table), and a set of data segments (one for each column) which hold the
-actual values of a column. A segment is a set of extents allocated for a single
-column and an extent is a contiguous area of storage allocated from the file
-system.  Whether an extent is physically contiguous on disk or not is up to the
-backing filesystem.
+A P-Store file consists of:
+
+ * a header,
+ * a table index,
+ * a column index (one for each table),
+ * and a set of data segments (one for each column).
+
+A segment is a set of extents allocated for column data. An extent is a
+contiguous area of storage allocated from the file system that may or may not
+be physically contiguous on disk depending on the backing filesystem.
 
 ### 1.1 Header
 
@@ -97,6 +101,9 @@ struct pstore_file_column {
 };
 ```
 
+The ``first_extent`` field is an offset to the first extent in the column
+segment.
+
 ### 1.6 Extent
 
 An extent has the following format:
@@ -110,3 +117,7 @@ struct pstore_file_extent {
         uint64_t                next_extent;
 };
 ```
+
+An extent represents a slice of column data segment. It contains ``lsize``
+bytes that uncompress to ``psize`` bytes. In an uncompressed extent, ``psize``
+equals ``lsize``. Compression algorithm is specified in ``comp``.
