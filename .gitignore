@@ -8,5 +8,4 @@ test-pstore
 test-runner.c
 test-suite.h
 libpstore.a
-libpstore-java*
 pstore.dSYM

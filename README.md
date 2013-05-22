@@ -59,13 +59,3 @@ With `pstore import --append` you can append more data into a pstore database:
 ```
 pstore import --append moredata.csv dataset.out
 ```
-
-## Java Native Interface
-
-Pstore provides an API for the Java programming language. To build the
-JNI API of the pstore you will need to set `JAVA_HOME` environment
-variable.
-
-For example on Mac OS X:
-
-    export JAVA_HOME=`/usr/libexec/java_home`

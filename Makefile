@@ -220,7 +220,6 @@ $(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(
 
 clean:
 	$(E) "  CLEAN"
-	$(Q) $(MAKE) -C java clean
 	$(Q) rm -f $(SHARED_LIB_FILE) $(STATIC_LIB_FILE) $(LIB_OBJS) $(LIB_DEPS)
 	$(Q) rm -f $(PROGRAM) $(OBJS) $(DEPS) $(TEST_PROGRAM) $(TEST_SUITE_H) $(TEST_OBJS) $(TEST_DEPS) $(TEST_RUNNER_C) $(TEST_RUNNER_OBJ)
 .PHONY: clean
@@ -230,9 +229,6 @@ regress: $(PROGRAM)
 	$(Q) bundle exec cucumber --tags ~@snappy --format progress
 ifneq ($(SNAPPY_HOME),)
 	$(Q) bundle exec cucumber --tags @snappy --format progress
-endif
-ifneq ($(JAVA_HOME),)
-	$(Q) $(MAKE) -C java check
 endif
 .PHONY: regress
 
