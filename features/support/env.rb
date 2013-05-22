@@ -1,15 +1,8 @@
-require 'tempfile'
+require 'aruba/cucumber'
 
-class PStoreWorld
-    def run(command)
-        stderr_file = Tempfile.new('pstore-world')
-        stderr_file.close
-        @stdout = `#{command} 2> #{stderr_file.path}`
-        @stderr = IO.read(stderr_file.path)
-        @exitstatus = $?.exitstatus
-    end
-end
+root_dir   = File.expand_path('../../..', __FILE__)
+gencsv_dir = File.join(root_dir, 'tools/gencsv')
 
-World do
-    PStoreWorld.new
+Before do
+  set_env 'PATH', "#{root_dir}:#{gencsv_dir}:#{ENV['PATH']}"
 end

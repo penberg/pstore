@@ -1,87 +1,66 @@
 require 'csv'
-require 'rspec/expectations'
-require 'tempfile'
 
-Before do
-  @csv_base_file       = Tempfile.open("csv-base")
-  @csv_input_file      = Tempfile.open("csv-input")
-  @csv_input_delimiter = ","
-  @csv_output_file     = Tempfile.open("csv-output")
-  @pstore_output_file  = Tempfile.open("pstore-output")
+Given /^a ([^\ ]*) data file named "([^"]*)"$/ do |size, filename|
+  generate_data_file(size, filename)
 end
 
-After do
-  @csv_base_file.delete
-  @csv_input_file.delete
-  @csv_output_file.delete
-  @pstore_output_file.delete
+Given /^a ([^\ ]*) database named "([^"]*)" based on a data file named "([^"]*)"$/ do |size, database, filename|
+  step "a #{size} data file named \"#{filename}\""
+  step "I run `pstore import #{filename} #{database}`"
 end
 
-Given /^a ([^\ ]*) long CSV file$/ do |size|
-  run "./tools/gencsv/gencsv -s #{size} #{@csv_input_file.path}"
+# Given /^a ([^\ ]*) database named "([^"]*)"$/ do |size, database|
+#   step "a #{size} database named \"#{database}\" based on a data file named \"#{database}.csv\""
+# end
+
+Then /^the files named "([^"]*)" and "([^"]*)" should be equal$/ do |a, b|
+  step "I run `diff #{a} #{b}`"
+  step "the output should contain exactly \"\""
 end
 
-Given /^a ([^\ ]*) long TSV file$/ do |size|
-  @csv_input_delimiter = "\t"
-  run "./tools/gencsv/gencsv -t -s #{size} #{@csv_input_file.path}"
+Then /^the database named "([^"]*)" should consist of the data file named "([^"]*)"$/ do |database, filename|
+  assert_database_content(database, [ filename ])
 end
 
-Given /^a ([^\ ]*) long database$/ do |size|
-  run "./tools/gencsv/gencsv -s #{size} #{@csv_base_file.path}"
-  run "./pstore import #{@csv_base_file.path} #{@pstore_output_file.path}"
+Then /^the database named "([^"]*)" should consist of the following data files:$/ do |database, filenames|
+  assert_database_content(database, filenames.raw.map { |filename| filename.first })
 end
 
-When /^I run "pstore export([^\"]*)"$/ do |options|
-  run "./pstore export #{options} #{@pstore_output_file.path} #{@csv_output_file.path}"
+def assert_database_content(database, filenames)
+  run_simple("pstore cat #{database}")
+
+  actual   = all_output.lines.select { |line| not line.start_with? '#' }.join
+  expected = read_data_files(filenames.map { |filename| File.join(current_dir, filename) })
+
+  assert_exact_output(expected, actual)
 end
 
-When /^I run "pstore extend([^\"]*)"$/ do |options|
-  run "./pstore extend #{options} #{@pstore_output_file.path}"
+def generate_data_file(size, filename)
+  if filename.end_with? '.tsv'
+    run_simple("gencsv -s #{size} -t #{filename}")
+  else
+    run_simple("gencsv -s #{size} #{filename}")
+  end
 end
 
-When /^I run "pstore import([^\"]*)"$/ do |options|
-  run "./pstore import #{options} #{@csv_input_file.path} #{@pstore_output_file.path}"
-end
+def read_data_files(filenames)
+  columns = Hash.new("")
 
-When /^I run "pstore repack([^\"]*)"$/ do |options|
-  run "./pstore repack #{options} #{@pstore_output_file.path}"
-end
-
-When /^I run "pstore stat"$/ do
-  run "./pstore stat #{@pstore_output_file.path}"
-end
-
-Then /^the database should contain the same data in column order$/ do
-  run "./pstore cat #{@pstore_output_file.path} | grep -v \"^#\""
-  @stdout.should == parse_csv(@csv_base_file.path, @csv_input_file.path)
-end
-
-Then /^the output should contain:$/ do |expected|
-  @stdout.should include(expected)
-end
-
-Then /^the CSV files should be identical$/ do
-  run "diff #{@csv_input_file.path} #{@csv_output_file.path}"
-  @stdout.length.should == 0
-end
-
-Then /^the error should be "([^"]*)"$/ do |text|
-  @stderr.chomp.should == text
-end
-
-def parse_csv(*files)
-  values = Hash.new
-  values.default = ""
-  files.each do |file|
-    CSV.foreach(file, :headers => true, :col_sep => @csv_input_delimiter) do |row|
-      (0..row.length-1).each do |column|
-        values[column] = values[column] + row[column] + "\n"
+  filenames.each do |filename|
+    CSV.foreach(filename, :headers => true, :col_sep => col_sep(filename)) do |row|
+      for i in 0..row.length - 1
+        columns[i] += "#{row[i]}\n"
       end
     end
   end
-  result = ""
-  values.each_key do |key|
-    result += values[key]
+
+  columns.values.join
+end
+
+def col_sep(filename)
+  if filename.end_with? '.tsv'
+    "\t"
+  else
+    ","
   end
-  result
 end
