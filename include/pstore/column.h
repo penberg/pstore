@@ -38,8 +38,8 @@ struct pstore_iterator {
 struct pstore_column *pstore_column_new(const char *name, uint64_t column_id, uint8_t type);
 void pstore_column_delete(struct pstore_column *self);
 struct pstore_column *pstore_column_read(int fd);
-void pstore_column_write(struct pstore_column *self, int fd);
-void pstore_column_flush_write(struct pstore_column *self, int fd);
-void pstore_column_preallocate(struct pstore_column *self, int fd, uint64_t extent_len);
+int pstore_column_write(struct pstore_column *self, int fd);
+int pstore_column_flush_write(struct pstore_column *self, int fd);
+int pstore_column_preallocate(struct pstore_column *self, int fd, uint64_t extent_len);
 
 #endif /* PSTORE_COLUMN_H */

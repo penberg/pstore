@@ -15,8 +15,8 @@ struct pstore_header {
 
 struct pstore_header *pstore_header_new(void);
 void pstore_header_delete(struct pstore_header *self);
-void pstore_header_insert_table(struct pstore_header *self, struct pstore_table *table);
+int pstore_header_insert_table(struct pstore_header *self, struct pstore_table *table);
 struct pstore_header *pstore_header_read(int fd);
-void pstore_header_write(struct pstore_header *self, int fd);
+int pstore_header_write(struct pstore_header *self, int fd);
 
 #endif /* PSTORE_HEADER_H */

@@ -2,7 +2,6 @@
 
 #include "pstore/compat.h"
 #include "pstore/core.h"
-#include "pstore/die.h"
 
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -17,7 +16,7 @@ static struct mmap_window *mmap_window_new(unsigned long max_window_len)
 	struct mmap_window *self = calloc(sizeof(*self), 1);
 
 	if (!self)
-		die("out of memory");
+		return NULL;
 
 	self->max_window_len	= max_window_len;
 
@@ -34,7 +33,7 @@ static void *mmap_window_end(struct mmap_window *self)
 	return self->mmap + self->mmap_len;
 }
 
-static void mmap_window_mmap(struct mmap_window *self, off_t offset, size_t length)
+static int mmap_window_mmap(struct mmap_window *self, off_t offset, size_t length)
 {
 	if (length > self->max_window_len)
 		length = self->max_window_len;
@@ -44,14 +43,16 @@ static void mmap_window_mmap(struct mmap_window *self, off_t offset, size_t leng
 
 	self->mmap = mmap(NULL, self->mmap_len, PROT_READ, MAP_PRIVATE, self->fd, offset & PAGE_MASK);
 	if (self->mmap == MAP_FAILED)
-		die("mmap");
+		return -1;
 
 	self->pos	= offset - self->start_off;
 
 	if (posix_madvise(self->mmap, self->mmap_len, POSIX_MADV_SEQUENTIAL) < 0)
-		die("posix_madvise");
+		return -1;
 
 	self->mmap_end	= mmap_window_end(self);
+
+	return 0;
 }
 
 /*
@@ -74,15 +75,15 @@ struct mmap_window *mmap_window_map(uint64_t max_window_len, int fd, off_t offse
 	self->start_off	= offset;
 	self->length	= length;
 
-	mmap_window_mmap(self, offset, length);
+	if (mmap_window_mmap(self, offset, length) < 0)
+		return NULL;
 
 	return self;
 }
 
 void mmap_window_unmap(struct mmap_window *self)
 {
-	if (munmap(self->mmap, self->mmap_len) < 0)
-		die("munmap");
+	munmap(self->mmap, self->mmap_len);
 
 	mmap_window_delete(self);
 }
@@ -101,10 +102,10 @@ void *mmap_window_slide(struct mmap_window *self, void *p)
 
 	remaining = self->length - pos;
 	if (remaining <= 0)
-		die("no remaining data");
+		return NULL;
 
 	if (munmap(self->mmap, self->mmap_len) < 0)
-		die("munmap");
+		return NULL;
 
 	mmap_window_mmap(self, self->start_off + pos, remaining);
 

@@ -80,12 +80,6 @@ ssize_t write_in_full(int fd, const void *buf, size_t count)
 	return total;
 }
 
-void read_or_die(int fd, void *buf, size_t count)
-{
-	if (read_in_full(fd, buf, count) != count)
-		die("read_or_die: %s", strerror(errno));
-}
-
 void write_or_die(int fd, const void *buf, size_t count)
 {
 	if (write_in_full(fd, buf, count) != count)

@@ -1,7 +1,6 @@
 #include "pstore/buffer.h"
 
 #include "pstore/read-write.h"
-#include "pstore/die.h"
 
 #include <stdlib.h>
 
@@ -10,7 +9,7 @@ static struct buffer *buffer_do_new(void *data, size_t capacity)
 	struct buffer *self = calloc(1, sizeof(*self));
 
 	if (!self)
-		die("out of memory");
+		return NULL;
 
 	self->capacity	= capacity;
 
@@ -27,24 +26,26 @@ struct buffer *buffer_new(size_t capacity)
 	data		= malloc(capacity);
 
 	if (!data)
-		die("out of memory");
+		return NULL;
 
 	self		= buffer_do_new(data, capacity);
 
 	return self;
 }
 
-void buffer_resize(struct buffer *self, size_t capacity)
+int buffer_resize(struct buffer *self, size_t capacity)
 {
 	free(self->data);
 
 	self->data	= malloc(capacity);
 	if (!self->data)
-		die("out of memory");
+		return -1;
 
 	self->capacity	= capacity;
 
 	self->offset	= 0;
+
+	return 0;
 }
 
 void buffer_delete(struct buffer *self)
@@ -53,7 +54,15 @@ void buffer_delete(struct buffer *self)
 	free(self);
 }
 
-void buffer_write(struct buffer *self, int fd)
+ssize_t buffer_write(struct buffer *self, int fd)
 {
-	write_or_die(fd, buffer_start(self), buffer_size(self));
+	ssize_t count, nr;
+
+	count = buffer_size(self);
+
+	nr = write_in_full(fd, buffer_start(self), count);
+	if (nr != count)
+		return -1;
+
+	return nr;
 }

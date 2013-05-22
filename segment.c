@@ -3,7 +3,6 @@
 #include "pstore/disk-format.h"
 #include "pstore/column.h"
 #include "pstore/extent.h"
-#include "pstore/die.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -13,7 +12,7 @@ static struct pstore_segment *pstore_segment_new(void)
 	struct pstore_segment *self = calloc(1, sizeof *self);
 
 	if (!self)
-		die("out of memory");
+		return NULL;
 
 	return self;
 }

@@ -8,7 +8,6 @@
 #include "pstore/header.h"
 #include "pstore/value.h"
 #include "pstore/core.h"
-#include "pstore/die.h"
 #include "pstore/row.h"
 
 #include <stdint.h>
@@ -21,12 +20,15 @@ struct pstore_table *pstore_table_new(const char *name, uint64_t table_id)
 	struct pstore_table *self = calloc(sizeof *self, 1);
 
 	if (!self)
-		die("out of memory");
+		return NULL;
 
 	self->name	= strdup(name);
 
-	if (!self->name)
-		die("out of memory");
+	if (!self->name) {
+		free(self);
+
+		return NULL;
+	}
 
 	self->table_id	= table_id;
 
@@ -48,7 +50,7 @@ void pstore_table_delete(struct pstore_table *self)
 	free(self);
 }
 
-void pstore_table_add(struct pstore_table *self, struct pstore_column *column)
+int pstore_table_add(struct pstore_table *self, struct pstore_column *column)
 {
 	void *p;
 
@@ -56,11 +58,13 @@ void pstore_table_add(struct pstore_table *self, struct pstore_column *column)
 
 	p = realloc(self->columns, sizeof(struct pstore_column *) * self->nr_columns);
 	if (!p)
-		die("out of memory");
+		return -1;
 
 	self->columns = p;
 
 	self->columns[self->nr_columns - 1] = column;
+
+	return 0;
 }
 
 struct pstore_table *pstore_table_read(int fd)
@@ -69,39 +73,47 @@ struct pstore_table *pstore_table_read(int fd)
 	struct pstore_table *self;
 	uint64_t nr;
 
-	read_or_die(fd, &f_table, sizeof(f_table));
+	if (read_in_full(fd, &f_table, sizeof(f_table)) != sizeof(f_table))
+		return NULL;
 
 	self = pstore_table_new(f_table.name, f_table.table_id);
 
 	for (nr = 0; nr < f_table.c_index.nr_columns; nr++) {
 		struct pstore_column *column = pstore_column_read(fd);
 
-		pstore_table_add(self, column);
+		if (pstore_table_add(self, column) < 0)
+			return NULL;
 	}
 
 	return self;
 }
 
-void pstore_table_write(struct pstore_table *self, int fd)
+int pstore_table_write(struct pstore_table *self, int fd)
 {
 	struct pstore_file_table f_table;
 	uint64_t start_off, end_off;
 	unsigned long ndx;
 	uint64_t size;
 
-	start_off = seek_or_die(fd, sizeof(f_table), SEEK_CUR);
+	start_off = lseek(fd, sizeof(f_table), SEEK_CUR);
+	if (start_off < 0)
+		return -1;
 
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_column_write(column, fd);
+		if (pstore_column_write(column, fd) < 0)
+			return -1;
 	}
 
-	end_off = seek_or_die(fd, 0, SEEK_CUR);
+	end_off = lseek(fd, 0, SEEK_CUR);
+	if (end_off < 0)
+		return -1;
 
 	size = end_off - start_off;
 
-	seek_or_die(fd, -(sizeof(f_table) + size), SEEK_CUR);
+	if (lseek(fd, -(sizeof(f_table) + size), SEEK_CUR) < 0)
+		return -1;
 
 	f_table = (struct pstore_file_table) {
 		.table_id	= self->table_id,
@@ -113,15 +125,19 @@ void pstore_table_write(struct pstore_table *self, int fd)
 	};
 	strncpy(f_table.name, self->name, PSTORE_TABLE_NAME_LEN);
 
-	write_or_die(fd, &f_table, sizeof(f_table));
+	if (write_in_full(fd, &f_table, sizeof(f_table)) != sizeof(f_table))
+		return -1;
 
-	seek_or_die(fd, size, SEEK_CUR);
+	if (lseek(fd, size, SEEK_CUR) < 0)
+		return -1;
+
+	return 0;
 }
 
-void pstore_table_import_values(struct pstore_table *self,
-				 int fd, struct pstore_iterator *iter,
-				 void *private,
-				 struct pstore_import_details *details)
+int pstore_table_import_values(struct pstore_table *self,
+			int fd, struct pstore_iterator *iter,
+			void *private,
+			struct pstore_import_details *details)
 {
 	struct pstore_row row;
 	unsigned long ndx;
@@ -136,13 +152,16 @@ void pstore_table_import_values(struct pstore_table *self,
 
 			if (extent->comp == PSTORE_COMP_NONE) {
 				column->extent = extent;
-				pstore_extent_prepare_append(column->extent);
-			}
-			else
+
+				if (pstore_extent_prepare_append(column->extent) < 0)
+					return -1;
+			} else {
 				column->prev_extent = extent;
+			}
 		}
 
-		seek_or_die(fd, 0, SEEK_END);
+		if (lseek(fd, 0, SEEK_END) < 0)
+			return -1;
 	}
 
 	/*
@@ -165,10 +184,11 @@ void pstore_table_import_values(struct pstore_table *self,
 			struct pstore_value value;
 
 			if (!pstore_row_value(&row, column, &value))
-				die("premature end of file");
+				return -1;
 
 			if (!pstore_extent_has_room(column->extent, &value)) {
-				pstore_column_flush_write(column, fd);
+				if (pstore_column_flush_write(column, fd) < 0)
+					return -1;
 
 				column->prev_extent = column->extent;
 
@@ -187,15 +207,19 @@ void pstore_table_import_values(struct pstore_table *self,
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
 
-		pstore_column_flush_write(column, fd);
+		if (pstore_column_flush_write(column, fd) < 0)
+			return -1;
 
-		pstore_extent_write_metadata(column->extent, PSTORE_LAST_EXTENT, fd);
+		if (pstore_extent_write_metadata(column->extent, PSTORE_LAST_EXTENT, fd) < 0)
+			return -1;
 	}
+
+	return 0;
 }
 
 #define BUFFER_SIZE		MiB(128)
 
-void pstore_table_export_values(struct pstore_table *self, struct pstore_iterator *iter, void *private, int output)
+int pstore_table_export_values(struct pstore_table *self, struct pstore_iterator *iter, void *private, int output)
 {
 	struct pstore_row row;
 	struct buffer *buffer;
@@ -211,7 +235,7 @@ void pstore_table_export_values(struct pstore_table *self, struct pstore_iterato
 			struct pstore_value value;
 
 			if (!pstore_row_value(&row, column, &value))
-				die("premature end of file");
+				return -1;
 
 			if (!buffer_has_room(buffer, value.len + 1)) {
 				buffer_write(buffer, output);
@@ -231,4 +255,6 @@ void pstore_table_export_values(struct pstore_table *self, struct pstore_iterato
 	buffer_write(buffer, output);
 
 	buffer_delete(buffer);
+
+	return 0;
 }

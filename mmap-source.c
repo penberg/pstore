@@ -1,6 +1,6 @@
-#include "pstore/core.h"
-#include "pstore/die.h"
 #include "pstore/mmap-source.h"
+
+#include "pstore/core.h"
 
 #include <sys/mman.h>
 
@@ -9,7 +9,7 @@ struct mmap_source *mmap_source_alloc(int fd, off_t file_size, uint64_t max_wind
 	struct mmap_source *self = calloc(1, sizeof(*self));
 
 	if (!self)
-		die("out of memory");
+		return NULL;
 
 	if (max_window_len < PAGE_SIZE)
 		max_window_len = PAGE_SIZE;
@@ -33,7 +33,7 @@ int mmap_source_read(void *source, const char **buffer, size_t *buffer_size)
 
 	if (self->mmap != NULL) {
 		if (munmap(self->mmap, self->mmap_len) != 0)
-			die("munmap");
+			return -1;
 
 		self->mmap	= NULL;
 		self->mmap_len	= 0;
@@ -49,7 +49,7 @@ int mmap_source_read(void *source, const char **buffer, size_t *buffer_size)
 		self->mmap = mmap(NULL, self->mmap_len, PROT_READ, MAP_PRIVATE,
 			self->fd, self->file_pos);
 		if (self->mmap == MAP_FAILED)
-			die("mmap");
+			return -1;
 
 		self->file_pos += self->mmap_len;
 	}
@@ -64,10 +64,8 @@ void mmap_source_free(void *source)
 {
 	struct mmap_source *self = source;
 
-	if (self->mmap != NULL) {
-		if (munmap(self->mmap, self->mmap_len) != 0)
-			die("munmap");
-	}
+	if (self->mmap)
+		munmap(self->mmap, self->mmap_len);
 
 	free(self);
 }

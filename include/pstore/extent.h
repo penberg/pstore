@@ -18,9 +18,9 @@ struct pstore_extent;
 struct pstore_extent_ops {
 	void *(*read)(struct pstore_extent *self, int fd, off_t offset);
 	void *(*next_value)(struct pstore_extent *self);
-	void (*flush)(struct pstore_extent *self, int fd);
-	void (*prepare_write)(struct pstore_extent *self, int fd);
-	void (*finish_write)(struct pstore_extent *self, int fd);
+	int (*flush)(struct pstore_extent *self, int fd);
+	int (*prepare_write)(struct pstore_extent *self, int fd);
+	int (*finish_write)(struct pstore_extent *self, int fd);
 };
 
 struct pstore_extent {
@@ -46,12 +46,12 @@ struct pstore_extent {
 struct pstore_extent *pstore_extent_new(struct pstore_column *parent, uint8_t comp);
 void pstore_extent_delete(struct pstore_extent *self);
 struct pstore_extent *pstore_extent_read(struct pstore_column *column, off_t offset, int fd);
-void pstore_extent_prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len);
-void pstore_extent_prepare_append(struct pstore_extent *self);
-void pstore_extent_flush_write(struct pstore_extent *self, int fd);
-void pstore_extent_preallocate(struct pstore_extent *self, int fd, uint64_t extent_len);
-void pstore_extent_write_metadata(struct pstore_extent *self, off_t next_extent, int fd);
-void pstore_extent_write_value(struct pstore_extent *self, struct pstore_value *value, int fd);
+int pstore_extent_prepare_write(struct pstore_extent *self, int fd, uint64_t max_extent_len);
+int pstore_extent_prepare_append(struct pstore_extent *self);
+int pstore_extent_flush_write(struct pstore_extent *self, int fd);
+int pstore_extent_preallocate(struct pstore_extent *self, int fd, uint64_t extent_len);
+int pstore_extent_write_metadata(struct pstore_extent *self, off_t next_extent, int fd);
+int pstore_extent_write_value(struct pstore_extent *self, struct pstore_value *value, int fd);
 bool pstore_extent_has_room(struct pstore_extent *self, struct pstore_value *value);
 
 static inline bool pstore_extent_is_last(struct pstore_extent *self)

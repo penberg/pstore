@@ -58,8 +58,11 @@ static int extend_column(struct pstore_column *column, int input)
 
 	seek_or_die(input, offset, SEEK_SET);
 
-	pstore_column_preallocate(column, input, extent_len);
-	pstore_extent_write_metadata(column->extent, PSTORE_LAST_EXTENT, input);
+	if (pstore_column_preallocate(column, input, extent_len) < 0)
+		return -1;
+
+	if (pstore_extent_write_metadata(column->extent, PSTORE_LAST_EXTENT, input) < 0)
+		return -1;
 
 	return 0;
 }
@@ -105,7 +108,8 @@ static int extend(int input)
 	 * Write out the header again because offsets to last extents changed.
 	 */
 	seek_or_die(input, 0, SEEK_SET);
-	pstore_header_write(header, input);
+	if (pstore_header_write(header, input) < 0)
+		die("pstore_header_write");
 
 	pstore_header_delete(header);
 

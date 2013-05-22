@@ -6,7 +6,6 @@
 #include "pstore/extent.h"
 #include "pstore/table.h"
 #include "pstore/core.h"
-#include "pstore/die.h"
 
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -21,12 +20,15 @@ struct pstore_column *pstore_column_new(const char *name, uint64_t column_id, ui
 	struct pstore_column *self = calloc(sizeof *self, 1);
 
 	if (!self)
-		die("out of memory");
+		return NULL;
 
 	self->name	= strdup(name);
 
-	if (!self->name)
-		die("out of memory");
+	if (!self->name) {
+		free(self);
+
+		return NULL;
+	}
 
 	self->buffer	= buffer_new(0);
 
@@ -52,7 +54,8 @@ struct pstore_column *pstore_column_read(int fd)
 	struct pstore_file_column f_column;
 	struct pstore_column *self;
 
-	read_or_die(fd, &f_column, sizeof(f_column));
+	if (read_in_full(fd, &f_column, sizeof(f_column)) != sizeof(f_column))
+		return NULL;
 
 	self = pstore_column_new(f_column.name, f_column.column_id, f_column.type);
 
@@ -62,7 +65,7 @@ struct pstore_column *pstore_column_read(int fd)
 	return self;
 }
 
-void pstore_column_write(struct pstore_column *self, int fd)
+int pstore_column_write(struct pstore_column *self, int fd)
 {
 	struct pstore_file_column f_column;
 
@@ -74,31 +77,45 @@ void pstore_column_write(struct pstore_column *self, int fd)
 	};
 	strncpy(f_column.name, self->name, PSTORE_COLUMN_NAME_LEN);
 
-	write_or_die(fd, &f_column, sizeof(f_column));
+	if (write_in_full(fd, &f_column, sizeof(f_column)) != sizeof(f_column))
+		return -1;
+
+	return 0;
 }
 
-void pstore_column_flush_write(struct pstore_column *self, int fd)
+int pstore_column_flush_write(struct pstore_column *self, int fd)
 {
 	if (self->prev_extent != NULL) {
 		off_t offset;
 
-		offset = seek_or_die(fd, 0, SEEK_CUR);
+		offset = lseek(fd, 0, SEEK_CUR);
+		if (offset < 0)
+			return -1;
 
-		pstore_extent_write_metadata(self->prev_extent, offset, fd);
+		if (pstore_extent_write_metadata(self->prev_extent, offset, fd) < 0)
+			return -1;
+
 		pstore_extent_delete(self->prev_extent);
 	}
 	pstore_extent_flush_write(self->extent, fd);
+
+	return 0;
 }
 
-void pstore_column_preallocate(struct pstore_column *self, int fd, uint64_t extent_len)
+int pstore_column_preallocate(struct pstore_column *self, int fd, uint64_t extent_len)
 {
 	if (self->prev_extent != NULL) {
 		off_t offset;
 
-		offset = seek_or_die(fd, 0, SEEK_CUR);
+		offset = lseek(fd, 0, SEEK_CUR);
+		if (offset < 0)
+			return -1;
 
-		pstore_extent_write_metadata(self->prev_extent, offset, fd);
+		if (pstore_extent_write_metadata(self->prev_extent, offset, fd) < 0)
+			return -1;
+
 		pstore_extent_delete(self->prev_extent);
 	}
-	pstore_extent_preallocate(self->extent, fd, extent_len);
+
+	return pstore_extent_preallocate(self->extent, fd, extent_len);
 }

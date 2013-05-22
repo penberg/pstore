@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void read_or_die(int fd, void *buf, size_t count);
 void write_or_die(int fd, const void *buf, size_t count);
 off_t seek_or_die(int fd, off_t offset, int whence);
 

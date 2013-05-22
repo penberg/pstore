@@ -1,6 +1,7 @@
 #ifndef PSTORE_BUFFER_H
 #define PSTORE_BUFFER_H
 
+#include <sys/types.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
@@ -12,9 +13,9 @@ struct buffer {
 };
 
 struct buffer *buffer_new(size_t capacity);
-void buffer_resize(struct buffer *self, size_t capacity);
+int buffer_resize(struct buffer *self, size_t capacity);
 void buffer_delete(struct buffer *self);
-void buffer_write(struct buffer *self, int fd);
+ssize_t buffer_write(struct buffer *self, int fd);
 
 static inline void *buffer_start(struct buffer *self)
 {

@@ -44,7 +44,8 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 		};
 
 		if (!pstore_extent_has_room(new_column->extent, &value)) {
-			pstore_column_flush_write(new_column, output);
+			if (pstore_column_flush_write(new_column, output) < 0)
+				return -1;
 
 			new_column->prev_extent = new_column->extent;
 
@@ -54,8 +55,11 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 		pstore_extent_write_value(new_column->extent, &value, output);
 	}
 
-	pstore_column_flush_write(new_column, output);
-	pstore_extent_write_metadata(new_column->extent, PSTORE_LAST_EXTENT, output);
+	if (pstore_column_flush_write(new_column, output) < 0)
+		return -1;
+
+	if (pstore_extent_write_metadata(new_column->extent, PSTORE_LAST_EXTENT, output) < 0)
+		return -1;
 
 	pstore_segment_delete(segment);
 
@@ -81,10 +85,13 @@ static int repack_table(struct pstore_header *old_header, struct pstore_header *
 {
 	struct pstore_table *new_table;
 	unsigned long ndx;
+	int err;
 
 	new_table	= pstore_table_new(old_table->name, old_table->table_id);
 
-	pstore_header_insert_table(new_header, new_table);
+	err = pstore_header_insert_table(new_header, new_table);
+	if (err < 0)
+		return err;
 
 	for (ndx = 0; ndx < old_table->nr_columns; ndx++) {
 		struct pstore_column *old_column = old_table->columns[ndx];
@@ -92,7 +99,9 @@ static int repack_table(struct pstore_header *old_header, struct pstore_header *
 
 		new_column = pstore_column_new(old_column->name, old_column->column_id, old_column->type);
 
-		pstore_table_add(new_table, new_column);
+		err = pstore_table_add(new_table, new_column);
+		if (err < 0)
+			return err;
 	}
 
 	return 0;
@@ -115,7 +124,8 @@ static int repack(int input, int output)
 			return -1;
 	}
 
-	pstore_header_write(new_header, output);
+	if (pstore_header_write(new_header, output) < 0)
+		return -1;
 
 	for (ndx = 0; ndx < new_header->nr_tables; ndx++) {
 		struct pstore_table *new_table = new_header->tables[ndx];
@@ -130,7 +140,9 @@ static int repack(int input, int output)
 	 * until know.
 	 */
 	seek_or_die(output, 0, SEEK_SET);
-	pstore_header_write(new_header, output);
+
+	if (pstore_header_write(new_header, output) < 0)
+		return -1;
 
 	pstore_header_delete(new_header);
 	pstore_header_delete(old_header);

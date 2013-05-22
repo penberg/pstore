@@ -7,7 +7,6 @@
 #include "pstore/extent.h"
 #include "pstore/bits.h"
 #include "pstore/core.h"
-#include "pstore/die.h"
 
 #include "fastlz/fastlz.h"
 #ifdef CONFIG_HAVE_SNAPPY
@@ -15,6 +14,7 @@
 #endif
 
 #include <stdlib.h>
+#include <errno.h>
 #include <stdio.h>
 
 static void *extent_next_value(struct pstore_extent *self)
@@ -48,7 +48,7 @@ static void *extent_next_value(struct pstore_extent *self)
  * 	FastLZ
  */
 
-static void extent_fastlz_compress(struct pstore_extent *self, int fd)
+static int extent_fastlz_compress(struct pstore_extent *self, int fd)
 {
 	int in_len;
 	void *out;
@@ -60,7 +60,7 @@ static void extent_fastlz_compress(struct pstore_extent *self, int fd)
 
 	out		= malloc(in_len * 2);	/* FIXME: buffer is too large */
 	if (!out)
-		die("out of memory");
+		return -ENOMEM;
 
 	size = fastlz_compress(in, in_len, out);
 
@@ -69,9 +69,15 @@ static void extent_fastlz_compress(struct pstore_extent *self, int fd)
 
 	self->lsize	= in_len;
 
-	write_or_die(fd, out, size);
+	if (write_in_full(fd, out, size) != size) {
+		free(out);
+
+		return -1;
+	}
 
 	free(out);
+
+	return 0;
 }
 
 static void *extent_fastlz_decompress(struct pstore_extent *self, int fd, off_t offset)
@@ -81,7 +87,8 @@ static void *extent_fastlz_decompress(struct pstore_extent *self, int fd, off_t 
 	void *in;
 	int size;
 
-	buffer_resize(self->parent->buffer, self->lsize);
+	if (buffer_resize(self->parent->buffer, self->lsize) < 0)
+		return NULL;
 
 	mmap		= mmap_window_map(self->psize, fd, offset + sizeof(struct pstore_file_extent), self->psize);
 	in		= mmap_window_start(mmap);
@@ -90,7 +97,7 @@ static void *extent_fastlz_decompress(struct pstore_extent *self, int fd, off_t 
 
 	size = fastlz_decompress(in, self->psize, out, self->lsize); 
 	if (size != self->lsize)
-		die("decompression failed");
+		return NULL;
 
 	self->parent->buffer->offset	= self->lsize;
 
@@ -111,7 +118,7 @@ struct pstore_extent_ops extent_fastlz_ops = {
  *	Snappy
  */
 
-static void extent_snappy_compress(struct pstore_extent *self, int fd)
+static int extent_snappy_compress(struct pstore_extent *self, int fd)
 {
 	void	*input;
 	size_t	input_length;
@@ -123,15 +130,21 @@ static void extent_snappy_compress(struct pstore_extent *self, int fd)
 
 	compressed	= malloc(snappy_max_compressed_length(input_length));
 	if (!compressed)
-		die("out of memory");
+		return -ENOMEM;
 
 	snappy_raw_compress(input, input_length, compressed, &compressed_length);
 
 	self->lsize	= input_length;
 
-	write_or_die(fd, compressed, compressed_length);
+	if (write_in_full(fd, compressed, compressed_length) != compressed_length) {
+		free(compressed);
+
+		return -1;
+	}
 
 	free(compressed);
+
+	return 0;
 }
 
 static void *extent_snappy_decompress(struct pstore_extent *self, int fd, off_t offset)
@@ -140,7 +153,8 @@ static void *extent_snappy_decompress(struct pstore_extent *self, int fd, off_t 
 	void *compressed;
 	void *uncompressed;
 
-	buffer_resize(self->parent->buffer, self->lsize);
+	if (buffer_resize(self->parent->buffer, self->lsize) < 0)
+		return NULL;
 
 	mmap		= mmap_window_map(self->psize, fd, offset + sizeof(struct pstore_file_extent), self->psize);
 	compressed	= mmap_window_start(mmap);
@@ -148,7 +162,7 @@ static void *extent_snappy_decompress(struct pstore_extent *self, int fd, off_t 
 	uncompressed	= buffer_start(self->parent->buffer);
 
 	if (!snappy_raw_uncompress(compressed, self->psize, uncompressed))
-		die("decompression failed");
+		return NULL;
 
 	self->parent->buffer->offset	= self->lsize;
 

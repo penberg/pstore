@@ -180,7 +180,8 @@ static void pstore_table_import_columns(struct pstore_table *self, const char *f
 		if (column == NULL)
 			die("pstore_column_new");
 
-		pstore_table_add(self, column);
+		if (pstore_table_add(self, column) < 0)
+			die("pstore_table_add");
 	}
 
 	sheets_record_free(record);
@@ -343,10 +344,14 @@ static int import(struct csv_iterator_state *state)
 	header	= pstore_header_new();
 	table	= pstore_table_new(output_file, 0);
 
-	pstore_header_insert_table(header, table);
+	if (pstore_header_insert_table(header, table) < 0)
+		die("pstore_header_insert_table");
+
 	pstore_table_import_columns(table, input_file);
 
-	pstore_header_write(header, output);
+	if (pstore_header_write(header, output) < 0)
+		die("pstore_header_write");
+
 	pstore_table_import_values(table, output, &csv_iterator, state, &details);
 
 	f_size = seek_or_die(output, 0, SEEK_CUR);
@@ -359,7 +364,9 @@ static int import(struct csv_iterator_state *state)
 	 * until now.
 	 */
 	seek_or_die(output, 0, SEEK_SET);
-	pstore_header_write(header, output);
+
+	if (pstore_header_write(header, output) < 0)
+		die("pstore_header_write");
 
 	pstore_header_delete(header);
 
