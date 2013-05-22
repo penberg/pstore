@@ -93,6 +93,8 @@ OBJS += builtin-import.o
 OBJS += builtin-repack.o
 OBJS += builtin-stat.o
 OBJS += builtins-common.o
+OBJS += util.o
+OBJS += die.o
 OBJS += pstore.o
 
 OBJS += $(COMPAT_OBJS)
@@ -122,7 +124,6 @@ STATIC_LIB_FILE := libpstore.a
 LIB_OBJS += buffer.o
 LIB_OBJS += column.o
 LIB_OBJS += compress.o
-LIB_OBJS += die.o
 LIB_OBJS += extent.o
 LIB_OBJS += fastlz/fastlz.o
 LIB_OBJS += header.o
