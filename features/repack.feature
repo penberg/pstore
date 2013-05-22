@@ -1,7 +1,4 @@
-Feature: P-Store repack
-  In order to save disk space
-  As a user
-  I want to optimize the on-disk layout of a P-Store database
+Feature: pstore repack
 
   Scenario: Repack
   Given a 8K long CSV file

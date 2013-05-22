@@ -1,7 +1,4 @@
-Feature: CSV export
-  In order to easily access my data
-  As a user
-  I want to export a P-Store database into a CSV file
+Feature: pstore export
 
   Scenario: Export
   Given a 512K long CSV file

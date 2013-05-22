@@ -1,7 +1,4 @@
-Feature: P-Store extend
-  In order to ensure acceptable performance
-  As a user
-  I want to preallocate extents into a P-Store database
+Feature: pstore extend
 
   Scenario: Extend
   Given a 8K long CSV file
