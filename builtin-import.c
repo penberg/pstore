@@ -158,11 +158,11 @@ static void pstore_table_import_columns(struct pstore_table *self, const char *f
 	if (input == NULL)
 		die("fopen: %s", strerror(errno));
 
-	reader = sheets_read_file(input, &sheets_csv);
+	reader = sheets_read_file(input, &csv_iterator_settings);
 	if (reader == NULL)
 		die("sheets_read_file");
 
-	record = sheets_record_alloc(&sheets_csv);
+	record = sheets_record_alloc(&csv_iterator_settings);
 	if (record == NULL)
 		die("sheets_record_alloc");
 

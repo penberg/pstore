@@ -3,10 +3,11 @@ require 'rspec/expectations'
 require 'tempfile'
 
 Before do
-  @csv_base_file      = Tempfile.open("csv-base")
-  @csv_input_file     = Tempfile.open("csv-input")
-  @csv_output_file    = Tempfile.open("csv-output")
-  @pstore_output_file = Tempfile.open("pstore-output")
+  @csv_base_file       = Tempfile.open("csv-base")
+  @csv_input_file      = Tempfile.open("csv-input")
+  @csv_input_delimiter = ","
+  @csv_output_file     = Tempfile.open("csv-output")
+  @pstore_output_file  = Tempfile.open("pstore-output")
 end
 
 After do
@@ -21,6 +22,7 @@ Given /^a ([^\ ]*) long CSV file$/ do |size|
 end
 
 Given /^a ([^\ ]*) long TSV file$/ do |size|
+  @csv_input_delimiter = "\t"
   run "./tools/gencsv/gencsv -t -s #{size} #{@csv_input_file.path}"
 end
 
@@ -45,9 +47,17 @@ When /^I run "pstore repack([^\"]*)"$/ do |options|
   run "./pstore repack #{options} #{@pstore_output_file.path}"
 end
 
+When /^I run "pstore stat"$/ do
+  run "./pstore stat #{@pstore_output_file.path}"
+end
+
 Then /^the database should contain the same data in column order$/ do
   run "./pstore cat #{@pstore_output_file.path} | grep -v \"^#\""
   @stdout.should == parse_csv(@csv_base_file.path, @csv_input_file.path)
+end
+
+Then /^the output should contain:$/ do |expected|
+  @stdout.should include(expected)
 end
 
 Then /^the CSV files should be identical$/ do
@@ -63,7 +73,7 @@ def parse_csv(*files)
   values = Hash.new
   values.default = ""
   files.each do |file|
-    CSV.foreach(file, :headers => true) do |row|
+    CSV.foreach(file, :headers => true, :col_sep => @csv_input_delimiter) do |row|
       (0..row.length-1).each do |column|
         values[column] = values[column] + row[column] + "\n"
       end
