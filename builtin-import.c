@@ -11,7 +11,7 @@
 #include "pstore/core.h"
 #include "pstore/die.h"
 #include "pstore/row.h"
-#include "sheets/sheets.h"
+#include "fields/fields.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -27,8 +27,8 @@ struct csv_iterator_state {
 	int			fd;
 	off_t			file_size;
 
-	struct sheets_reader	*reader;
-	struct sheets_record	*record;
+	struct fields_reader	*reader;
+	struct fields_record	*record;
 };
 
 #define MAX_WINDOW_LEN		MiB(128)
@@ -42,13 +42,9 @@ struct pstore_import_details	details;
 
 #define BUF_LEN	1024
 
-struct sheets_settings csv_iterator_settings = {
+struct fields_format csv_iterator_format = {
 	.delimiter	= ',',
-	.escape		= '\0',
-	.quote		= '\0',
-	.file_buffer_size	= SHEETS_DEFAULT_FILE_BUFFER_SIZE,
-	.record_buffer_size	= SHEETS_DEFAULT_RECORD_BUFFER_SIZE,
-	.record_max_fields	= SHEETS_DEFAULT_RECORD_MAX_FIELDS
+	.quote		= '\0'
 };
 
 static void csv_iterator_begin(void *private)
@@ -61,26 +57,26 @@ static void csv_iterator_begin(void *private)
 	if (source == NULL)
 		die("mmap_source_alloc");
 
-	iter->reader = sheets_reader_alloc(source, &mmap_source_read, &mmap_source_free,
-		&csv_iterator_settings);
+	iter->reader = fields_reader_alloc(source, &mmap_source_read, &mmap_source_free,
+		&csv_iterator_format, &fields_defaults);
 	if (iter->reader == NULL)
-		die("sheets_reader_alloc");
+		die("fields_reader_alloc");
 
-	iter->record = sheets_record_alloc(&csv_iterator_settings);
+	iter->record = fields_record_alloc(&fields_defaults);
 	if (iter->record == NULL)
-		die("sheets_record_alloc");
+		die("fields_record_alloc");
 
 	/* Skip header row. */
-	if (sheets_reader_read(iter->reader, iter->record) != 0)
+	if (fields_reader_read(iter->reader, iter->record) != 0)
 		die("premature end of file");
 }
 
 static bool csv_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
 {
-	struct sheets_record *record = self->private;
-	struct sheets_field field;
+	struct fields_record *record = self->private;
+	struct fields_field field;
 
-	if (sheets_record_field(record, column->column_id, &field) != 0)
+	if (fields_record_field(record, column->column_id, &field) != 0)
 		return false;
 
 	value->s = field.value;
@@ -97,7 +93,7 @@ static bool csv_iterator_next(void *private, struct pstore_row *row)
 {
 	struct csv_iterator_state *iter = private;
 
-	if (sheets_reader_read(iter->reader, iter->record) != 0)
+	if (fields_reader_read(iter->reader, iter->record) != 0)
 		return false;
 
 	*row		= (struct pstore_row) {
@@ -112,8 +108,8 @@ static void csv_iterator_end(void *private)
 {
 	struct csv_iterator_state *iter = private;
 
-	sheets_reader_free(iter->reader);
-	sheets_record_free(iter->record);
+	fields_reader_free(iter->reader);
+	fields_record_free(iter->record);
 }
 
 static struct pstore_iterator csv_iterator = {
@@ -150,31 +146,31 @@ static struct pstore_table *pstore_header_select_table(struct pstore_header *sel
 static void pstore_table_import_columns(struct pstore_table *self, const char *filename)
 {
 	FILE *input;
-	struct sheets_reader *reader;
-	struct sheets_record *record;
+	struct fields_reader *reader;
+	struct fields_record *record;
 	unsigned long ndx;
 
 	input = fopen(filename, "r");
 	if (input == NULL)
 		die("fopen: %s", strerror(errno));
 
-	reader = sheets_read_file(input, &csv_iterator_settings);
+	reader = fields_read_file(input, &csv_iterator_format, &fields_defaults);
 	if (reader == NULL)
-		die("sheets_read_file");
+		die("fields_read_file");
 
-	record = sheets_record_alloc(&csv_iterator_settings);
+	record = fields_record_alloc(&fields_defaults);
 	if (record == NULL)
-		die("sheets_record_alloc");
+		die("fields_record_alloc");
 
-	if (sheets_reader_read(reader, record) != 0)
-		die("sheets_reader_read");
+	if (fields_reader_read(reader, record) != 0)
+		die("fields_reader_read");
 
-	for (ndx = 0; ndx < sheets_record_size(record); ndx++) {
-		struct sheets_field	field;
+	for (ndx = 0; ndx < fields_record_size(record); ndx++) {
+		struct fields_field	field;
 		struct pstore_column	*column;
 
-		if (sheets_record_field(record, ndx, &field) != 0)
-			die("sheets_record_field");
+		if (fields_record_field(record, ndx, &field) != 0)
+			die("fields_record_field");
 
 		column = pstore_column_new(field.value, ndx, VALUE_TYPE_STRING);
 		if (column == NULL)
@@ -184,9 +180,9 @@ static void pstore_table_import_columns(struct pstore_table *self, const char *f
 			die("pstore_table_add");
 	}
 
-	sheets_record_free(record);
+	fields_record_free(record);
 
-	sheets_reader_free(reader);
+	fields_reader_free(reader);
 
 	fclose(input);
 }
@@ -249,7 +245,7 @@ static void parse_args(int argc, char *argv[])
 			details.comp			= parse_comp_arg(optarg);
 			break;
 		case 'd':
-			csv_iterator_settings.delimiter	= optarg[0];
+			csv_iterator_format.delimiter	= optarg[0];
 			break;
 		case 'e':
 			details.max_extent_len		= parse_storage_arg(optarg);
@@ -258,7 +254,7 @@ static void parse_args(int argc, char *argv[])
 			table_ref			= optarg;
 			break;
 		case 'u':
-			csv_iterator_settings.quote	= optarg[0];
+			csv_iterator_format.quote	= optarg[0];
 			break;
 		case 'w':
 			max_window_len			= parse_storage_arg(optarg);

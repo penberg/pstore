@@ -131,7 +131,7 @@ LIB_OBJS += mmap-source.o
 LIB_OBJS += mmap-window.o
 LIB_OBJS += read-write.o
 LIB_OBJS += segment.o
-LIB_OBJS += sheets/sheets.o
+LIB_OBJS += fields/fields.o
 ifneq ($(SNAPPY_HOME),)
 LIB_OBJS += snappy/snappy_compat.o
 endif
