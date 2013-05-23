@@ -216,7 +216,6 @@ $(TEST_SUITE_H): $(FORCE)
 
 $(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(STATIC_LIB_FILE)
 	$(E) "  LINK    " $@
-	$(E) "  LINK    " $<
 	$(Q) $(CC) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(TEST_LIBS) -o $(TEST_PROGRAM)
 
 clean:
