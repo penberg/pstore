@@ -107,6 +107,8 @@ int cmd_cat(int argc, char *argv[])
 		die("posix_fadvise");
 
 	header = pstore_header_read(input);
+	if (!header)
+		die("pstore_header_read");
 
 	pstore_header_cat(header, input);
 
