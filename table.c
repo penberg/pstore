@@ -91,7 +91,7 @@ struct pstore_table *pstore_table_read(int fd)
 int pstore_table_write(struct pstore_table *self, int fd)
 {
 	struct pstore_file_table f_table;
-	uint64_t start_off, end_off;
+	off_t start_off, end_off;
 	unsigned long ndx;
 	uint64_t size;
 

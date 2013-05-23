@@ -84,8 +84,8 @@ int pstore_header_write(struct pstore_header *self, int fd)
 {
 	struct pstore_file_table_idx f_index;
 	struct pstore_file_header f_header;
-	uint64_t start_off, end_off;
-	uint64_t t_index_off;
+	off_t start_off, end_off;
+	off_t t_index_off;
 	unsigned long ndx;
 	uint64_t size;
 
