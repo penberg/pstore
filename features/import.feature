@@ -10,7 +10,7 @@ Feature: CSV import
 
   Scenario: Uncompressed import from tab separated values
   Given a 32K long TSV file
-  When I run "pstore import --delimiter=$'\t'"
+  When I run "pstore import --format=tsv"
   Then the database should contain the same data in column order
 
   Scenario: FastLZ compressed import
@@ -49,7 +49,7 @@ Feature: CSV import
 
   Scenario: Column detection for tab separated values
   Given a 32K long TSV file
-  When I run "pstore import --delimiter=$'\t'"
+  When I run "pstore import --format=tsv"
   And I run "pstore stat"
   Then the output should contain:
     """
