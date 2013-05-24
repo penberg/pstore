@@ -9,6 +9,7 @@
 #include <inttypes.h>
 #include <sys/stat.h>
 #include <stdbool.h>
+#include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -59,23 +60,6 @@ static void pstore_header_cat(struct pstore_header *self, int fd)
 	}
 }
 
-static bool arg_matches(char *arg, const char *prefix)
-{
-	return strncmp(arg, prefix, strlen(prefix)) == 0;
-}
-
-static void parse_args(int argc, char *argv[])
-{
-	int ndx = 2;
-
-	if (arg_matches(argv[ndx], "-q") || arg_matches(argv[ndx], "--quiet")) {
-		quiet_mode	= true;
-		ndx++;
-	}
-
-	input_file		= argv[ndx];
-}
-
 static void usage(void)
 {
 	printf("\n usage: pstore cat [OPTIONS] INPUT\n");
@@ -83,6 +67,32 @@ static void usage(void)
 	printf("   -q, --quiet                  print only table and column headers\n");
 	printf("\n");
 	exit(EXIT_FAILURE);
+}
+
+static const struct option options[] = {
+	{ "quiet",		no_argument,		NULL, 'q' },
+	{ }
+};
+
+static void parse_args(int argc, char *argv[])
+{
+	int opt;
+
+	while ((opt = getopt_long(argc, argv, "q", options, NULL)) != -1) {
+		switch (opt) {
+		case 'q':
+			quiet_mode = true;
+			break;
+		default:
+			usage();
+			break;
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
+
+	input_file		= argv[0];
 }
 
 int cmd_cat(int argc, char *argv[])
@@ -94,7 +104,7 @@ int cmd_cat(int argc, char *argv[])
 	if (argc < 3)
 		usage();
 
-	parse_args(argc, argv);
+	parse_args(argc - 1, argv + 1);
 
 	input = open(input_file, O_RDONLY);
 	if (input < 0)
