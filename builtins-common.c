@@ -74,7 +74,7 @@ bool is_int_arg(char *arg)
 
 bool id_or_name_matches(uint64_t id, const char *name, char *ref)
 {
-        if (is_int_arg(ref)) {
+	if (is_int_arg(ref)) {
 		if (parse_int_arg(ref) == id)
 			return true;
 	}
