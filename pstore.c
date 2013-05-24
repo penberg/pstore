@@ -42,15 +42,20 @@ static struct builtin_cmd *parse_builtin_cmd(int argc, char *argv[])
 
 static void usage(void)
 {
-	printf("\n usage: %s COMMAND [ARGS]\n", program);
-	printf("\n The commands are:\n");
-	printf("   cat       Print database data to standard output\n");
-	printf("   export    Export data from database\n");
-	printf("   extend    Preallocate extents in database on-disk layout\n");
-	printf("   import    Import data to database\n");
-	printf("   repack    Optimize database on-disk layout\n");
-	printf("   stat      Examine database file structure\n");
-	printf("\n");
+#define FMT									\
+"\n usage: %s COMMAND [ARGS]\n"						\
+"\n The commands are:\n"						\
+"   cat       Print database data to standard output\n"			\
+"   export    Export data from database\n"				\
+"   extend    Preallocate extents in database on-disk layout\n"		\
+"   import    Import data to database\n"				\
+"   repack    Optimize database on-disk layout\n"			\
+"   stat      Examine database file structure\n"			\
+"\n"
+	fprintf(stderr, FMT, program);
+
+#undef FMT
+
 	exit(EXIT_FAILURE);
 }
 
