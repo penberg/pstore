@@ -1,10 +1,7 @@
-Feature: CSV export
-  In order to easily access my data
-  As a user
-  I want to export a P-Store database into a CSV file
+Feature: pstore export
 
   Scenario: Export
-  Given a 512K long CSV file
-  When I run "pstore import --max-extent-len=1K"
-  And I run "pstore export"
-  Then the CSV files should be identical
+    Given a 512K data file named "input.csv"
+    When I run `pstore import --max-extent-len=1K input.csv test.pstore`
+    And I run `pstore export test.pstore output.csv`
+    Then the files named "input.csv" and "output.csv" should be equal

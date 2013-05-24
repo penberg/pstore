@@ -1,17 +1,16 @@
-Feature: P-Store extend
-  In order to ensure acceptable performance
-  As a user
-  I want to preallocate extents into a P-Store database
+Feature: pstore extend
 
   Scenario: Extend
-  Given a 8K long CSV file
-  When I run "pstore import"
-  And I run "pstore extend --extent-len=8K"
-  Then the database should contain the same data in column order
+    Given a 8K data file named "test.csv"
+    When I run `pstore import test.csv test.pstore`
+    And I run `pstore extend --extent-len=8K test.pstore`
+    Then the database named "test.pstore" should consist of the data file named "test.csv"
 
   Scenario: Append after extend
-  Given a 8K long CSV file
-  And a 8K long database
-  When I run "pstore extend --extent-len=16K"
-  And I run "pstore import --append"
-  Then the database should contain the same data in column order
+    Given a 8K data file named "additional.csv"
+    And a 8K database named "test.pstore" based on a data file named "initial.csv"
+    When I run `pstore extend --extent-len=16K test.pstore`
+    And I run `pstore import --append additional.csv test.pstore`
+    Then the database named "test.pstore" should consist of the following data files:
+      | initial.csv    |
+      | additional.csv |
