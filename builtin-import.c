@@ -35,6 +35,7 @@ struct csv_iterator_state {
 #define MAX_EXTENT_LEN		MiB(128)
 
 static char			*input_file;
+static char			*input_format;
 static char			*output_file;
 static char			*table_ref;
 static uint64_t			max_window_len = MAX_WINDOW_LEN;
@@ -208,9 +209,13 @@ static void usage(void)
 	printf("   -c, --compress SCHEME        set compression scheme (default: none)\n");
 	printf("   -d, --delimiter              set delimiter character (default: ',')\n");
 	printf("   -e, --max-extent-len LENGTH  set maximum extent length (default: 128M)\n");
+	printf("   -f, --format FORMAT          set input format\n");
 	printf("   -t, --table REF              set table (--append)\n");
 	printf("   -u, --quote                  set quote character (default: none)\n");
 	printf("   -w, --window-len LENGTH      set mmap window length (default: 128M)\n");
+	printf("\n The supported input formats are:\n");
+	printf("   csv\n");
+	printf("   tsv\n");
 	comp_arg_usage();
 	printf("\n");
 	exit(EXIT_FAILURE);
@@ -220,6 +225,7 @@ static const struct option options[] = {
 	{ "append",		no_argument,		NULL, 'a' },
 	{ "compress",		required_argument,	NULL, 'c' },
 	{ "delimiter",		required_argument,	NULL, 'd' },
+	{ "format",		required_argument,	NULL, 'f' },
 	{ "max-extent-len",	required_argument,	NULL, 'e' },
 	{ "table",		required_argument,	NULL, 't' },
 	{ "quote",		required_argument,	NULL, 'u' },
@@ -231,6 +237,7 @@ static void parse_args(int argc, char *argv[])
 {
 	int ch;
 
+	input_format		= NULL;
 	table_ref		= NULL;
 	details.max_extent_len	= MAX_EXTENT_LEN;
 	details.comp		= PSTORE_COMP_NONE;
@@ -249,6 +256,9 @@ static void parse_args(int argc, char *argv[])
 			break;
 		case 'e':
 			details.max_extent_len		= parse_storage_arg(optarg);
+			break;
+		case 'f':
+			input_format			= optarg;
 			break;
 		case 't':
 			table_ref			= optarg;
@@ -269,6 +279,15 @@ static void parse_args(int argc, char *argv[])
 
 	if (details.comp >= NR_PSTORE_COMP)
 		usage();
+
+	if (input_format != NULL) {
+		if (strcmp(input_format, "csv") == 0)
+			csv_iterator_format = fields_csv;
+		else if (strcmp(input_format, "tsv") == 0)
+			csv_iterator_format = fields_tsv;
+		else
+			usage();
+	}
 
 	input_file		= argv[0];
 	output_file		= argv[1];
