@@ -2,6 +2,7 @@
 #include "pstore/string.h"
 #include "pstore/core.h"
 
+#include <libgen.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -12,6 +13,8 @@ struct builtin_cmd {
 	const char		*name;
 	builtin_cmd_fn		cmd_fn;
 };
+
+static const char *program;
 
 #define DEFINE_BUILTIN(n, c) { .name = n, .cmd_fn = c }
 
@@ -39,7 +42,7 @@ static struct builtin_cmd *parse_builtin_cmd(int argc, char *argv[])
 
 static void usage(void)
 {
-	printf("\n usage: pstore COMMAND [ARGS]\n");
+	printf("\n usage: %s COMMAND [ARGS]\n", program);
 	printf("\n The commands are:\n");
 	printf("   cat       Print database data to standard output\n");
 	printf("   export    Export data from database\n");
@@ -54,6 +57,8 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	struct builtin_cmd *cmd;
+
+	program = basename(argv[0]);
 
 	if (argc < 2)
 		usage();
