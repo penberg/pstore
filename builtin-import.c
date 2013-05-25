@@ -23,7 +23,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-struct csv_iterator_state {
+struct dsv_iterator_state {
 	int			fd;
 	off_t			file_size;
 
@@ -43,14 +43,14 @@ struct pstore_import_details	details;
 
 #define BUF_LEN	1024
 
-struct fields_format csv_iterator_format = {
+struct fields_format dsv_iterator_format = {
 	.delimiter	= ',',
 	.quote		= '\0'
 };
 
-static void csv_iterator_begin(void *private)
+static void dsv_iterator_begin(void *private)
 {
-	struct csv_iterator_state *iter = private;
+	struct dsv_iterator_state *iter = private;
 
 	struct mmap_source *source;
 
@@ -59,7 +59,7 @@ static void csv_iterator_begin(void *private)
 		die("mmap_source_alloc");
 
 	iter->reader = fields_reader_alloc(source, &mmap_source_read, &mmap_source_free,
-		&csv_iterator_format, &fields_defaults);
+		&dsv_iterator_format, &fields_defaults);
 	if (iter->reader == NULL)
 		die("fields_reader_alloc");
 
@@ -72,7 +72,7 @@ static void csv_iterator_begin(void *private)
 		die("premature end of file");
 }
 
-static bool csv_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
+static bool dsv_row_value(struct pstore_row *self, struct pstore_column *column, struct pstore_value *value)
 {
 	struct fields_record *record = self->private;
 	struct fields_field field;
@@ -87,12 +87,12 @@ static bool csv_row_value(struct pstore_row *self, struct pstore_column *column,
 }
 
 static struct pstore_row_operations row_ops = {
-	.row_value	= csv_row_value,
+	.row_value	= dsv_row_value,
 };
 
-static bool csv_iterator_next(void *private, struct pstore_row *row)
+static bool dsv_iterator_next(void *private, struct pstore_row *row)
 {
-	struct csv_iterator_state *iter = private;
+	struct dsv_iterator_state *iter = private;
 
 	if (fields_reader_read(iter->reader, iter->record) != 0)
 		return false;
@@ -105,18 +105,18 @@ static bool csv_iterator_next(void *private, struct pstore_row *row)
 	return true;
 }
 
-static void csv_iterator_end(void *private)
+static void dsv_iterator_end(void *private)
 {
-	struct csv_iterator_state *iter = private;
+	struct dsv_iterator_state *iter = private;
 
 	fields_reader_free(iter->reader);
 	fields_record_free(iter->record);
 }
 
-static struct pstore_iterator csv_iterator = {
-	.begin		= csv_iterator_begin,
-	.next		= csv_iterator_next,
-	.end		= csv_iterator_end,
+static struct pstore_iterator dsv_iterator = {
+	.begin		= dsv_iterator_begin,
+	.next		= dsv_iterator_next,
+	.end		= dsv_iterator_end,
 };
 
 static struct pstore_table *pstore_header_select_table(struct pstore_header *self)
@@ -155,7 +155,7 @@ static void pstore_table_import_columns(struct pstore_table *self, const char *f
 	if (input == NULL)
 		die("fopen: %s", strerror(errno));
 
-	reader = fields_read_file(input, &csv_iterator_format, &fields_defaults);
+	reader = fields_read_file(input, &dsv_iterator_format, &fields_defaults);
 	if (reader == NULL)
 		die("fields_read_file");
 
@@ -188,7 +188,7 @@ static void pstore_table_import_columns(struct pstore_table *self, const char *f
 	fclose(input);
 }
 
-static int csv_nr_columns(const char *filename)
+static int dsv_nr_columns(const char *filename)
 {
 	int nr_columns;
 	struct pstore_table *table;
@@ -252,7 +252,7 @@ static void parse_args(int argc, char *argv[])
 			details.comp			= parse_comp_arg(optarg);
 			break;
 		case 'd':
-			csv_iterator_format.delimiter	= optarg[0];
+			dsv_iterator_format.delimiter	= optarg[0];
 			break;
 		case 'e':
 			details.max_extent_len		= parse_storage_arg(optarg);
@@ -264,7 +264,7 @@ static void parse_args(int argc, char *argv[])
 			table_ref			= optarg;
 			break;
 		case 'u':
-			csv_iterator_format.quote	= optarg[0];
+			dsv_iterator_format.quote	= optarg[0];
 			break;
 		case 'w':
 			max_window_len			= parse_storage_arg(optarg);
@@ -282,9 +282,9 @@ static void parse_args(int argc, char *argv[])
 
 	if (input_format != NULL) {
 		if (strcmp(input_format, "csv") == 0)
-			csv_iterator_format = fields_csv;
+			dsv_iterator_format = fields_csv;
 		else if (strcmp(input_format, "tsv") == 0)
-			csv_iterator_format = fields_tsv;
+			dsv_iterator_format = fields_tsv;
 		else
 			usage();
 	}
@@ -293,7 +293,7 @@ static void parse_args(int argc, char *argv[])
 	output_file		= argv[1];
 }
 
-static int append(struct csv_iterator_state *state)
+static int append(struct dsv_iterator_state *state)
 {
 	struct pstore_header *header;
 	struct pstore_table *table;
@@ -315,10 +315,10 @@ static int append(struct csv_iterator_state *state)
 
 	table = pstore_header_select_table(header);
 
-	if (table->nr_columns != csv_nr_columns(input_file))
+	if (table->nr_columns != dsv_nr_columns(input_file))
 		die("number of columns does not match");
 
-	pstore_table_import_values(table, output, &csv_iterator, state, &details);
+	pstore_table_import_values(table, output, &dsv_iterator, state, &details);
 
 	f_offset = seek_or_die(output, 0, SEEK_CUR);
 
@@ -342,7 +342,7 @@ static int append(struct csv_iterator_state *state)
 	return 0;
 }
 
-static int import(struct csv_iterator_state *state)
+static int import(struct dsv_iterator_state *state)
 {
 	struct pstore_header *header;
 	struct pstore_table *table;
@@ -367,7 +367,7 @@ static int import(struct csv_iterator_state *state)
 	if (pstore_header_write(header, output) < 0)
 		die("pstore_header_write");
 
-	pstore_table_import_values(table, output, &csv_iterator, state, &details);
+	pstore_table_import_values(table, output, &dsv_iterator, state, &details);
 
 	f_size = seek_or_die(output, 0, SEEK_CUR);
 
@@ -396,7 +396,7 @@ static int import(struct csv_iterator_state *state)
 
 int cmd_import(int argc, char *argv[])
 {
-	struct csv_iterator_state state;
+	struct dsv_iterator_state state;
 	int input;
 	struct stat st;
 
@@ -415,7 +415,7 @@ int cmd_import(int argc, char *argv[])
 	if (fstat(input, &st) < 0)
 		die("fstat");
 
-	state = (struct csv_iterator_state) {
+	state = (struct dsv_iterator_state) {
 		.fd		= input,
 		.file_size	= st.st_size,
 	};
