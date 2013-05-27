@@ -9,10 +9,6 @@ Given /^a ([^\ ]*) database named "([^"]*)" based on a data file named "([^"]*)"
   step "I run `pstore import #{filename} #{database}`"
 end
 
-# Given /^a ([^\ ]*) database named "([^"]*)"$/ do |size, database|
-#   step "a #{size} database named \"#{database}\" based on a data file named \"#{database}.csv\""
-# end
-
 Then /^the files named "([^"]*)" and "([^"]*)" should be equal$/ do |a, b|
   step "I run `diff #{a} #{b}`"
   step "the output should contain exactly \"\""
