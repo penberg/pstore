@@ -14,6 +14,12 @@ struct pstore_value {
 	size_t			len;
 };
 
+static inline void pstore_value_string(struct pstore_value *self, const char *s, size_t len)
+{
+	self->s		= s;
+	self->len	= len;
+}
+
 static inline void pstore_value_format(struct pstore_value *self, struct buffer *buf)
 {
 	buffer_append(buf, self->s, self->len);
