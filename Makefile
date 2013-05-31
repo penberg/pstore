@@ -5,6 +5,7 @@ uname_R	:= $(shell sh -c 'uname -r 2>/dev/null || echo not')
 CC	?= gcc
 CXX	?= g++
 AR	?= ar
+LD	:= $(CC)
 
 # Set up source directory for GNU Make
 srcdir		:= $(CURDIR)
@@ -99,7 +100,6 @@ OBJS += pstore.o
 
 OBJS += $(COMPAT_OBJS)
 
-LIBS := -L. -lpstore
 LIBS += $(EXTRA_LIBS)
 
 CFLAGS += $(DEFINES)
@@ -152,8 +152,6 @@ endif
 TEST_SRC	:= $(patsubst %.o,%.c,$(TEST_OBJS))
 TEST_DEPS	:= $(patsubst %.o,%.d,$(TEST_OBJS))
 
-TEST_LIBS := $(LIBS)
-
 # Targets
 all: sub-make
 .DEFAULT: all
@@ -191,7 +189,7 @@ endif
 
 $(PROGRAM): $(DEPS) $(STATIC_LIB_FILE) $(OBJS)
 	$(E) "  LINK    " $@
-	$(Q) $(CC) $(OBJS) $(LIBS) -o $(PROGRAM)
+	$(Q) $(LD) $(OBJS) $(STATIC_LIB_FILE) -o $(PROGRAM)
 
 $(SHARED_LIB_FILE): $(LIB_DEPS) $(LIB_OBJS)
 	$(E) "  CC      " $@
@@ -216,7 +214,7 @@ $(TEST_SUITE_H): $(FORCE)
 
 $(TEST_PROGRAM): $(TEST_SUITE_H) $(TEST_DEPS) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(STATIC_LIB_FILE)
 	$(E) "  LINK    " $@
-	$(Q) $(CC) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(TEST_LIBS) -o $(TEST_PROGRAM)
+	$(Q) $(LD) $(TEST_OBJS) $(TEST_RUNNER_OBJ) $(STATIC_LIB_FILE) -o $(TEST_PROGRAM)
 
 clean:
 	$(E) "  CLEAN"
