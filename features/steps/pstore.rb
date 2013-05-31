@@ -33,9 +33,9 @@ end
 
 def generate_data_file(size, filename)
   if filename.end_with? '.tsv'
-    run_simple("gencsv -s #{size} -t #{filename}")
+    run_simple("gendsv -s #{size} -t #{filename}")
   else
-    run_simple("gencsv -s #{size} #{filename}")
+    run_simple("gendsv -s #{size} #{filename}")
   end
 end
 
