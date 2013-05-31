@@ -32,11 +32,7 @@ def assert_database_content(database, filenames)
 end
 
 def generate_data_file(size, filename)
-  if filename.end_with? '.tsv'
-    run_simple("gendsv -s #{size} -t #{filename}")
-  else
-    run_simple("gendsv -s #{size} #{filename}")
-  end
+  run_simple("gendsv -s #{size} #{filename}")
 end
 
 def read_data_files(filenames)
