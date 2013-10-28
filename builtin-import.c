@@ -80,8 +80,7 @@ static bool dsv_row_value(struct pstore_row *self, struct pstore_column *column,
 	if (fields_record_field(record, column->column_id, &field) != 0)
 		return false;
 
-	value->s = field.value;
-	value->len = field.length;
+	pstore_value_string(value, field.value, field.length);
 
 	return true;
 }

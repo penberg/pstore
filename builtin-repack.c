@@ -38,10 +38,7 @@ static int repack_extents(struct pstore_column *old_column, struct pstore_column
 	while ((s = pstore_segment_next_value(segment)) != NULL) {
 		struct pstore_value value;
 
-		value		= (struct pstore_value) {
-			.s		= s,
-			.len		= strlen(s),
-		};
+		pstore_value_string(&value, s, strlen(s));
 
 		if (!pstore_extent_has_room(new_column->extent, &value)) {
 			if (pstore_column_flush_write(new_column, output) < 0)

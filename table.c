@@ -237,12 +237,12 @@ int pstore_table_export_values(struct pstore_table *self, struct pstore_iterator
 			if (!pstore_row_value(&row, column, &value))
 				return -1;
 
-			if (!buffer_has_room(buffer, value.len + 1)) {
+			if (!buffer_has_room(buffer, pstore_value_format_length(&value) + 1)) {
 				buffer_write(buffer, output);
 				buffer_clear(buffer);
 			}
 
-			buffer_append(buffer, value.s, value.len);
+			pstore_value_format(&value, buffer);
 			if (ndx == self->nr_columns - 1)
 				buffer_append_char(buffer, '\n');
 			else

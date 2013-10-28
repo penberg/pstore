@@ -66,8 +66,7 @@ static bool pstore_table_row_value(struct pstore_row *self, struct pstore_column
 	if (!str)
 		return false;
 
-	value->s	= str;
-	value->len	= strlen(str);
+	pstore_value_string(value, str, strlen(str));
 
 	return true;
 }

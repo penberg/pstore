@@ -309,13 +309,12 @@ int pstore_extent_write_value(struct pstore_extent *self, struct pstore_value *v
 	if (!pstore_extent_has_room(self, value))
 		return -ENOSPC;
 
-	buffer_append(self->write_buffer, value->s, value->len);
-	buffer_append_char(self->write_buffer, '\0');
+	pstore_value_write(value, self->write_buffer);
 
 	return 0;
 }
 
 bool pstore_extent_has_room(struct pstore_extent *self, struct pstore_value *value)
 {
-	return buffer_has_room(self->write_buffer, value->len + 1);
+	return buffer_has_room(self->write_buffer, pstore_value_write_length(value));
 }
