@@ -3,5 +3,5 @@ compiler:
   - gcc
   - clang
 before_script:
- - sudo apt-get install openssl-dev
+ - sudo apt-get install libssl-dev
 script: make V=1
