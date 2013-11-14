@@ -189,7 +189,7 @@ endif
 
 $(PROGRAM): $(DEPS) $(STATIC_LIB_FILE) $(OBJS)
 	$(E) "  LINK    " $@
-	$(Q) $(LD) $(OBJS) -lssl -lcrypto $(STATIC_LIB_FILE) -o $(PROGRAM)
+	$(Q) $(LD) $(OBJS) $(STATIC_LIB_FILE) -lssl -lcrypto -o $(PROGRAM)
 
 $(SHARED_LIB_FILE): $(LIB_DEPS) $(LIB_OBJS)
 	$(E) "  CC      " $@
