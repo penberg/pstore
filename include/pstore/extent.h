@@ -41,6 +41,8 @@ struct pstore_extent {
 	/* read and write */
 	uint64_t			start_off;
 	uint64_t			end_off;
+
+	unsigned char			hash[PSTORE_EXTENT_HASH_LEN];
 };
 
 struct pstore_extent *pstore_extent_new(struct pstore_column *parent, uint8_t comp);
@@ -63,5 +65,7 @@ static inline void *pstore_extent_next_value(struct pstore_extent *self)
 {
 	return self->ops->next_value(self);
 }
+
+void pstore_extent_sha1(struct pstore_extent *self);
 
 #endif /* PSTORE_EXTENT_H */

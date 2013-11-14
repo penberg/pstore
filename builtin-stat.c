@@ -33,11 +33,17 @@ static void pstore_column_stat(struct pstore_column *self, int fd)
 	printf("    extents:\n");
 
 	while ((extent = pstore_segment_next_extent(segment)) != NULL) {
+		int i;
+
 		printf("       - lsize       : %" PRIu64 "\n", extent->lsize);
 		printf("         psize       : %" PRIu64 "\n", extent->psize);
-		printf("         comp        : %" PRIu8  "\n", extent->comp);
 		printf("         next_extent : %" PRIu64 "\n", extent->next_extent);
-		printf("\n");
+		printf("         comp        : %" PRIu8  "\n", extent->comp);
+		printf("         hash        : ");
+		for (i = 0; i < PSTORE_EXTENT_HASH_LEN; i++) {
+			printf("%x", extent->hash[i]);
+		}
+		printf("\n\n");
 	}
 
 	pstore_segment_delete(segment);

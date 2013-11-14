@@ -187,6 +187,8 @@ int pstore_table_import_values(struct pstore_table *self,
 				return -1;
 
 			if (!pstore_extent_has_room(column->extent, &value)) {
+				pstore_extent_sha1(column->extent);
+
 				if (pstore_column_flush_write(column, fd) < 0)
 					return -1;
 
@@ -206,6 +208,8 @@ int pstore_table_import_values(struct pstore_table *self,
 	 */
 	for (ndx = 0; ndx < self->nr_columns; ndx++) {
 		struct pstore_column *column = self->columns[ndx];
+
+		pstore_extent_sha1(column->extent);
 
 		if (pstore_column_flush_write(column, fd) < 0)
 			return -1;

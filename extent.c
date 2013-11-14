@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #define MMAP_WINDOW_LEN		MiB(128)
 
@@ -152,6 +153,7 @@ struct pstore_extent *pstore_extent_read(struct pstore_column *column, off_t off
 	self->lsize		= f_extent.lsize;
 	self->psize		= f_extent.psize;
 	self->next_extent	= f_extent.next_extent;
+	memcpy(self->hash, f_extent.hash, PSTORE_EXTENT_HASH_LEN);
 
 	if (self->comp >= NR_PSTORE_COMP)
 		return NULL;
@@ -285,9 +287,10 @@ int pstore_extent_write_metadata(struct pstore_extent *self, off_t next_extent, 
 	f_extent = (struct pstore_file_extent) {
 		.psize		= self->psize,
 		.lsize		= self->lsize,
-		.comp		= self->comp,
 		.next_extent	= next_extent,
+		.comp		= self->comp,
 	};
+	memcpy(f_extent.hash, self->hash, PSTORE_EXTENT_HASH_LEN);
 
 	if (write_in_full(fd, &f_extent, sizeof(f_extent)) != sizeof(f_extent))
 		return -1;
@@ -317,4 +320,9 @@ int pstore_extent_write_value(struct pstore_extent *self, struct pstore_value *v
 bool pstore_extent_has_room(struct pstore_extent *self, struct pstore_value *value)
 {
 	return buffer_has_room(self->write_buffer, pstore_value_write_length(value));
+}
+
+void pstore_extent_sha1(struct pstore_extent *self)
+{
+	buffer_sha1(self->write_buffer, self->hash);
 }

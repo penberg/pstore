@@ -9,7 +9,7 @@
  * This header file contains on-disk data structures of pstore files.
  */
 
-#define PSTORE_MAGIC			"PSTORE02"
+#define PSTORE_MAGIC			"PSTORE03"
 #define PSTORE_MAGIC_LEN		8
 
 struct pstore_file_header {
@@ -58,12 +58,16 @@ enum pstore_comp {
 	NR_PSTORE_COMP		/* keep this last */
 };
 
+#define PSTORE_EXTENT_HASH_LEN		20
+
 struct pstore_file_extent {
 	le64			lsize;		/* logical size before compression */
 	le64			psize;		/* physical size after compression */
-	u8			comp;		/* compression algorithm */
-	u8			padding[7];
 	le64			next_extent;
+	u8			comp;		/* compression algorithm */
+	char			padding0[3];
+	char			hash[PSTORE_EXTENT_HASH_LEN];
+	char			padding1[12];
 };
 
 #endif /* PSTORE_DISK_FORMAT_H */

@@ -2,4 +2,6 @@ language: c
 compiler:
   - gcc
   - clang
+before_script:
+ - sudo apt-get install openssl-dev
 script: make V=1

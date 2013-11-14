@@ -55,4 +55,6 @@ static inline void buffer_append_char(struct buffer *self, char ch)
 	*p = ch;
 }
 
+void buffer_sha1(struct buffer *self, unsigned char *hash);
+
 #endif /* PSTORE_BUFFER_H */

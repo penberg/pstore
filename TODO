@@ -1,7 +1,5 @@
 ToDo:
 
-- Checksums for data integrity checks
-
 - CSV column type definitions
 
 - Variable-length integer encoding

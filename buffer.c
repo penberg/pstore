@@ -2,6 +2,7 @@
 
 #include "pstore/read-write.h"
 
+#include <openssl/sha.h>
 #include <stdlib.h>
 
 static struct buffer *buffer_do_new(void *data, size_t capacity)
@@ -65,4 +66,16 @@ ssize_t buffer_write(struct buffer *self, int fd)
 		return -1;
 
 	return nr;
+}
+
+void buffer_sha1(struct buffer *self, unsigned char *hash)
+{
+	unsigned char *data;
+	size_t len;
+
+	data = buffer_start(self);
+
+	len = buffer_size(self);
+
+	SHA1(data, len, hash);
 }

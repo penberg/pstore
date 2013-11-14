@@ -109,12 +109,16 @@ segment.
 An extent has the following format:
 
 ```c
+#define EXTENT_HASH_LEN		20
+
 struct pstore_file_extent {
         uint64_t                lsize;
         uint64_t                psize;
-        uint8_t                 comp;
-        uint8_t                 padding[7];
         uint64_t                next_extent;
+        uint8_t                 comp;
+        uint8_t                 padding0[3];
+        char                    hash[EXTENT_HASH_LEN];
+        uint8_t                 padding1[12];
 };
 ```
 
