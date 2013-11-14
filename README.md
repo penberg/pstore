@@ -16,7 +16,53 @@ workloads.
 
 [C-Store]: http://db.csail.mit.edu/projects/cstore/
 
-## Building pstore
+## Installation
+
+First, install dependencies:
+
+**Fedora:**
+
+```
+$ yum install openssl-devel
+```
+
+**Debian:**
+
+```
+$ apt-get install libssl-dev
+```
+
+Then install pstore:
+
+```
+$ make install
+```
+
+The command installs an executable ``pstore`` to ``$HOME/bin``.
+
+## Usage
+
+The first step is to create a database file. You can import a CSV file
+into a pstore database with the following command:
+
+```
+pstore import dataset.csv dataset.out
+```
+
+After that, you can use the `pstore cat` command to look into the imported
+database:
+
+```
+pstore cat dataset.out
+```
+
+With `pstore import --append` you can append more data into a pstore database:
+
+```
+pstore import --append moredata.csv dataset.out
+```
+
+## Running Tests
 
 Pstore's test suite requires [Ruby][] 1.9 and [Bundler][]. If your
 operating system does not have Ruby 1.9, take a look at [rbenv][] or
@@ -39,25 +85,6 @@ make check
 [RVM]:     http://beginrescueend.com/
 [rbenv]:   https://github.com/sstephenson/rbenv
 
+## License
 
-## Trying it out
-
-The first step is to create a database file. You can import a CSV file
-into a pstore database with the following command:
-
-```
-pstore import dataset.csv dataset.out
-```
-
-After that, you can use the `pstore cat` command to look into the imported
-database:
-
-```
-pstore cat dataset.out
-```
-
-With `pstore import --append` you can append more data into a pstore database:
-
-```
-pstore import --append moredata.csv dataset.out
-```
+Pstore is distributed under the LGPL version 2.1 license.

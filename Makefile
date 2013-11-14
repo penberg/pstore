@@ -1,6 +1,11 @@
 uname_S	:= $(shell sh -c 'uname -s 2>/dev/null || echo not')
 uname_R	:= $(shell sh -c 'uname -r 2>/dev/null || echo not')
 
+PREFIX ?= $(HOME)
+
+DESTDIR=
+BINDIR=$(PREFIX)/bin
+
 # External programs
 CC	?= gcc
 CXX	?= g++
@@ -52,6 +57,8 @@ export E Q
 
 # Project files
 PROGRAM := pstore
+
+INST_PROGRAMS = pstore
 
 DEFINES =
 INCLUDES =
@@ -232,6 +239,16 @@ endif
 
 check: test regress
 .PHONY: check
+
+define INSTALL_EXEC
+	install -v $1 $(DESTDIR)$2/$1 || exit 1;
+endef
+
+install: all
+	$(E) "  INSTALL "
+	$(Q) install -d $(DESTDIR)$(BINDIR)
+	$(Q) $(foreach f,$(INST_PROGRAMS),$(call INSTALL_EXEC,$f,$(BINDIR)))
+.PHONY: install
 
 tags: FORCE
 	$(E) "  TAGS"
