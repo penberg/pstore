@@ -1,5 +1,7 @@
 # pstore
 
+[![Build Status](https://secure.travis-ci.org/penberg/pstore.png?branch=master)](http://travis-ci.org/penberg/pstore)
+
 Pstore is a high-performance, read-optimized database system. The core
 is implemented as a shared library `libpstore` that can be embedded in
 third-party applications.
