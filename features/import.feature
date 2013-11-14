@@ -32,7 +32,7 @@ Feature: pstore import
   Scenario: Append to existing table
     Given a 1K data file named "additional.csv"
     And a 1K database named "test.pstore" based on a data file named "initial.csv"
-    When I run `pstore import --append --table=0 additional.csv test.pstore`
+    When I run `pstore import --append additional.csv test.pstore`
     Then the database named "test.pstore" should consist of the following data files:
       | initial.csv    |
       | additional.csv |
